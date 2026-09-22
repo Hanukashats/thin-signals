@@ -29,7 +29,7 @@ Revision: **7.2** · Date: **2026-09-22** · Living contract
 | Eval | `ts eval` CLI | адаптер CSV/JSON организаторов; P/R/F1; отчёт в `reports/` |
 | SoT | PostgreSQL 16 + pgvector + FTS | documents, fragments, entities, events, claims, edges, observations, decisions, runs |
 | Snapshots | `snapshots/<sha256>` на диске + `documents.blob_ref` | immutable; бэкап tar |
-| LLM | LiteLLM alias `ts-llm-allowlisted` → провайдер из списка ТЗ | `model_id` логируется; OpenRouter только dev |
+| LLM | OpenRouter, режим ZDR (см. §7), модели только из списка ТЗ | `provider` + `model_id` логируются в каждом ответе |
 | Embeddings | TEI bge-m3 через LiteLLM `embedding-local` (VM101) | dim pinned; laptop-профиль: FTS без векторов |
 | Search | SearXNG (VM101 :28088 или локальный контейнер) | JSON API; engines pinned |
 | Ingest | Docling Serve (VM101 :5001); fallback trafilatura/pdfminer | text + metadata + language |
@@ -67,3 +67,16 @@ reports/            eval_<date>.md, live-run receipts
 ## 6. Открытые развилки
 
 `llm.provider` (ключи — operator gate). Закрыты в 7.2: `tz.classifier`, `backend.reuse`, `graph.neo4j`, `sources.epo_cordis`, `ui.stack`.
+
+## 7. LLM-провайдер и защита данных (условие организатора, 2026-09-22)
+
+Доступ к LLM — через OpenRouter API с включённой защитой данных: на уровне организации в OpenRouter включён режим Zero Data Retention и запрет обучения на данных; в каждом запросе передаётся `provider: {zdr: true, data_collection: deny}`, поэтому маршрутизация возможна только на endpoint'ы провайдеров, которые не хранят промпты и ответы. Используются только модели из списка ТЗ:
+
+| Роль | Модель (id OpenRouter) | ZDR-провайдеры | Цена in/out, $/1M |
+|---|---|---|---|
+| Основная: извлечение фактов, разметка признаков P/M, резюме RU | `qwen/qwen3.6-35b-a3b` | DeepInfra, CoreWeave, Parasail, AkashML, SiliconFlow, Phala | 0.10 / 0.90 |
+| Судья/эскалация: спорные карточки, финальный ТОП-15 | `openai/gpt-5.6-luna` | Azure | 0.20 / 1.20 |
+| Fallback семейства Qwen (медленнее) | `qwen/qwen3-235b-a22b-2507` | DeepInfra, Nebius, Novita, Parasail | 0.09 / 0.55 |
+| Резерв (дорого) | `openai/gpt-4.1` | Azure | 2.00 / 8.00 |
+
+Автовыбор моделей (`openrouter/auto`) не используется. Ответ, чей `provider` не входит в `/api/v1/endpoints/zdr`, отбрасывается харнессом; `provider` и `model_id` сохраняются в `runs`. LLM не даёт числа для скоринга (§2) и не строит выдачу «из памяти» — только из snapshot'ов найденных источников.

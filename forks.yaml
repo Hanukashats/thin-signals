@@ -48,22 +48,33 @@ forks:
     related_requirements: [TZ-01, EV-01, EV-02, EV-03]
 
   - id: llm.provider
-    status: open
-    decision: null
-    preferred_default: BEST_FIT
+    status: decided
+    decision: openrouter_zdr
+    decided_at: "2026-09-22"
+    decided_by: operator (organizer Svetlana confirmed in chat 2026-09-22)
+    preferred_default: openrouter_zdr
     alternatives:
+      - id: openrouter_zdr
+        summary: >
+          OpenRouter with per-request provider policy {zdr: true, data_collection: deny}
+          and org-level ZDR/"no training" enabled. Only TZ-listed model ids:
+          primary qwen/qwen3.6-35b-a3b, judge/escalation openai/gpt-5.6-luna,
+          fallback qwen/qwen3-235b-a22b-2507; gpt-4.1 reserved (10x price).
       - id: yandex_ai_studio
-        summary: YandexGPT 5 / Qwen3 235B via OpenAI-compatible endpoint behind LiteLLM alias ts-llm-allowlisted
+        summary: YandexGPT 5 / Qwen3 235B via OpenAI-compatible endpoint (not on OpenRouter; needs separate keys)
       - id: gigachat
-        summary: GigaChat 2 Lite/Pro/Max API
+        summary: GigaChat 2 Lite/Pro/Max API (not on OpenRouter; needs separate keys)
       - id: openai_direct
-        summary: gpt-4.1 direct (not via OpenRouter)
+        summary: gpt-4.1 direct
       - id: local_hf_cpu
         summary: Small Qwen3 via llama.cpp on CPU — slow, no cloud
     selection_rule: >
-      Operator provides keys → BEST_FIT=yandex_ai_studio. Until then dev uses OpenRouter
-      through the same alias with model_id logged and NO claim of TZ compliance.
-    operator_gate: true
+      Organizer allowed OpenRouter if data protection is on and only ZDR-capable models are used,
+      and the architecture description states it. Every response must carry provider + model_id;
+      the harness refuses a response whose provider is not in the ZDR endpoint list.
+    evidence:
+      - reports/llm-provider-zdr-2026-09-22.md
+    operator_gate: false
     related_waves: [W1-contract, W3-live]
     related_requirements: [TZ-10, LLM-01]
 

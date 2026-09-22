@@ -15,7 +15,7 @@
 - **A. Классификация = логическая модель.** Детерминированный скоринг на признаках P01–P18 и контр-признаках зрелости M01–M06 (`docs/METHODOLOGY.md`); LLM только извлекает типизированные факты из найденных источников. Fork `tz.classifier` → **decided `logical_scorer`**. P/R/F1 считаются `ts eval` на holdout + корпусе контрпримеров в формате организаторов; пороги калибруются и фиксируются версией правил. Соответствие п. 7.1 ТЗ заявляется только по артефактам прогона.
 - **B. Стек сжат** до PostgreSQL 16 + pgvector, FastAPI, Streamlit, Python harness (state machine). Убраны Neo4j, S3, Procrastinate, OIDC/tenant, BERTopic, Refine-стек, dual adapters, Auto-Goal daemon — с replacement matrix (PLAN_7.2 §6): функция и приёмка сохраняются.
 - **C. Reuse бэкенда VM101 по URL** (`backend.reuse` → `extend_via_urls`): SearXNG, Docling, TEI, LiteLLM, Playwright; laptop-профиль compose подменяет их локальными/деградированными аналогами.
-- **D. LLM-провайдер по списку ТЗ** (`llm.provider`): alias `ts-llm-allowlisted` в LiteLLM; prod → Yandex Cloud AI Studio / GigaChat / gpt-4.1 direct после ключей; OpenRouter — только dev, `model_id` логируется в каждом ответе.
+- **D. LLM-провайдер** (`llm.provider`, уточнено 2026-09-22): OpenRouter с политикой ZDR (`provider: {zdr: true, data_collection: deny}`, защита данных включена на уровне организации) и только модели из списка ТЗ: `qwen/qwen3.6-35b-a3b` (основная), `openai/gpt-5.6-luna` (судья/эскалация), `qwen/qwen3-235b-a22b-2507` (fallback). Организатор (Светлана) разрешил такой доступ при условии описания в архитектуре. `provider` и `model_id` логируются в каждом ответе.
 - **E. `goal_control` сжат** до трёх инвариантов в domain: идемпотентный run; claim только с fragment + snapshot; process-статус ≠ научное решение. TS-AG-01…18 переносятся в lineage как дизайн-наследие.
 - **F. Git:** SourceCraft — канон; зеркало GitHub обязательно для сдачи.
 - **G. Доноры** (`donors/`) копируются без правок с provenance; адаптации — в `ts/` с исправлением F01–F03 до использования как gate.
@@ -25,7 +25,7 @@
 - sklearn LogisticRegression на 100 положительных примерах — нет отрицательного класса, риск утечки метки, непрозрачность относительно P01–P18.
 - Fine-tuning/LoRA — нет GPU и корпуса ошибок; не требуется ТЗ буквально («или логически»).
 - Сохранить стек 7.1 целиком — не реализуемо за 8 дней одним исполнителем; половина компонентов отсутствует на ВМ.
-- Оставить OpenRouter для продуктовой выдачи — прямо запрещено ТЗ без согласования.
+- OpenRouter без ZDR / с автовыбором моделей — запрещено ТЗ; разрешён только ZDR-режим с моделями из списка (согласовано 2026-09-22).
 
 ## Последствия
 

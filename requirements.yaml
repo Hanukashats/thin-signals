@@ -295,14 +295,19 @@ requirements:
 
   # --- LLM provider ---
   - id: LLM-01
-    title: LiteLLM alias ts-llm-allowlisted routed to TZ-approved provider
+    title: LLM access = OpenRouter ZDR, TZ-listed models only, provider+model_id logged
     priority: P1
     owner: infra
-    state: blocked
+    state: planned
     wave: W1-contract
     forks: [llm.provider]
-    acceptance: alias exists; prod route = Yandex/GigaChat/OpenAI direct; dev route logs model_id and is marked non-compliant
-    evidence: []
+    acceptance: >
+      every LLM call sends provider={zdr:true,data_collection:deny}; model in
+      {qwen/qwen3.6-35b-a3b, openai/gpt-5.6-luna, qwen/qwen3-235b-a22b-2507, openai/gpt-4.1};
+      response provider is in /api/v1/endpoints/zdr; run log stores provider+model_id;
+      ARCHITECTURE.md states the ZDR policy (organizer condition)
+    evidence:
+      - reports/llm-provider-zdr-2026-09-22.md
 
   # --- Replacement matrix ---
   - id: RM-01
