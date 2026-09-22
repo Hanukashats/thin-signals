@@ -49,11 +49,11 @@ requirements:
     title: SourceCraft repository has LivingSet pushed
     priority: P0
     owner: architect
-    state: planned
+    state: implemented
     wave: W1-contract
     forks: [hosting.sourcecraft]
     acceptance: git init on VM; main pushed to https://git.sourcecraft.dev/shats123/thin-signals; clone URL in STATUS
-    evidence: []
+    evidence: ["push 2026-09-22 main 3c0fbcb -> origin/main (SourceCraft)"]
 
   - id: LP-06
     title: Bootstrap skeleton and LivingSet link check
