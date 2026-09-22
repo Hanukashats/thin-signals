@@ -1,0 +1,193 @@
+{
+  "sha256": "1f1f2aefefa205f7cafaf985dd58e124652882d7976c36ba11f9c30eb4e7cd55",
+  "files": [
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/.cursor/hooks/goal-checkpoint.sh",
+      "size": 5553
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/.cursor/skills/auto-goal/PATTERNS.md",
+      "size": 3766
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/.cursor/skills/auto-goal/SKILL.md",
+      "size": 6176
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/.cursor/skills/auto-goal/examples/software-change.json",
+      "size": 916
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/.cursor/skills/auto-goal/profiles/dev-devops.md",
+      "size": 2156
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/.cursor/skills/auto-goal/profiles/general.md",
+      "size": 1488
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/.cursor/skills/auto-goal/references/catalog.v1.json",
+      "size": 10277
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/.cursor/skills/auto-goal/scripts/goal_constructor.py",
+      "size": 36574
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/.cursor/skills/auto-goal/scripts/goalctl",
+      "size": 11767
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/INVENTORY.md",
+      "size": 5376
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/LICENSE-NOTICE.md",
+      "size": 823
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/README.md",
+      "size": 5750
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/SECURITY.md",
+      "size": 4148
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/SHA256SUMS",
+      "size": 4658
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/SOURCE_COMMIT",
+      "size": 41
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/VERSION",
+      "size": 17
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/compose/compose.goal-kernel.yaml",
+      "size": 562
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/deployment/env/goal-kernel.env.example",
+      "size": 624
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/deployment/systemd/goal-kernel.service.example",
+      "size": 912
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/docs/23_UNIVERSAL_GOAL_CONSTRUCTOR.md",
+      "size": 8400
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/docs/decisions/005-goal-kernel.md",
+      "size": 2675
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/docs/decisions/008-universal-goal-constructor.md",
+      "size": 3281
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/docs/portable/ADAPTERS.md",
+      "size": 4273
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/docs/portable/API.md",
+      "size": 4724
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/docs/portable/FILE-FALLBACK.md",
+      "size": 2771
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/docs/portable/INSTALL.md",
+      "size": 6170
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/docs/portable/MODES.md",
+      "size": 4233
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/docs/portable/PORTABILITY-GAPS.md",
+      "size": 3428
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/examples/adapters/read_only_client.py",
+      "size": 3485
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/examples/cursor/hooks.json.fragment",
+      "size": 179
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/examples/manifests/research.json",
+      "size": 655
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/host-services/goal-kernel/server.py",
+      "size": 72705
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/host-services/goal-kernel/systemd/goal-kernel-hermes.service",
+      "size": 367
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/host-services/goal-kernel/systemd/goal-kernel-hermes.socket",
+      "size": 312
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/host-services/goal-kernel/systemd/goal-kernel.service",
+      "size": 1078
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/reference/agi-space-backend/README.md",
+      "size": 967
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/reference/agi-space-backend/scripts/goal-kernel-safe-update.sh",
+      "size": 51340
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/reference/agi-space-backend/scripts/install-goal-kernel.sh",
+      "size": 9368
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/reports/v03/goal-kernel.md",
+      "size": 6329
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/reports/v03/goal-vnext-reconciliation-2026-09-14.md",
+      "size": 2640
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/reports/v03/goal-vnext-rollout-2026-09-17.md",
+      "size": 4294
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/scripts/goalctl",
+      "size": 266
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/scripts/run-local.sh",
+      "size": 1320
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/scripts/self-test.sh",
+      "size": 815
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/scripts/verify-package.sh",
+      "size": 210
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/tests/test_goal_constructor.py",
+      "size": 16378
+    },
+    {
+      "path": "auto-goal-vnext-portable-v0.3.0-4e3257d8/tests/test_goal_kernel_vnext.py",
+      "size": 61026
+    }
+  ]
+}

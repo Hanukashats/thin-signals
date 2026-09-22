@@ -1,0 +1,21 @@
+{
+  "radar_empty_evidence_production": [
+    [],
+    [
+      "empty claim ledger; this is only a template"
+    ]
+  ],
+  "radar_dangling_edges": [
+    [],
+    [
+      "empty claim ledger; this is only a template"
+    ]
+  ],
+  "pol_deadline_hard_fail": [
+    [
+      "FRAME",
+      "FORCE_DECISION"
+    ],
+    "PROVISIONAL_OPTION_PRESERVING_DECISION"
+  ]
+}

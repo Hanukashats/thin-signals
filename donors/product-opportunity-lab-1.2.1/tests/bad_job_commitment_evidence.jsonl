@@ -1,0 +1,1 @@
+{"id":"bad1","candidate_id":"c1","claim":"Company posted a job for this task","claim_kind":"OBSERVED","stance":"support","signal_for":["problem","budget","solution_commitment"],"evidence_type":"job_posting","source_ref":"https://example.org/job/1","source_url":"https://example.org/job/1","source_family":"jobs","independence_key":"company:1:job","observed_at":"2026-09-08"}

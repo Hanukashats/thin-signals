@@ -1,0 +1,69 @@
+# ARCHITECTURE.md — Thin Signals
+
+Revision: **7.2** · Date: **2026-09-22** · Living contract  
+Основа: ADR-009 (harness-first, сжатый стек, reuse VM101); контракт объектов: `docs/PROCESSING_CONTRACT.md`; методика: `docs/METHODOLOGY.md`.
+
+## 1. Обзор
+
+```
+[Запрос RU] -> словарь механизма + негативные термины
+  -> Discovery: SearXNG (+ arXiv / OpenAlex / Crossref / GitHub REST / Google Patents via SearXNG)
+  -> Ingest: snapshot (sha256, snapshots/) + Docling -> Document / Fragment
+  -> Extract (LLM allowlisted, JSON schema): Entity / EvidenceEvent / Claim
+  -> Dedup: TEI bge-m3 -> pgvector + правила (один анонс = одно событие)
+  -> Gates: policy (порядок §3 METHODOLOGY) + F-P01..18 + M01..06
+  -> Score: confidence + reason codes -> Decision
+  -> Rank: ТОП-15 + watchlist + реестр исключений
+  -> Streamlit RU UI / отчёт
+```
+
+Один PostgreSQL 16 (+pgvector) — единственный источник истины фактов, runs и решений. Граф связей — таблицы `nodes`/`edges` в PG.
+
+## 2. Компоненты
+
+| Слой | Выбор 7.2 | Граница |
+|---|---|---|
+| API / domain | Python 3.12, FastAPI, Pydantic v2, SQLAlchemy 2 + Alembic | typed contracts; команды идемпотентны по `idempotency_key` |
+| Harness | Python state machine `ts/harness` (stages 0–11 из METHODOLOGY §5.3 донора) | run/step в PG; BackgroundTasks + lease/heartbeat; cancel |
+| Scoring | `ts/scoring/policy.py` (адаптация `reference/policy.py`, F03 исправлен) + `rules-x.y.yaml` | детерминированно; LLM-числа не входят |
+| Eval | `ts eval` CLI | адаптер CSV/JSON организаторов; P/R/F1; отчёт в `reports/` |
+| SoT | PostgreSQL 16 + pgvector + FTS | documents, fragments, entities, events, claims, edges, observations, decisions, runs |
+| Snapshots | `snapshots/<sha256>` на диске + `documents.blob_ref` | immutable; бэкап tar |
+| LLM | LiteLLM alias `ts-llm-allowlisted` → провайдер из списка ТЗ | `model_id` логируется; OpenRouter только dev |
+| Embeddings | TEI bge-m3 через LiteLLM `embedding-local` (VM101) | dim pinned; laptop-профиль: FTS без векторов |
+| Search | SearXNG (VM101 :28088 или локальный контейнер) | JSON API; engines pinned |
+| Ingest | Docling Serve (VM101 :5001); fallback trafilatura/pdfminer | text + metadata + language |
+| Browser fallback | Playwright MCP (VM101) | только при блокировке fetch |
+| UI | Streamlit (RU) | страницы: запрос, список, отчёт, источники, связи, исключения |
+| Ops | Docker Compose: profiles `laptop` и `vm101`; Caddy basic-auth для стенда | без OIDC/tenant |
+| Git | SourceCraft (канон) + GitHub mirror (сдача) | секреты только в `.secrets/` |
+
+Не добавлять: Neo4j, S3, Procrastinate, Redis, Kafka, K8s, BERTopic, вторая vector DB, LoRA. Replacement matrix — `docs/plan/PLAN_7.2.md` §6.
+
+## 3. Repo layout (целевой)
+
+```
+ts/                 пакет: api/, harness/, scoring/, connectors/, ingest/, eval/, ui/
+ts/tests/           unit + сценарии из METHODOLOGY §8 и KNOWN_GAPS
+alembic/            миграции schema v1
+compose.yaml        pg (pgvector), api, ui; profiles laptop|vm101
+reference/          policy.py + tests (v6.1, без правок)
+donors/             radar 0.1.1, goalops 0.1, POL 1.2.1 (без правок, provenance в donors/README.md)
+data/               registries, dataset_patterns_100, negatives_v1 (W2), source_trust.yaml
+docs/               METHODOLOGY, EVAL, PROCESSING_CONTRACT, adr/, plan/, lineage/, audits/, ops/
+reports/            eval_<date>.md, live-run receipts
+```
+
+## 4. Инварианты процесса (вместо goal_control 18 TS-AG)
+
+- **TS-INV-01** Идемпотентный run: тот же запрос + `corpus_version` + `rules_version` → прежний `run_id`; шаг повторяется по `input_hash`.
+- **TS-INV-02** Claim принимается только с `fragment_id` прочитанного snapshot; PASS gate без evidence невозможен (semantic validator, не структурный rc=0).
+- **TS-INV-03** Статус run (`succeeded`) ≠ решение сигнала (`weak_signal|watchlist|mature|noise`); UI показывает оба раздельно.
+
+## 5. Сеть и reuse (ADR 007 бэкенда)
+
+На VM101 сервисы вызываются по loopback/Docker DNS (`http://127.0.0.1:28088`, `:5001`, `:4000`, `:8080`). С ноутбука — только через NetBird или laptop-профиль с локальными аналогами. Продуктовый API не получает operator-права backend и Docker socket.
+
+## 6. Открытые развилки
+
+`llm.provider` (ключи — operator gate). Закрыты в 7.2: `tz.classifier`, `backend.reuse`, `graph.neo4j`, `sources.epo_cordis`, `ui.stack`.

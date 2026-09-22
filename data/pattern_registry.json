@@ -1,0 +1,167 @@
+{
+  "version": "6.0",
+  "patterns": [
+    {
+      "id": "P01",
+      "name": "Новый технический механизм",
+      "branch": "SCIENCE",
+      "required_evidence": "Первичная работа, эксперимент, прежний метод, независимая репликация",
+      "counterevidence": "Переименование известного метода; симуляция выдана за физический результат",
+      "provenance": "Analyst induction from supplied 100-row dataset; not a learned model",
+      "status": "design_hypothesis"
+    },
+    {
+      "id": "P02",
+      "name": "Преодоление порога эффективности",
+      "branch": "PERFORMANCE",
+      "required_evidence": "Метрика, единицы, baseline, workload, качество, энергобюджет, полный TCO",
+      "counterevidence": "Выигрыш только на удобной задаче; потеря качества; неучтённые компоненты",
+      "provenance": "Analyst induction from supplied 100-row dataset; not a learned model",
+      "status": "design_hypothesis"
+    },
+    {
+      "id": "P03",
+      "name": "Переход к реальному применению",
+      "branch": "DEPLOYMENT",
+      "required_evidence": "Именованный пользователь, статус испытания, дата, число установок, эксплуатационные результаты",
+      "counterevidence": "Анонс, LOI, будущая мощность или выставочное демо названы внедрением",
+      "provenance": "Analyst induction from supplied 100-row dataset; not a learned model",
+      "status": "design_hypothesis"
+    },
+    {
+      "id": "P04",
+      "name": "Конвергенция раннего капитала",
+      "branch": "CAPITAL",
+      "required_evidence": "Дата закрытия, тип и сумма раунда, валюта, независимые команды и инвесторы",
+      "counterevidence": "Обещанные деньги; дубли раунда; отраслевой капитал приписан нише",
+      "provenance": "Analyst induction from supplied 100-row dataset; not a learned model",
+      "status": "design_hypothesis"
+    },
+    {
+      "id": "P05",
+      "name": "Появление самостоятельного продуктового слоя",
+      "branch": "CATEGORY",
+      "required_evidence": "Задача покупателя, отдельный продукт, интеграции, схема оплаты, альтернативы",
+      "counterevidence": "Переименование функции существующего продукта",
+      "provenance": "Analyst induction from supplied 100-row dataset; not a learned model",
+      "status": "design_hypothesis"
+    },
+    {
+      "id": "P06",
+      "name": "Новое применение зрелой технологии",
+      "branch": "MATURITY",
+      "required_evidence": "История родительской технологии и новая комбинация применения, ограничений и пользователя",
+      "counterevidence": "Старая категория целиком объявлена новой",
+      "provenance": "Analyst induction from supplied 100-row dataset; not a learned model",
+      "status": "design_hypothesis"
+    },
+    {
+      "id": "P07",
+      "name": "Узкое место и дополняющая инфраструктура",
+      "branch": "BOTTLENECK",
+      "required_evidence": "Ограничение основной системы, измеренный спрос на компонент, влияние снятия ограничения",
+      "counterevidence": "Рост основного рынка без спроса на конкретный компонент",
+      "provenance": "Analyst induction from supplied 100-row dataset; not a learned model",
+      "status": "design_hypothesis"
+    },
+    {
+      "id": "P08",
+      "name": "Стандарты и совместимость",
+      "branch": "STANDARD",
+      "required_evidence": "Версия, статус draft/final, независимые реализации, реальное подключение",
+      "counterevidence": "Членство в альянсе и draft выданы за внедрение или обязательность",
+      "provenance": "Analyst induction from supplied 100-row dataset; not a learned model",
+      "status": "design_hypothesis"
+    },
+    {
+      "id": "P09",
+      "name": "Новая угроза или нормативный стимул",
+      "branch": "TRUST",
+      "required_evidence": "Первичный документ, юрисдикция, дата действия, затронутая система, действующий пробел защиты",
+      "counterevidence": "Не вступившее правило; другая юрисдикция; подмена модели угроз",
+      "provenance": "Analyst induction from supplied 100-row dataset; not a learned model",
+      "status": "design_hypothesis"
+    },
+    {
+      "id": "P10",
+      "name": "Перенос вычислений и границ данных",
+      "branch": "LOCALITY",
+      "required_evidence": "Где вычисляют, где данные, доверенные стороны, ограничения связи и памяти",
+      "counterevidence": "Называется local/private, но критический путь требует облака",
+      "provenance": "Analyst induction from supplied 100-row dataset; not a learned model",
+      "status": "design_hypothesis"
+    },
+    {
+      "id": "P11",
+      "name": "Независимое исследовательское сближение",
+      "branch": "SCIENCE",
+      "required_evidence": "Несколько независимых событий, команды, методы, воспроизведение",
+      "counterevidence": "Статья, код, пресс-релиз и обзор одного опыта считаются четырьмя открытиями",
+      "provenance": "Analyst induction from supplied 100-row dataset; not a learned model",
+      "status": "design_hypothesis"
+    },
+    {
+      "id": "P12",
+      "name": "Рост экосистемы разработчиков",
+      "branch": "ECOSYSTEM",
+      "required_evidence": "Независимые внешние contributors, releases, интеграции, удержание активности",
+      "counterevidence": "Боты, форки и stars подменяют реальное использование",
+      "provenance": "Analyst induction from supplied 100-row dataset; not a learned model",
+      "status": "design_hypothesis"
+    },
+    {
+      "id": "P13",
+      "name": "Разрыв между предметным прогрессом и вниманием",
+      "branch": "ATTENTION",
+      "required_evidence": "Сопоставимый отраслевой и общий корпус, факты прогресса, версия словаря",
+      "counterevidence": "Мало результатов из-за плохого поиска или закрытости источников",
+      "provenance": "Analyst induction from supplied 100-row dataset; not a learned model",
+      "status": "design_hypothesis"
+    },
+    {
+      "id": "P14",
+      "name": "Новая модель извлечения ценности",
+      "branch": "VALUE_CHAIN",
+      "required_evidence": "Кто покупает, за что платит, какая транзакция или риск передаётся",
+      "counterevidence": "Ожидаемый рынок и общий интерес подменяют сделку",
+      "provenance": "Analyst induction from supplied 100-row dataset; not a learned model",
+      "status": "design_hypothesis"
+    },
+    {
+      "id": "P15",
+      "name": "Обязательство пользователя или внедренца",
+      "branch": "DEMAND",
+      "required_evidence": "Платный пилот, заказ, контракт, повторное использование, независимое подтверждение",
+      "counterevidence": "Логотип партнёра и необязательный меморандум выданы за выручку",
+      "provenance": "Analyst induction from supplied 100-row dataset; not a learned model",
+      "status": "design_hypothesis"
+    },
+    {
+      "id": "P16",
+      "name": "Соединение ранее раздельных технологий",
+      "branch": "FUSION",
+      "required_evidence": "Какие компоненты соединены, какой новый результат, абляция компонентов",
+      "counterevidence": "Список buzzwords без нового работающего механизма",
+      "provenance": "Analyst induction from supplied 100-row dataset; not a learned model",
+      "status": "design_hypothesis"
+    },
+    {
+      "id": "P17",
+      "name": "Возвращение ранее неудавшегося направления",
+      "branch": "REVIVAL",
+      "required_evidence": "История провала и изменившаяся техническая или экономическая предпосылка",
+      "counterevidence": "Новый раунд повторяет старую нерешённую проблему",
+      "provenance": "Analyst induction from supplied 100-row dataset; not a learned model",
+      "status": "design_hypothesis"
+    },
+    {
+      "id": "P18",
+      "name": "Грант и публичная исследовательская программа",
+      "branch": "GRANT",
+      "required_evidence": "ID гранта, решение, получатель, бюджет, сроки, результаты проекта",
+      "counterevidence": "Объявление конкурса выдано за присуждённый грант; бюджет консорциума приписан одной фирме",
+      "provenance": "Analyst induction from supplied 100-row dataset; not a learned model",
+      "status": "design_hypothesis"
+    }
+  ]
+}

@@ -1,0 +1,246 @@
+{
+  "candidates": [
+    {
+      "id": "strong-b2b",
+      "name": "Example strong B2B workflow",
+      "objective_profile": "balanced",
+      "business_archetype": "commercial",
+      "pillars": {
+        "demand": 4.5,
+        "economics": 4.0,
+        "adoption": 3.7,
+        "execution": 4.6,
+        "timing_market": 3.8,
+        "durability": 3.5
+      },
+      "gates": {
+        "G1": "pass",
+        "G2": "pass",
+        "G3": "pass",
+        "G4": "pass",
+        "G5": "pass",
+        "G6": "pass",
+        "G7": "pass"
+      },
+      "critical_claims": {
+        "problem": "E3",
+        "budget": "E3",
+        "switching": "E2",
+        "distribution": "E2",
+        "feasibility_trust": "E3",
+        "solution_commitment": "E3",
+        "retention": "E1"
+      }
+    },
+    {
+      "id": "interesting-unproven",
+      "name": "High quality but unproven emerging opportunity",
+      "objective_profile": "venture",
+      "business_archetype": "commercial",
+      "pillars": {
+        "demand": 4.4,
+        "economics": 3.8,
+        "adoption": 3.7,
+        "execution": 4.5,
+        "timing_market": 4.8,
+        "durability": 4.4
+      },
+      "gates": {
+        "G1": "pass",
+        "G2": "pass",
+        "G3": "unknown",
+        "G4": "unknown",
+        "G5": "pass",
+        "G6": "pass",
+        "G7": "pass"
+      },
+      "critical_claims": {
+        "problem": "E2",
+        "budget": "E1",
+        "switching": "E1",
+        "distribution": "E1",
+        "feasibility_trust": "E2",
+        "solution_commitment": "E0",
+        "retention": "E0"
+      }
+    },
+    {
+      "id": "weak-consumer",
+      "name": "Weak consumer wrapper",
+      "objective_profile": "balanced",
+      "business_archetype": "commercial",
+      "pillars": {
+        "demand": 2.0,
+        "economics": 1.5,
+        "adoption": 1.5,
+        "execution": 4.5,
+        "timing_market": 3.0,
+        "durability": 1.0
+      },
+      "gates": {
+        "G1": "pass",
+        "G2": "unknown",
+        "G3": {
+          "state": "FAIL",
+          "confidence": "verified",
+          "scope": "current_wedge",
+          "evidence_refs": [
+            "ev-no-budget"
+          ]
+        },
+        "G4": "unknown",
+        "G5": "pass",
+        "G6": {
+          "state": "FAIL",
+          "confidence": "supported",
+          "scope": "current_wedge",
+          "evidence_refs": [
+            "ev-statusquo"
+          ]
+        },
+        "G7": "pass"
+      },
+      "critical_claims": {
+        "problem": "E1",
+        "budget": "E0",
+        "switching": "E0",
+        "distribution": "E1",
+        "feasibility_trust": "E2",
+        "solution_commitment": "E0",
+        "retention": "E0"
+      }
+    },
+    {
+      "id": "internal-strong",
+      "name": "Internal automation with real deployment",
+      "objective_profile": "balanced",
+      "business_archetype": "internal",
+      "pillars": {
+        "demand": 4.6,
+        "economics": 4.4,
+        "adoption": 4.2,
+        "execution": 4.5,
+        "timing_market": 3.0,
+        "durability": 3.8
+      },
+      "gates": {
+        "G1": "pass",
+        "G2": "pass",
+        "G3": "pass",
+        "G4": "pass",
+        "G5": "pass",
+        "G6": "pass",
+        "G7": "pass"
+      },
+      "critical_claims": {
+        "problem": "E4",
+        "budget": "E0",
+        "switching": "E1",
+        "distribution": "E3",
+        "feasibility_trust": "E3",
+        "solution_commitment": "E3",
+        "retention": "E2"
+      }
+    },
+    {
+      "id": "oss-strong",
+      "name": "OSS devtool with repeated production use",
+      "objective_profile": "balanced",
+      "business_archetype": "devtool-oss",
+      "pillars": {
+        "demand": 4.2,
+        "economics": 3.0,
+        "adoption": 3.9,
+        "execution": 4.5,
+        "timing_market": 3.8,
+        "durability": 3.6
+      },
+      "gates": {
+        "G1": "pass",
+        "G2": "pass",
+        "G3": "pass",
+        "G4": "pass",
+        "G5": "pass",
+        "G6": "pass",
+        "G7": "pass"
+      },
+      "critical_claims": {
+        "problem": "E3",
+        "budget": "E0",
+        "switching": "E1",
+        "distribution": "E2",
+        "feasibility_trust": "E3",
+        "solution_commitment": "E3",
+        "retention": "E2"
+      }
+    },
+    {
+      "id": "weak-unverified-fail",
+      "name": "Candidate with unverified negative signal",
+      "objective_profile": "cashflow",
+      "business_archetype": "commercial",
+      "pillars": {
+        "demand": 3.8,
+        "economics": 3.5,
+        "adoption": 3.1,
+        "execution": 4.0,
+        "timing_market": 3.0,
+        "durability": 2.0
+      },
+      "gates": {
+        "G1": "pass",
+        "G2": "pass",
+        "G3": {
+          "state": "FAIL",
+          "confidence": "weak",
+          "scope": "current_wedge"
+        },
+        "G4": "pass",
+        "G5": "pass",
+        "G6": "pass",
+        "G7": "pass"
+      },
+      "critical_claims": {
+        "problem": "E2",
+        "budget": "E1",
+        "switching": "E1",
+        "distribution": "E2",
+        "feasibility_trust": "E2",
+        "solution_commitment": "E1",
+        "retention": "E0"
+      }
+    },
+    {
+      "id": "cashflow-low-durability",
+      "name": "Profitable niche without venture moat",
+      "objective_profile": "cashflow",
+      "business_archetype": "commercial",
+      "pillars": {
+        "demand": 4.5,
+        "economics": 4.6,
+        "adoption": 4.2,
+        "execution": 4.4,
+        "timing_market": 3.0,
+        "durability": 1.0
+      },
+      "gates": {
+        "G1": "pass",
+        "G2": "pass",
+        "G3": "pass",
+        "G4": "pass",
+        "G5": "pass",
+        "G6": "pass",
+        "G7": "pass"
+      },
+      "critical_claims": {
+        "problem": "E3",
+        "budget": "E3",
+        "switching": "E2",
+        "distribution": "E2",
+        "feasibility_trust": "E3",
+        "solution_commitment": "E3",
+        "retention": "E2"
+      }
+    }
+  ]
+}

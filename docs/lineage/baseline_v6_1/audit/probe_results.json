@@ -1,0 +1,145 @@
+[
+  {
+    "id": "AG01",
+    "observation": {
+      "create_http": 201,
+      "constructor_present": false,
+      "verify_without_identity_http": 200,
+      "status": "VERIFIED"
+    },
+    "observed": true
+  },
+  {
+    "id": "AG02",
+    "observation": {
+      "http": 200,
+      "criterion": "DOES_NOT_EXIST",
+      "contract": "not an object"
+    },
+    "observed": true
+  },
+  {
+    "id": "AG03",
+    "observation": {
+      "first_http": 200,
+      "repeated_http": 409,
+      "stop": "STAGNATION_REPLAN_REQUIRED"
+    },
+    "observed": true
+  },
+  {
+    "id": "AG04",
+    "observation": {
+      "goal_status": "COMPLETED",
+      "default_verifier_criteria": [],
+      "current_criterion_none": true,
+      "current_evidence_none": true
+    },
+    "observed": true
+  },
+  {
+    "id": "AG05",
+    "observation": {
+      "http": 200,
+      "status": "VERIFIED",
+      "input_evidence": "a claim without a document or measurement"
+    },
+    "observed": true
+  },
+  {
+    "id": "AG06",
+    "observation": {
+      "http": 201,
+      "digest_unchanged": true,
+      "goal_changed": true
+    },
+    "observed": true
+  },
+  {
+    "id": "AG07",
+    "observation": {
+      "classification": "positive_control",
+      "rejected": "unused approval without selected module: unused-approval"
+    },
+    "observed": true
+  },
+  {
+    "id": "AG08",
+    "observation": {
+      "stored_count": 9,
+      "projected_count": 8,
+      "last_evidence_present": false,
+      "has_truncation_marker": false
+    },
+    "observed": true
+  },
+  {
+    "id": "AG09",
+    "observation": {
+      "rejection_http": 200,
+      "status_after_rejection": "BLOCKED",
+      "retry_http": 200,
+      "final_status": "VERIFIED"
+    },
+    "observed": true
+  },
+  {
+    "id": "AG10",
+    "observation": {
+      "http": 200,
+      "actor": "researcher-not-in-roster",
+      "capability": "repo-read"
+    },
+    "observed": true
+  },
+  {
+    "id": "AG11",
+    "observation": {
+      "final_notes": [
+        "writer-B-update"
+      ],
+      "optimistic_revision_field": false
+    },
+    "observed": true
+  },
+  {
+    "id": "AG12",
+    "observation": {
+      "checkpoints": [
+        {
+          "http": 200,
+          "evidence_gain": 1,
+          "meaningful": false,
+          "stop": null
+        },
+        {
+          "http": 409,
+          "evidence_gain": 1,
+          "meaningful": false,
+          "stop": "STAGNATION_REPLAN_REQUIRED"
+        }
+      ]
+    },
+    "observed": true
+  },
+  {
+    "id": "AG13",
+    "observation": {
+      "profile_example_capability": "web-search",
+      "catalog_has_capability": false,
+      "http": 403,
+      "error": "capability not in allowlist; agent messages cannot widen it"
+    },
+    "observed": true
+  },
+  {
+    "id": "AG14",
+    "observation": {
+      "example_C02_role": "verifier",
+      "status_after_C02": "COMPLETED",
+      "final_verify_http": 403,
+      "error": "actor cannot verify its own implementation or evidence (COMPLETED != VERIFIED)"
+    },
+    "observed": true
+  }
+]

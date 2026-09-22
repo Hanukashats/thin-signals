@@ -1,0 +1,40 @@
+# Thin Signals — compose skeleton (LivingSet 7.2, W1). Services api/ui are added in W3/W4.
+# Profiles:
+#   laptop  — everything local (pg + api + ui + searxng); no VM101 dependencies
+#   vm101   — pg + api + ui; SearXNG/Docling/TEI/LiteLLM reached by URL from .env (ADR-009 §C)
+name: thin-signals
+
+services:
+  pg:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: thin_signals
+      POSTGRES_USER: ts
+      POSTGRES_PASSWORD_FILE: /run/secrets/pg_password
+    secrets: [pg_password]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:55432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ts -d thin_signals"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  searxng:
+    profiles: [laptop]
+    image: searxng/searxng:2026.9.18-12df7aed6
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:28088:8080"
+    volumes:
+      - ./config/searxng:/etc/searxng:ro
+
+secrets:
+  pg_password:
+    file: ./.secrets/pg_password
+
+volumes:
+  pgdata:

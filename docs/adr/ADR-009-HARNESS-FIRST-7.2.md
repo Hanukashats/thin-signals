@@ -1,0 +1,40 @@
+# ADR-009: Harness-first 7.2 — логическая модель вместо обучения, сжатие стека, reuse бэкенда VM101
+
+Дата: 2026-09-22. Статус: **accepted** (оператор утвердил план 7.2 в Cursor plan mode 2026-09-19). LivingSet revision **7.2**. Parent: ADR-008.
+Полный текст плана: `docs/plan/PLAN_7.2.md`.
+
+## Контекст
+
+1. Официальное ТЗ Газпромбанк.Тех (`sources/1. Газпромбанк.Тех.pdf`) требует алгоритм классификации ≥75–80 % с отчётом P/R/F1 и интерпретируемостью «математически (или логически)», открытый запрос → ТОП-15, русский UI, модели из списка, репозиторий GitHub/GitLab.
+2. Оператор (19.09): без fine-tuning и обучения весов; решение через skills, логику, harness, агентные фреймворки; нет GPU.
+3. Инвентарь VM101 (19.09, `docker ps`): есть LiteLLM, TEI bge-m3, SearXNG, Docling, Playwright, gpt-researcher, Hermes; нет Neo4j/Procrastinate/S3/BERTopic. Все chat-модели LiteLLM — через OpenRouter (ТЗ запрещает без согласования).
+4. Донорский пакет 21.09 подтвердил формулы и порядок gates v6.1, дефекты F01–F03 helpers и требование сохранять функцию при удалении компонента.
+
+## Решение
+
+- **A. Классификация = логическая модель.** Детерминированный скоринг на признаках P01–P18 и контр-признаках зрелости M01–M06 (`docs/METHODOLOGY.md`); LLM только извлекает типизированные факты из найденных источников. Fork `tz.classifier` → **decided `logical_scorer`**. P/R/F1 считаются `ts eval` на holdout + корпусе контрпримеров в формате организаторов; пороги калибруются и фиксируются версией правил. Соответствие п. 7.1 ТЗ заявляется только по артефактам прогона.
+- **B. Стек сжат** до PostgreSQL 16 + pgvector, FastAPI, Streamlit, Python harness (state machine). Убраны Neo4j, S3, Procrastinate, OIDC/tenant, BERTopic, Refine-стек, dual adapters, Auto-Goal daemon — с replacement matrix (PLAN_7.2 §6): функция и приёмка сохраняются.
+- **C. Reuse бэкенда VM101 по URL** (`backend.reuse` → `extend_via_urls`): SearXNG, Docling, TEI, LiteLLM, Playwright; laptop-профиль compose подменяет их локальными/деградированными аналогами.
+- **D. LLM-провайдер по списку ТЗ** (`llm.provider`): alias `ts-llm-allowlisted` в LiteLLM; prod → Yandex Cloud AI Studio / GigaChat / gpt-4.1 direct после ключей; OpenRouter — только dev, `model_id` логируется в каждом ответе.
+- **E. `goal_control` сжат** до трёх инвариантов в domain: идемпотентный run; claim только с fragment + snapshot; process-статус ≠ научное решение. TS-AG-01…18 переносятся в lineage как дизайн-наследие.
+- **F. Git:** SourceCraft — канон; зеркало GitHub обязательно для сдачи.
+- **G. Доноры** (`donors/`) копируются без правок с provenance; адаптации — в `ts/` с исправлением F01–F03 до использования как gate.
+
+## Отклонённые варианты
+
+- sklearn LogisticRegression на 100 положительных примерах — нет отрицательного класса, риск утечки метки, непрозрачность относительно P01–P18.
+- Fine-tuning/LoRA — нет GPU и корпуса ошибок; не требуется ТЗ буквально («или логически»).
+- Сохранить стек 7.1 целиком — не реализуемо за 8 дней одним исполнителем; половина компонентов отсутствует на ВМ.
+- Оставить OpenRouter для продуктовой выдачи — прямо запрещено ТЗ без согласования.
+
+## Последствия
+
+- W3b-graph, W5b-classifier, SC-08, SC-10 удалены; TS-AG сведены к TS-INV-01…03.
+- Новые требования: TZ-01 переформулирован (логическая модель), EV-01…03 (eval, контрпримеры, формат организаторов), LLM-01 (allowlist), RM-01 (replacement matrix исполнена).
+- Блокеры оператора: официальный датасет, шаблон презентации, ключи провайдера.
+
+## Приёмка ADR
+
+- LivingSet 7.2 согласован (`scripts/check_living_links.py` OK).
+- `reference/test_policy.py` 15/15 и `ts/tests` проходят на ВМ.
+- Репозиторий запушен на SourceCraft (LP-05).

@@ -1,0 +1,201 @@
+{
+  "version": "6.0",
+  "status": "implementation_specification",
+  "predictors": [
+    {
+      "id": "D01",
+      "name": "Патентная активность",
+      "source": "EPO OPS / проверенный патентный корпус",
+      "fields": [
+        "family_id",
+        "family_definition",
+        "publication_date",
+        "priority_date",
+        "applicant_id",
+        "CPC_IPC",
+        "available_at"
+      ],
+      "unit": "публичное семейство выбранного типа",
+      "computation": "Количество/доля новых публично доступных семейств по фиксированному протоколу; число независимых заявителей; рост только при сопоставимом покрытии",
+      "gates": [
+        "family_dedup",
+        "cohort_fixed",
+        "publication_lag_visible",
+        "complete_periods"
+      ],
+      "patterns": [
+        "P01",
+        "P06",
+        "P11"
+      ],
+      "fallback": "qualitative_patent_observation; quantitative_growth=null",
+      "current_access": "to_verify",
+      "reference": "https://www.epo.org/en/searching-for-patents/data/web-services/ops"
+    },
+    {
+      "id": "D02",
+      "name": "Научные публикации",
+      "source": "arXiv; OpenAlex как расширяемый источник после access test",
+      "fields": [
+        "work_id",
+        "arxiv_base_id",
+        "version",
+        "DOI",
+        "published_at",
+        "available_at",
+        "event_id",
+        "origin_group_id"
+      ],
+      "unit": "самостоятельное научное событие",
+      "computation": "g=log2(((n_recent+0.5)/(N_recent+1))/((n_previous+0.5)/(N_previous+1))) на фиксированном корпусе; отдельно n и N",
+      "gates": [
+        "work_version_dedup",
+        "event_dedup",
+        "origin_resolution",
+        "cohort_fixed",
+        "complete_periods"
+      ],
+      "patterns": [
+        "P01",
+        "P02",
+        "P11",
+        "P16"
+      ],
+      "fallback": "qualitative_science_observation; quantitative_growth=null",
+      "current_access": "arxiv_documentation_verified; production_access_to_verify",
+      "reference": "https://info.arxiv.org/help/api/user-manual.html"
+    },
+    {
+      "id": "D03",
+      "name": "Присуждённые гранты",
+      "source": "CORDIS и первичные реестры программ",
+      "fields": [
+        "project_id",
+        "grant_status",
+        "recipient_id",
+        "consortium_id",
+        "award_date",
+        "start_date",
+        "end_date",
+        "total_budget",
+        "recipient_budget",
+        "currency"
+      ],
+      "unit": "решение о гранте и проект",
+      "computation": "Новые award events по теме; независимые получатели и направления исследований; суммы сравниваются только при известных долях и валютах",
+      "gates": [
+        "awarded_not_call",
+        "project_dedup",
+        "consortium_independence",
+        "date_known"
+      ],
+      "patterns": [
+        "P18",
+        "P04",
+        "P07"
+      ],
+      "fallback": "named_project_evidence; no_unobserved_zero",
+      "current_access": "documentation_verified; export_access_to_verify",
+      "reference": "https://cordis.europa.eu/about/dataextractions"
+    },
+    {
+      "id": "D04",
+      "name": "Новые seed-компании",
+      "source": "Компания, инвестор, доступный реестр; вторичные материалы как leads",
+      "fields": [
+        "legal_entity_id",
+        "round_id",
+        "round_stage",
+        "amount",
+        "currency",
+        "valuation",
+        "announced_at",
+        "closed_at",
+        "status",
+        "investor_ids"
+      ],
+      "unit": "закрытый раунд отдельного независимого юрлица",
+      "computation": "Число новых независимых команд с сопоставимой технологией; отдельно капитал и technical proof; 2 стартапа — наблюдение, не универсальный порог",
+      "gates": [
+        "round_not_rumour",
+        "valuation_not_round_amount",
+        "round_dedup",
+        "technology_scope_match"
+      ],
+      "patterns": [
+        "P04",
+        "P05",
+        "P17"
+      ],
+      "fallback": "unverified_financing_claim",
+      "current_access": "source_by_source",
+      "reference": null
+    },
+    {
+      "id": "D05",
+      "name": "Переток публичной активности разработчиков",
+      "source": "GitHub releases/contributions/events и собственная история",
+      "fields": [
+        "actor_stable_id",
+        "repo_stable_id",
+        "cohort_id",
+        "event_at",
+        "event_type",
+        "is_bot",
+        "fork_origin",
+        "observation_coverage"
+      ],
+      "unit": "публичный участник в группе репозиториев за окно",
+      "computation": "Новые устойчивые внешние участники и переход доли наблюдаемой активности из A в B; знаменатель только наблюдаемый фиксированный cohort; не изменение работодателя",
+      "gates": [
+        "sufficient_history",
+        "bot_and_fork_filter",
+        "stable_repo_cohort",
+        "retained_activity",
+        "privacy_aggregate"
+      ],
+      "patterns": [
+        "P12",
+        "P08",
+        "P05"
+      ],
+      "fallback": "current_activity_only; migration=null",
+      "current_access": "Events documentation: max300/past30days; historical_access_to_verify",
+      "reference": "https://docs.github.com/en/rest/activity/events"
+    },
+    {
+      "id": "D06",
+      "name": "Рост релевантных вакансий",
+      "source": "Официальные career/ATS страницы разрешённым способом",
+      "fields": [
+        "employer_id",
+        "requisition_id",
+        "role",
+        "skill_terms",
+        "location",
+        "posted_at",
+        "first_seen_at",
+        "last_seen_at",
+        "status",
+        "snapshot_hash"
+      ],
+      "unit": "уникальная открытая позиция",
+      "computation": "Новые позиции и доля специфических ролей среди всех наблюдаемых вакансий фиксированных компаний; повторные публикации объединяются",
+      "gates": [
+        "requisition_dedup",
+        "constant_employer_cohort",
+        "history_available",
+        "evergreen_flag",
+        "role_specificity"
+      ],
+      "patterns": [
+        "P15",
+        "P12",
+        "P07"
+      ],
+      "fallback": "current_openings_only; growth=null",
+      "current_access": "source_by_source",
+      "reference": null
+    }
+  ]
+}

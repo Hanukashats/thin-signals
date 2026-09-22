@@ -1,0 +1,85 @@
+{
+  "built_at": "2026-09-21",
+  "inputs": [
+    {
+      "filename": "goalops-universal-skill-v0.1.zip",
+      "sha256": "190f1b37e7250b1b6691340d935cbfa3bb86af54cd45c411fe0390d4c1812c3a",
+      "size": 24042
+    },
+    {
+      "filename": "goalops-universal-skill-v0.1.zip.openai-download-b0cc4131c03f4abf84905b4f3ff1a199",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    {
+      "filename": "1. Газпромбанк.Тех.pdf",
+      "sha256": "226bf6b1834e68574c805e0285b81774ad1332927a0296a57a6aa850b196af03",
+      "size": 693539
+    },
+    {
+      "filename": "1. Газпромбанк.Тех.pdf.openai-download-178bef2993cf49c281519fe9818817c4",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    {
+      "filename": "100_слабых_технологических_сигналов_сентябрь_2026.xlsx",
+      "sha256": "1349a208671cf9db9b036d9d137036fc8471297b6ec04fce0fc864e75e02ed03",
+      "size": 64836
+    },
+    {
+      "filename": "100_слабых_технологических_сигналов_сентябрь_2026.xlsx.openai-download-11a9f21ddbc1473abf4c0b770a121153",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    {
+      "filename": "100_слабых_технологических_сигналов_сентябрь_2026 (1).xlsx",
+      "sha256": "1349a208671cf9db9b036d9d137036fc8471297b6ec04fce0fc864e75e02ed03",
+      "size": 64836
+    },
+    {
+      "filename": "product-opportunity-lab-MASTER-v1.2.1.zip",
+      "sha256": "e3941e26640b5e15ad249c183419d9919b37a86c445ca7a662cb20688c6802e4",
+      "size": 400036
+    },
+    {
+      "filename": "product-opportunity-lab-MASTER-v1.2.1.zip.openai-download-a714f32eebeb43b493ddf6908be13bec",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    {
+      "filename": "Thin_Signals_Auto_Goal_Integration_v6_1.zip",
+      "sha256": "761ad8cb44979fba30e594e372d107138ee10cadf8e906a39b03568c3c251142",
+      "size": 180638
+    },
+    {
+      "filename": "Thin_Signals_Unified_Research_Kit_v1.0_2026-09-17.zip",
+      "sha256": "1d6e74ff1b626bfb72d48adbfc75c24fbe315656bec8af0c469a6e66d381d110",
+      "size": 16129724
+    },
+    {
+      "filename": "Thin_Signals_Unified_Research_Kit_v1.0_2026-09-17.zip.openai-download-8b30dca7e5e64b1e84ea68e53453ded0",
+      "sha256": "d81c5f70e69e8ebe92cefe530188a53229d51d0fee575a1a88d0b4ea75be0003",
+      "size": 8192000
+    }
+  ],
+  "dataset_copies": {
+    "100_слабых_технологических_сигналов_сентябрь_2026.xlsx": "1349a208671cf9db9b036d9d137036fc8471297b6ec04fce0fc864e75e02ed03",
+    "100_слабых_технологических_сигналов_сентябрь_2026 (1).xlsx": "1349a208671cf9db9b036d9d137036fc8471297b6ec04fce0fc864e75e02ed03"
+  },
+  "dataset_copies_identical": true,
+  "selected_versions": {
+    "radar": "0.1.1",
+    "goalops": "0.1.0",
+    "POL": "1.2.1",
+    "reference": "v6.1"
+  },
+  "source_archive_ids": {
+    "research_kit": "libfile_bed1521a1eb88191a92ec2d1cbbd2ee9",
+    "goalops": "libfile_9a27e22d02088191acc9ddd4b8e9f8bd",
+    "POL": "libfile_7e8781b74f20819181db4007b3950a5c",
+    "v6_1": "libfile_cd68ac46f0e081919823a71c21520fd7",
+    "audit_21": "libfile_8b2cce74fdd0819186a2da0f56f3f347"
+  },
+  "product_status": "not_installed",
+  "policy_tests_passed": 15
+}

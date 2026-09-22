@@ -1,0 +1,134 @@
+# plan.yaml — Thin Signals LivingSet v7.2
+# Machine-readable waves. Human narrative: docs/plan/PLAN_7.2.md, CONCEPT, STATUS.
+
+plan_revision: "7.2"
+parent_revision: "7.1"
+date: "2026-09-22"
+deadline: "2026-09-29T23:59:00+03:00"
+status: active
+degrade_default: keep_ledger
+
+execution:
+  mode: goall
+  architect_role: governor_planner
+  fork_policy: BEST_FIT|MINIMAL|ALTERNATIVE
+  autonomy_default: A1
+  operator_gates:
+    - A3
+    - A4
+    - secrets
+    - security_p1
+    - budget_exhausted
+    - llm.provider
+  cycle:
+    - OBSERVE
+    - EXECUTE
+    - VERIFY
+    - INTEGRATE
+  empty_waves_before_hold: 2
+  notes: >
+    7.2 compresses the 11-step cycle to 4. INTEGRATE must update STATUS + touched IDs.
+    Critical path: logical model + harness + eval + RU UI (ADR-009). No weight training.
+    Git SoT: SourceCraft; GitHub mirror for submission.
+
+phases:
+  - id: P0
+    name: ContractFreeze
+    window: ["2026-09-17", "2026-09-19"]
+    goal: LivingSet 7.0/7.1 committed; SourceCraft bootstrap
+    waves:
+      - id: W0-living-plan
+        status: completed
+        owner: architect
+        requirements: [LP-01, LP-02, LP-03]
+        forks: []
+      - id: W0b-bootstrap
+        status: completed
+        owner: architect
+        deliverables: ["ADR-008", "docs/ops/SOURCECRAFT.md", "repo created on SourceCraft", ".gitignore", "check_living_links.py"]
+        requirements: [LP-04, LP-06]
+        forks: [implementation.path, hosting.sourcecraft]
+
+  - id: P1
+    name: Contract72
+    window: ["2026-09-22", "2026-09-23"]
+    goal: LivingSet 7.2 + donors with provenance + repo pushed + ts/ skeleton with policy tests
+    degrade: keep_ledger
+    waves:
+      - id: W1-contract
+        status: in_progress
+        owner: architect/backend
+        deliverables:
+          - "CONCEPT/ARCHITECTURE/plan/forks/requirements/STATUS 7.2"
+          - "ADR-009, docs/plan/PLAN_7.2.md, docs/METHODOLOGY.md"
+          - "donors/ + reference/ + docs/lineage/handoff_2026-09-21 with hashes"
+          - "git init + push SourceCraft"
+          - "ts/ skeleton: pydantic schemas, scoring/policy.py (F03 fixed) + tests, compose (pgvector), pyproject"
+          - "LiteLLM alias ts-llm-allowlisted (dev) + request keys"
+        requirements: [LP-05, LP-07, DN-01, TZ-11, TZ-12, TS-INV-01, TS-INV-02, TS-INV-03, RM-01, LLM-01]
+        forks: [tz.classifier, backend.reuse, graph.neo4j, ui.stack, goal.controller, runtime.adapter, llm.provider]
+
+  - id: P2
+    name: LogicalModel
+    window: ["2026-09-23", "2026-09-24"]
+    goal: Scorer + negatives corpus + ts eval with P/R/F1 report in organizer format
+    waves:
+      - id: W2-scorer-eval
+        status: planned
+        owner: AI/evaluation
+        deliverables: ["ts/scoring rules-0.1.yaml", "data/negatives_v1.json", "ts eval CLI + adapter", "reports/eval_<date>.md", "docs/EVAL.md", "data/source_trust.yaml"]
+        requirements: [TZ-01, TZ-02, EV-01, EV-02, EV-03, SC-02, TS-AG-17]
+        forks: [tz.classifier]
+        gate: ">=75% accuracy on holdout+negatives, else revise features not thresholds"
+
+  - id: P3
+    name: LivePath
+    window: ["2026-09-24", "2026-09-26"]
+    goal: Query -> TOP-15 with citations end-to-end on VM101 services
+    waves:
+      - id: W3-live
+        status: planned
+        owner: AI/backend
+        deliverables: ["harness state machine + runs tables", "connectors SearXNG/arXiv/OpenAlex/Crossref/GitHub", "Docling snapshot", "LLM extraction JSON schema", "dedup TEI+pgvector", "countersearch maturity M01-M06", "ranking + exclusion registry"]
+        requirements: [TZ-03, TZ-05, TZ-07, TZ-10, SC-03, SC-06, SC-07, SC-11]
+        forks: [sources.epo_cordis, runtime.adapter, llm.provider]
+
+  - id: P4
+    name: AnalystUI
+    window: ["2026-09-26", "2026-09-27"]
+    goal: Russian Streamlit UI per TZ «Пример UI»
+    waves:
+      - id: W4-ui
+        status: planned
+        owner: frontend
+        deliverables: ["query page", "TOP-15 list with confidence + predictors", "report page", "source cards trust/translation", "relations list", "exclusion registry", "counters"]
+        requirements: [TZ-04, TZ-06, TZ-08, TZ-09, TZ-18, SC-12]
+        forks: [ui.stack]
+
+  - id: P5
+    name: Release
+    window: ["2026-09-27", "2026-09-29"]
+    goal: Laptop compose test, docs, GitHub mirror, slides 7-11, independent verification, submit
+    waves:
+      - id: W5-release
+        status: planned
+        owner: release/infra
+        deliverables: ["README Docker", "requirements/lock", "pipeline doc + diagram", "GitHub mirror", "slides 7-11", "independent-verifier live query receipt", "backup/restore"]
+        requirements: [TZ-13, TZ-14, TZ-15, TZ-16, TZ-17, SC-09]
+        forks: [hosting.sourcecraft]
+      - id: W6-submit
+        status: planned
+        owner: release
+        deliverables: ["upload before 2026-09-29 23:59 MSK"]
+        requirements: [ADM-01]
+        forks: []
+
+wave_routing:
+  CONTINUE: proceed within phase
+  SKIP: skip non-blocking wave with recorded reason
+  JUMP: jump to listed wave_id when finding requires
+  EXIT: hold phase; escalate to operator if P1/P2 blocker
+
+removed_in_7_2:
+  waves: [W1a-schema, W1b-import, W1c-idempotency, W2a-connectors, W2b-hermes-adapter, W2c-budgets-acl, W3a-patterns, W3b-graph, W3c-verification, W5a-eval, W5b-classifier, W6a-freeze, W6b-submit]
+  reason: ADR-009 — merged into W1-W6 above; Neo4j/ACL/goal_control-18 dropped with replacement matrix

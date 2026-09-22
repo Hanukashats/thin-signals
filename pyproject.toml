@@ -1,0 +1,28 @@
+[project]
+name = "thin-signals"
+version = "0.1.0"
+description = "Thin Signals — weak technology signal detection with a logical model (Gazprombank.Tech hackathon)"
+requires-python = ">=3.12"
+dependencies = [
+  "pydantic>=2.7,<3",
+  "pyyaml>=6",
+]
+
+[project.optional-dependencies]
+api = ["fastapi>=0.115", "uvicorn[standard]>=0.30", "sqlalchemy>=2.0", "alembic>=1.13", "psycopg[binary]>=3.2", "pgvector>=0.3", "httpx>=0.27"]
+ui = ["streamlit>=1.38", "httpx>=0.27"]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[project.scripts]
+ts = "ts.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["ts*"]
+
+[tool.pytest.ini_options]
+testpaths = ["ts/tests", "reference"]
+python_files = ["test_*.py"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"

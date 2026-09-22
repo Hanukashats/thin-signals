@@ -1,0 +1,20 @@
+id: GOAL-001
+objective: "Deliver the requested change with verified acceptance criteria and a portable architecture."
+non_goals:
+  - "Do not replace the project's canonical orchestrator unless explicitly requested."
+constraints:
+  - "Prefer runtime-neutral contracts and thin adapters."
+invariants:
+  - "Canonical state remains platform-owned."
+acceptance_criteria:
+  - id: AC-1
+    statement: "Required behavior is implemented."
+    verification: "Automated integration test passes."
+    mandatory: true
+risk_class: medium
+autonomy_class: A2
+budgets:
+  max_iterations: 12
+  max_parallel_agents: 4
+  max_tool_calls: 200
+approvals: []

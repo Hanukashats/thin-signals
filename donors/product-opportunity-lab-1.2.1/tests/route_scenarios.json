@@ -1,0 +1,305 @@
+[
+  {
+    "id": "open-discovery",
+    "mode": "DISCOVER",
+    "stakes": "MEDIUM",
+    "problem_e": 0,
+    "distribution_known": false,
+    "shortlist_only": true,
+    "readiness": "R1",
+    "must_include": [
+      "BROAD_DISCOVERY",
+      "PAIN_JTBD"
+    ],
+    "terminal": "SHORTLIST"
+  },
+  {
+    "id": "known-buyer-paid-pilot",
+    "mode": "VALIDATE",
+    "stakes": "MEDIUM",
+    "known_buyer": true,
+    "problem_e": 3,
+    "distribution_known": true,
+    "strong_commitment": true,
+    "readiness": "R3",
+    "competitor_material": true,
+    "economics_material": true,
+    "feasibility_material": true,
+    "must_exclude": [
+      "BROAD_DISCOVERY",
+      "PAIN_JTBD",
+      "MARKET_CEILING"
+    ],
+    "terminal": "FOCUSED_R3_R4_DILIGENCE"
+  },
+  {
+    "id": "r4-production",
+    "mode": "BUILD-HANDOFF",
+    "stakes": "MEDIUM",
+    "known_buyer": true,
+    "problem_e": 4,
+    "distribution_known": true,
+    "strong_commitment": true,
+    "readiness": "R4",
+    "request_build": true,
+    "feasibility_material": true,
+    "must_exclude": [
+      "BROAD_DISCOVERY"
+    ],
+    "terminal": "PRODUCTION_BUILD"
+  },
+  {
+    "id": "api-fatal-first",
+    "mode": "DISCOVER",
+    "stakes": "LOW",
+    "cheap_dependency": true,
+    "dependency_result": "FAIL",
+    "problem_e": 0,
+    "must_include": [
+      "DEPENDENCY_PREFLIGHT"
+    ],
+    "must_exclude": [
+      "BROAD_DISCOVERY",
+      "PAIN_JTBD"
+    ],
+    "terminal": "KILL_OR_PIVOT"
+  },
+  {
+    "id": "regulated-high-stakes",
+    "mode": "VALIDATE",
+    "stakes": "HIGH",
+    "known_buyer": true,
+    "problem_e": 2,
+    "distribution_known": true,
+    "readiness": "R4",
+    "request_build": true,
+    "strong_commitment": true,
+    "feasibility_material": true,
+    "must_include": [
+      "FEASIBILITY_TRUST",
+      "INDEPENDENT_RED_TEAM"
+    ],
+    "terminal": "PRODUCTION_BUILD"
+  },
+  {
+    "id": "emerging-window",
+    "mode": "SCAN",
+    "stakes": "LOW",
+    "problem_e": 1,
+    "trend_material": true,
+    "distribution_known": false,
+    "readiness": "R2",
+    "real_test_available": true,
+    "must_include": [
+      "BROAD_DISCOVERY",
+      "TREND_WHY_NOW",
+      "DIRECT_TEST"
+    ],
+    "terminal": "EXPERIMENTAL_BUILD_OR_VALIDATE"
+  },
+  {
+    "id": "internal-automation",
+    "mode": "VALIDATE",
+    "stakes": "MEDIUM",
+    "commercial": "internal",
+    "known_buyer": true,
+    "problem_e": 3,
+    "readiness": "R3",
+    "distribution_known": true,
+    "feasibility_material": true,
+    "must_include": [
+      "INTERNAL_ROI_ADOPTION"
+    ],
+    "must_exclude": [
+      "ECONOMICS",
+      "MARKET_CEILING",
+      "STATUS_QUO_COMPETITION"
+    ],
+    "terminal": "EXPERIMENTAL_BUILD"
+  },
+  {
+    "id": "noncommercial-oss",
+    "mode": "VALIDATE",
+    "stakes": "LOW",
+    "commercial": "noncommercial",
+    "problem_e": 3,
+    "readiness": "R3",
+    "distribution_known": true,
+    "must_include": [
+      "USEFULNESS_ADOPTION"
+    ],
+    "must_exclude": [
+      "ECONOMICS",
+      "MARKET_CEILING"
+    ],
+    "terminal": "EXPERIMENTAL_BUILD"
+  },
+  {
+    "id": "failure-archaeology-conditional",
+    "mode": "VALIDATE",
+    "stakes": "MEDIUM",
+    "problem_e": 2,
+    "distribution_known": true,
+    "readiness": "R2",
+    "failure_material": true,
+    "competitor_material": true,
+    "must_include": [
+      "FAILURE_ARCHAEOLOGY"
+    ],
+    "terminal": "VALIDATE"
+  },
+  {
+    "id": "market-ceiling-venture",
+    "mode": "COMPARE",
+    "stakes": "HIGH",
+    "problem_e": 3,
+    "distribution_known": true,
+    "readiness": "R2",
+    "market_ceiling_material": true,
+    "competitor_material": true,
+    "economics_material": true,
+    "must_include": [
+      "MARKET_CEILING"
+    ],
+    "terminal": "VALIDATE"
+  },
+  {
+    "id": "cashflow-no-tam",
+    "mode": "VALIDATE",
+    "stakes": "LOW",
+    "problem_e": 3,
+    "distribution_known": true,
+    "readiness": "R2",
+    "economics_material": true,
+    "real_test_available": true,
+    "must_exclude": [
+      "MARKET_CEILING"
+    ],
+    "terminal": "EXPERIMENTAL_BUILD_OR_VALIDATE"
+  },
+  {
+    "id": "research-stall-jump",
+    "mode": "VALIDATE",
+    "stakes": "MEDIUM",
+    "problem_e": 2,
+    "distribution_known": false,
+    "readiness": "R2",
+    "research_stalled": true,
+    "real_test_available": true,
+    "must_include": [
+      "DIRECT_TEST"
+    ],
+    "terminal": "EXPERIMENTAL_BUILD_OR_VALIDATE"
+  },
+  {
+    "id": "research-stall-hold",
+    "mode": "VALIDATE",
+    "stakes": "MEDIUM",
+    "problem_e": 2,
+    "distribution_known": false,
+    "readiness": "R1",
+    "research_stalled": true,
+    "real_test_available": false,
+    "terminal": "HOLD"
+  },
+  {
+    "id": "decision-stable-compare",
+    "mode": "COMPARE",
+    "stakes": "LOW",
+    "problem_e": 3,
+    "distribution_known": true,
+    "readiness": "R2",
+    "decision_stable": true,
+    "stable_action": "CHOOSE",
+    "must_exclude": [
+      "MARKET_CEILING"
+    ],
+    "terminal": "CHOOSE"
+  },
+  {
+    "id": "status-quo-hard-fail",
+    "mode": "VALIDATE",
+    "stakes": "LOW",
+    "problem_e": 2,
+    "distribution_known": true,
+    "readiness": "R2",
+    "competitor_material": true,
+    "hard_fail": true,
+    "must_include": [
+      "STATUS_QUO_COMPETITION"
+    ],
+    "terminal": "KILL_OR_PIVOT"
+  },
+  {
+    "id": "solution-fixed",
+    "mode": "VALIDATE",
+    "stakes": "LOW",
+    "problem_e": 3,
+    "distribution_known": true,
+    "readiness": "R2",
+    "solution_choice_open": false,
+    "solution_risk": true,
+    "real_test_available": true,
+    "must_exclude": [
+      "SOLUTION_COMPARE"
+    ],
+    "terminal": "EXPERIMENTAL_BUILD_OR_VALIDATE"
+  },
+  {
+    "id": "solution-risk-compare",
+    "mode": "VALIDATE",
+    "stakes": "MEDIUM",
+    "problem_e": 3,
+    "distribution_known": true,
+    "readiness": "R2",
+    "solution_choice_open": true,
+    "solution_risk": true,
+    "must_include": [
+      "SOLUTION_COMPARE"
+    ],
+    "terminal": "VALIDATE"
+  },
+  {
+    "id": "explicit-r2-override",
+    "mode": "BUILD-HANDOFF",
+    "stakes": "MEDIUM",
+    "problem_e": 2,
+    "distribution_known": true,
+    "readiness": "R2",
+    "request_build": true,
+    "explicit_override": true,
+    "feasibility_material": true,
+    "must_include": [
+      "FEASIBILITY_TRUST"
+    ],
+    "terminal": "BUILD_WITH_RISK_DEBT"
+  },
+  {
+    "id": "forced-decision",
+    "mode": "COMPARE",
+    "stakes": "MEDIUM",
+    "decision_deadline": true,
+    "info_improvement_unavailable": true,
+    "readiness": "R1",
+    "must_include": [
+      "FORCE_DECISION"
+    ],
+    "terminal": "PROVISIONAL_OPTION_PRESERVING_DECISION"
+  },
+  {
+    "id": "discover-speculative-e0",
+    "mode": "DISCOVER",
+    "stakes": "LOW",
+    "problem_e": 0,
+    "distribution_known": false,
+    "speculative_lane": true,
+    "shortlist_only": true,
+    "readiness": "R1",
+    "must_include": [
+      "BROAD_DISCOVERY",
+      "SPECULATIVE_E0",
+      "PAIN_JTBD"
+    ],
+    "terminal": "SHORTLIST"
+  }
+]

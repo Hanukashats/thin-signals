@@ -1,0 +1,420 @@
+# requirements.yaml — Thin Signals LivingSet v7.2
+# Each requirement: state, owner, acceptance, wave, evidence[].
+# States: proposed | planned | implemented | tested | accepted | blocked | removed
+# TS-AG-01..18 (7.1 goal_control) moved to docs/lineage/baseline_v6_1/integration/acceptance.json; only TS-AG-17 kept.
+
+plan_revision: "7.2"
+date: "2026-09-22"
+
+requirements:
+  # --- Living plan meta ---
+  - id: LP-01
+    title: LivingSet files exist and are revision-linked
+    priority: P0
+    owner: architect
+    state: implemented
+    wave: W0-living-plan
+    acceptance: CONCEPT, ARCHITECTURE, plan.yaml, forks.yaml, requirements.yaml, STATUS, EVOLUTION, ADRs present with current revision
+    evidence: ["scripts/check_living_links.py OK 2026-09-22"]
+
+  - id: LP-02
+    title: Lineage supersession documented
+    priority: P0
+    owner: architect
+    state: implemented
+    wave: W0-living-plan
+    acceptance: docs/lineage/SUPERSESSION.md lists v4-v7.1 keep/replace
+    evidence: []
+
+  - id: LP-03
+    title: Architect fork policy executable
+    priority: P0
+    owner: architect
+    state: implemented
+    wave: W0-living-plan
+    acceptance: plan.yaml execution.mode=goall; forks.yaml has locked/decided/open/closed and operator_gate rules
+    evidence: []
+
+  - id: LP-04
+    title: SourceCraft hosting and agent access documented
+    priority: P0
+    owner: architect
+    state: implemented
+    wave: W0b-bootstrap
+    forks: [hosting.sourcecraft]
+    acceptance: docs/ops/SOURCECRAFT.md + secrets.paths.yaml point to PAT path; no secret value in git
+    evidence: ["API GET /user 200 (2026-09-19)", "repo shats123/thin-signals created (2026-09-19)"]
+
+  - id: LP-05
+    title: SourceCraft repository has LivingSet pushed
+    priority: P0
+    owner: architect
+    state: planned
+    wave: W1-contract
+    forks: [hosting.sourcecraft]
+    acceptance: git init on VM; main pushed to https://git.sourcecraft.dev/shats123/thin-signals; clone URL in STATUS
+    evidence: []
+
+  - id: LP-06
+    title: Bootstrap skeleton and LivingSet link check
+    priority: P0
+    owner: architect
+    state: implemented
+    wave: W0b-bootstrap
+    forks: [implementation.path]
+    acceptance: scripts/check_living_links.py exits 0; .gitignore present
+    evidence: []
+
+  - id: LP-07
+    title: Plan 7.2 persisted in repo with approval status
+    priority: P0
+    owner: architect
+    state: implemented
+    wave: W1-contract
+    acceptance: docs/plan/PLAN_7.2.md + ADR-009 present; approval and restoration provenance recorded
+    evidence: ["docs/plan/PLAN_7.2.md 2026-09-22"]
+
+  # --- Donors ---
+  - id: DN-01
+    title: Donor skills copied unmodified with provenance and known gaps
+    priority: P1
+    owner: architect
+    state: implemented
+    wave: W1-contract
+    acceptance: donors/README.md lists version, path, licence, SHA256, reuse/adapt/defer decision; KNOWN_GAPS in lineage; reference tests pass on VM
+    evidence: ["SHA256SUMS 150/150 OK", "reference/test_policy.py 15/15 OK 2026-09-22", "POL donor == VM copy (diff -rq empty)"]
+
+  # --- TZ (official Gazprombank.Tech brief, sources/1. Газпромбанк.Тех.pdf) ---
+  - id: TZ-01
+    title: Classification algorithm as logical model (features + gates + calibrated thresholds), no weight training
+    priority: P0
+    owner: AI
+    state: planned
+    wave: W2-scorer-eval
+    forks: [tz.classifier]
+    acceptance: >
+      ts/scoring produces label + confidence + reason codes for every row from features F-P01..18 and M01..06 only;
+      dataset_score/trend/rationale never used as inputs; rules version pinned.
+    evidence: []
+
+  - id: TZ-02
+    title: Precision/Recall/F1 report on labelled data
+    priority: P0
+    owner: AI/evaluation
+    state: planned
+    wave: W2-scorer-eval
+    acceptance: reports/eval_<date>.md with accuracy, P, R, F1, confusion matrix, denominator, split description, rules version; >=75% or explicit shortfall
+    evidence: []
+
+  - id: TZ-03
+    title: Live open search beyond seed 100
+    priority: P1
+    owner: data/AI
+    state: planned
+    wave: W3-live
+    acceptance: Jury query hits live sources; retrieval-only-on-100 fails acceptance
+    evidence: []
+
+  - id: TZ-04
+    title: TOP-15 cards with description, advantage, case, sources, confidence, explanation
+    priority: P1
+    owner: frontend/AI
+    state: planned
+    wave: W4-ui
+    forks: [ui.stack]
+    acceptance: Cards + report page; shortfall visible, no invented fillers
+    evidence: []
+
+  - id: TZ-05
+    title: Exclude mature/hype/noise with evidence registry
+    priority: P1
+    owner: AI/domain
+    state: planned
+    wave: W3-live
+    acceptance: Exclusion registry with M01-M06 proof per item; REFRAME_CHILD path for mature parent
+    evidence: []
+
+  - id: TZ-06
+    title: Russian UI and analytics output
+    priority: P1
+    owner: frontend
+    state: planned
+    wave: W4-ui
+    forks: [ui.stack]
+    acceptance: Localized fields/statuses; original source titles preserved
+    evidence: []
+
+  - id: TZ-07
+    title: Source card fields complete
+    priority: P1
+    owner: data
+    state: planned
+    wave: W3-live
+    acceptance: name, URL, date, type, language, trust (data/source_trust.yaml); unknown date explicit
+    evidence: []
+
+  - id: TZ-08
+    title: RU summary for foreign sources with generation mark
+    priority: P2
+    owner: frontend/AI
+    state: planned
+    wave: W4-ui
+    acceptance: translation_method / summary_generated visible near source
+    evidence: []
+
+  - id: TZ-09
+    title: External analytical scores with sources
+    priority: P2
+    owner: frontend
+    state: planned
+    wave: W4-ui
+    acceptance: Block present or explicit «не найдено»
+    evidence: []
+
+  - id: TZ-10
+    title: Allowlisted models only, model_id disclosed
+    priority: P1
+    owner: AI/infra
+    state: planned
+    wave: W3-live
+    forks: [llm.provider]
+    acceptance: Product answers via ts-llm-allowlisted only; model_id stored per extraction; no OpenRouter in product mode
+    evidence: []
+
+  - id: TZ-11
+    title: PostgreSQL for raw and results
+    priority: P1
+    owner: backend
+    state: planned
+    wave: W1-contract
+    forks: [backend.reuse]
+    acceptance: compose pgvector PG; schema v1 migrations; snapshots content-addressed on disk with blob_ref
+    evidence: []
+
+  - id: TZ-12
+    title: Python + Docker; parse/infer/UI separation
+    priority: P1
+    owner: infra
+    state: planned
+    wave: W1-contract
+    forks: [backend.reuse]
+    acceptance: compose services pg/api/ui; profiles laptop|vm101; clean deploy
+    evidence: []
+
+  - id: TZ-13
+    title: Laptop-oriented profile measurable
+    priority: P2
+    owner: infra
+    state: planned
+    wave: W5-release
+    acceptance: laptop profile starts without VM101 services; timing recorded
+    evidence: []
+
+  - id: TZ-14
+    title: Presentation <=15 slides; slides 7-11 per template
+    priority: P1
+    owner: release
+    state: blocked
+    wave: W5-release
+    acceptance: Template obtained from operator; slides 7-11 unchanged design
+    evidence: []
+
+  - id: TZ-15
+    title: Public repo (GitHub mirror) with README Docker + dependencies
+    priority: P1
+    owner: release
+    state: planned
+    wave: W5-release
+    forks: [hosting.sourcecraft]
+    acceptance: GitHub mirror without secrets; README deploy commands verified
+    evidence: []
+
+  - id: TZ-16
+    title: Intermediate vs final submission distinction
+    priority: P2
+    owner: release
+    state: planned
+    wave: W5-release
+    acceptance: Intermediate = repo + eval report + methodology + basic query; final = stand + TOP-15 live
+    evidence: []
+
+  - id: TZ-17
+    title: Jury-accessible stand and live query
+    priority: P1
+    owner: infra
+    state: planned
+    wave: W5-release
+    acceptance: External access verified with basic-auth and model budget
+    evidence: []
+
+  - id: TZ-18
+    title: Counters — candidates, processed sources, signals with confidence > 75%
+    priority: P3
+    owner: frontend
+    state: planned
+    wave: W4-ui
+    acceptance: Three counters on main page using METHODOLOGY §4 confidence
+    evidence: []
+
+  - id: ADM-01
+    title: Final deadline 2026-09-29 23:59 MSK
+    priority: P0
+    owner: release
+    state: planned
+    wave: W6-submit
+    acceptance: Upload verified before deadline; internal buffer 28.09
+    evidence: []
+
+  # --- Eval / logical model ---
+  - id: EV-01
+    title: Negatives corpus (mature / standards / hype / noise) with adjudication
+    priority: P0
+    owner: AI/domain
+    state: planned
+    wave: W2-scorer-eval
+    acceptance: data/negatives_v1.json >= 80 items, each with class, rationale, >=1 source, adjudicated flag
+    evidence: []
+
+  - id: EV-02
+    title: Holdout split by semantic family, no label leakage
+    priority: P0
+    owner: AI/evaluation
+    state: planned
+    wave: W2-scorer-eval
+    acceptance: split file lists families kept together; features exclude dataset_score/trend/rationale
+    evidence: []
+
+  - id: EV-03
+    title: Organizer-format adapter for ts eval
+    priority: P0
+    owner: AI/evaluation
+    state: planned
+    wave: W2-scorer-eval
+    acceptance: ts eval --input <csv|json> --label-col <name> runs on official dataset when received; runs on seed+negatives now
+    evidence: []
+
+  # --- LLM provider ---
+  - id: LLM-01
+    title: LiteLLM alias ts-llm-allowlisted routed to TZ-approved provider
+    priority: P1
+    owner: infra
+    state: blocked
+    wave: W1-contract
+    forks: [llm.provider]
+    acceptance: alias exists; prod route = Yandex/GigaChat/OpenAI direct; dev route logs model_id and is marked non-compliant
+    evidence: []
+
+  # --- Replacement matrix ---
+  - id: RM-01
+    title: Every dropped component has function, replacement and acceptance scenario recorded
+    priority: P1
+    owner: architect
+    state: implemented
+    wave: W1-contract
+    forks: [graph.neo4j, backend.reuse]
+    acceptance: docs/plan/PLAN_7.2.md §6 covers Neo4j, S3, OIDC, Procrastinate, UI stack, BERTopic, sklearn, dual adapters, Auto-Goal daemon
+    evidence: ["PLAN_7.2.md §6 2026-09-22"]
+
+  # --- Product scenarios kept from 7.1 ---
+  - id: SC-02
+    title: Seed import without label leakage as features
+    priority: P1
+    owner: data
+    state: planned
+    wave: W2-scorer-eval
+    acceptance: seed_unverified; XLSX score metadata only; patterns as hints
+    evidence: []
+
+  - id: SC-03
+    title: Live path snapshot to candidate
+    priority: P1
+    owner: AI/backend
+    state: planned
+    wave: W3-live
+    acceptance: live query -> raw snapshot -> evidence -> candidate with citations
+    evidence: []
+
+  - id: SC-06
+    title: Dedup article/repo/press into one event
+    priority: P1
+    owner: domain
+    state: planned
+    wave: W3-live
+    acceptance: One experiment -> one EvidenceEvent (test from row 85)
+    evidence: []
+
+  - id: SC-07
+    title: Future roadmap not counted as deployment
+    priority: P1
+    owner: domain
+    state: planned
+    wave: W3-live
+    acceptance: planned_for events stored; not deployment_confirmed (rows 12/35/59/64)
+    evidence: []
+
+  - id: SC-09
+    title: Backup restore and pinned config for new run
+    priority: P1
+    owner: infra
+    state: planned
+    wave: W5-release
+    acceptance: pg_dump + snapshots tar restore tested; run records rules/model/corpus versions
+    evidence: []
+
+  - id: SC-11
+    title: Critical UNKNOWN not PASS by deadline
+    priority: P1
+    owner: domain
+    state: planned
+    wave: W3-live
+    acceptance: budget_exhausted with unknown critical claim -> HOLD (policy test)
+    evidence: ["reference/test_policy.py test_unknown_not_pass OK"]
+
+  - id: SC-12
+    title: Honest shortfall below 15
+    priority: P1
+    owner: frontend
+    state: planned
+    wave: W4-ui
+    acceptance: Show count + watchlist separately
+    evidence: []
+
+  # --- Process invariants (replace TS-AG-01..18) ---
+  - id: TS-INV-01
+    title: Idempotent run
+    priority: P1
+    owner: backend
+    state: planned
+    wave: W1-contract
+    forks: [goal.controller]
+    acceptance: same query+corpus_version+rules_version returns prior run_id; step re-run keyed by input_hash
+    evidence: []
+
+  - id: TS-INV-02
+    title: Claim requires fragment of read snapshot; PASS requires evidence
+    priority: P1
+    owner: backend
+    state: planned
+    wave: W1-contract
+    forks: [goal.controller]
+    acceptance: semantic validator rejects claim without fragment_id; structural rc=0 of donor validators is not a gate
+    evidence: []
+
+  - id: TS-INV-03
+    title: Run status separated from signal decision
+    priority: P1
+    owner: backend/frontend
+    state: planned
+    wave: W1-contract
+    forks: [goal.controller]
+    acceptance: succeeded run may yield mature/noise/watchlist; UI shows both fields
+    evidence: []
+
+  - id: TS-AG-17
+    title: Preserve all scientific gates P01-P18
+    priority: P1
+    owner: data/AI
+    state: planned
+    wave: W2-scorer-eval
+    acceptance: Patterns and mapping preserved in registry; scorer covers all 18 features
+    evidence: []

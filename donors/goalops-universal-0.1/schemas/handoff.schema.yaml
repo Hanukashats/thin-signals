@@ -1,0 +1,22 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: GoalOps Handoff
+type: object
+required: [task_id, from_role, status, changes, evidence, unresolved]
+properties:
+  task_id: {type: string}
+  from_role: {type: string}
+  status: {enum: [implemented, blocked, needs_review, verified, failed]}
+  changes:
+    type: array
+    items: {type: string}
+  evidence:
+    type: array
+    items: {type: string}
+  assumptions:
+    type: array
+    items: {type: string}
+  unresolved:
+    type: array
+    items: {type: string}
+  next_recommended_action: {type: string}
+additionalProperties: true

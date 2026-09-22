@@ -1,0 +1,43 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: GoalOps Goal Contract
+type: object
+required: [id, objective, acceptance_criteria, risk_class, autonomy_class, budgets]
+properties:
+  id: {type: string}
+  objective: {type: string, minLength: 1}
+  non_goals:
+    type: array
+    items: {type: string}
+  constraints:
+    type: array
+    items: {type: string}
+  invariants:
+    type: array
+    items: {type: string}
+  acceptance_criteria:
+    type: array
+    minItems: 1
+    items:
+      type: object
+      required: [id, statement, verification]
+      properties:
+        id: {type: string}
+        statement: {type: string}
+        verification: {type: string}
+        mandatory: {type: boolean, default: true}
+  risk_class:
+    enum: [low, medium, high, critical]
+  autonomy_class:
+    enum: [A0, A1, A2, A3, A4]
+  budgets:
+    type: object
+    required: [max_iterations]
+    properties:
+      max_iterations: {type: integer, minimum: 1}
+      max_parallel_agents: {type: integer, minimum: 1}
+      max_tool_calls: {type: integer, minimum: 1}
+      max_cost: {type: number, minimum: 0}
+  approvals:
+    type: array
+    items: {type: string}
+additionalProperties: true

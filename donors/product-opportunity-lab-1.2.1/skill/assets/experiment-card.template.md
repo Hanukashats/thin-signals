@@ -1,0 +1,22 @@
+# Experiment Card
+
+- Candidate / hypothesis ID:
+- Critical claim: problem | budget | switching | distribution | feasibility_trust | solution_commitment | retention
+- Hypothesis:
+- Why this could change the decision:
+- Current evidence maturity: E0 | E1 | E2 | E3 | E4
+- Test method:
+- Target segment/sample:
+- Metric:
+- Pass bar (set before running):
+- Fail/pivot bar:
+- Expected evidence maturity if passed:
+- Decision impact: 1-5
+- Uncertainty: 1-5
+- Discriminatory power: 1-5
+- Cost/time/irreversibility: 1-5
+- Confounds / ways this could mislead us:
+- Ethical/privacy constraints:
+- Result:
+- Decision: research | validate | experimental-build | production-build | repeat-stronger | pivot | hold | kill
+- Next action:

@@ -1,0 +1,21 @@
+{
+  "plan_version": "6.1",
+  "status": "designed_not_deployed",
+  "date": "2026-09-17",
+  "base_plan_sha256": "cd148a33823fc46f6e8ef8175889de6e5fdf40d588058d4f582691f393c67a92",
+  "updated_plan_sha256": "1dc586da778015fa28daba05cd8dd864bfa1064d94d5b3dc56c6858db47325ec",
+  "donor_archive_sha256": "1f1f2aefefa205f7cafaf985dd58e124652882d7976c36ba11f9c30eb4e7cd55",
+  "donor_commit": "4e3257d8c6f4ddf05f88920db6e9509b79bd1c58",
+  "upstream_tests": 59,
+  "additional_probes": 14,
+  "positive_controls": 1,
+  "unchanged_data_files": [
+    "data/archive_integrity.json",
+    "data/dataset_patterns_100.csv",
+    "data/dataset_patterns_100.json",
+    "data/donor_checks.json",
+    "data/mapping_summary.json",
+    "data/pattern_registry.json",
+    "data/predictor_registry.json"
+  ]
+}

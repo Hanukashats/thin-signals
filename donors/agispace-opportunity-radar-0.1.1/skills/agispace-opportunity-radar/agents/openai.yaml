@@ -1,0 +1,4 @@
+interface:
+  display_name: "AgiSpace Opportunity Radar"
+  short_description: "Слабые сигналы, стартапы и ключевые поставщики"
+  default_prompt: "Используй $agispace-opportunity-radar для анализа технологии, стартапов, цепочки поставщиков и окна входа."

@@ -1,0 +1,11 @@
+{
+  "checksum_entries": 46,
+  "mismatches": [],
+  "source_commit": "4e3257d8c6f4ddf05f88920db6e9509b79bd1c58",
+  "version": "0.3.0-portable.1",
+  "roles": 10,
+  "modules": 28,
+  "locked_modules": 7,
+  "presets": 4,
+  "file_count": 47
+}

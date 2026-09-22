@@ -1,0 +1,32 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: GoalOps Role Contract
+type: object
+required: [id, purpose, inputs, outputs, permissions, independence]
+properties:
+  id: {type: string}
+  purpose: {type: string}
+  activation_condition: {type: string}
+  inputs:
+    type: array
+    items: {type: string}
+  outputs:
+    type: array
+    items: {type: string}
+  permissions:
+    type: object
+    properties:
+      tools: {type: array, items: {type: string}}
+      paths: {type: array, items: {type: string}}
+      network: {type: array, items: {type: string}}
+  independence:
+    type: object
+    properties:
+      may_review_own_work: {type: boolean, default: false}
+      may_change_goal: {type: boolean, default: false}
+      may_elevate_permissions: {type: boolean, default: false}
+  model_preferences:
+    type: object
+    properties:
+      diversity_group: {type: string}
+      reasoning_level: {type: string}
+additionalProperties: true

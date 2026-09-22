@@ -1,0 +1,50 @@
+# STATUS.md — Thin Signals LivingSet
+
+Updated: **2026-09-22** · Plan revision: **7.2** · Deadline: **2026-09-29 23:59 MSK**
+Host of record: Georg VM101 `/opt/thin-signals` (cursor-agent). Plan: `docs/plan/PLAN_7.2.md`, ADR-009.
+
+## Current
+
+| Field | Value |
+|---|---|
+| Phase | **P1 Contract72** |
+| Wave | **W1-contract** — in_progress |
+| Done in W1 | LivingSet 7.2; ADR-009; METHODOLOGY; PLAN_7.2 persisted; donors/ + reference/ + lineage handoff with hashes; `ts/` skeleton (schemas, scoring/policy F03-fixed, 39 tests OK); compose pg (pgvector 0.8.6 on PG16 verified `CREATE EXTENSION vector`); venv `.venv` |
+| Left in W1 | git init + push SourceCraft (LP-05); Alembic v1; seed import; LiteLLM alias `ts-llm-allowlisted` (dev) |
+| Next wave | W2-scorer-eval: rules-0.1.yaml, negatives_v1.json, `ts eval`, P/R/F1 report |
+| Blockers (operator) | official organizer dataset (hidden labels) not received; presentation template not received; LLM provider keys (Yandex AI Studio / GigaChat / OpenAI direct) — fork `llm.provider` operator_gate |
+
+## Decisions this INTEGRATE (7.2, 2026-09-22)
+
+| Fork | Choice | Class |
+|---|---|---|
+| `tz.classifier` | logical_scorer | BEST_FIT |
+| `backend.reuse` | extend_via_urls | BEST_FIT |
+| `graph.neo4j` | drop_pg_tables (closed) | MINIMAL |
+| `sources.epo_cordis` | stub_unavailable (closed) | MINIMAL |
+| `ui.stack` | streamlit_ru | MINIMAL |
+| `goal.controller` | three_invariants_in_domain | MINIMAL |
+| `runtime.adapter` | python_harness_hermes_optional | MINIMAL |
+| `hosting.sourcecraft` | sourcecraft_plus_github_mirror | BEST_FIT |
+| `llm.provider` | **open — operator gate** | — |
+
+## Donor pack 2026-09-21
+
+ZIP SHA256 `cfa98189…697646`; SHA256SUMS 150/150 OK. Radar 0.1.1, GoalOps 0.1, POL 1.2.1 (byte-identical to VM copy), reference policy (15/15 OK). Provenance: `donors/README.md`; gaps: `docs/lineage/handoff_2026-09-21/KNOWN_GAPS_AND_ACCEPTANCE.md`.
+
+## Requirement snapshot
+
+- implemented: LP-01…04, LP-06, LP-07, DN-01, RM-01
+- planned W1: LP-05, TZ-11, TZ-12, TS-INV-01…03
+- blocked: TZ-14 (template), LLM-01 (keys)
+- removed to lineage: SC-01, SC-04, SC-05, SC-08, SC-10, TS-AG-01…16, TS-AG-18
+
+## SourceCraft
+
+Repo `https://sourcecraft.dev/shats123/thin-signals` (private, empty as of 2026-09-19). Push auth: HTTPS + `GIT_ASKPASS=.secrets/git-askpass.sh`. SSH key not registered (UI-only). Local git: see bottom of this file after W1 push.
+
+## Next trigger
+
+1. `git init` + push `main` → LP-05 evidence here.
+2. W2: `ts/scoring/rules-0.1.yaml`, `data/negatives_v1.json`, `ts eval`, `reports/eval_<date>.md`.
+3. Operator: dataset, template, LLM keys.

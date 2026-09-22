@@ -1,0 +1,267 @@
+# forks.yaml — Architectural forks for Thin Signals
+# Status: locked | decided | open | closed
+# Choice classes: BEST_FIT | MINIMAL | ALTERNATIVE
+# operator_gate: true → Architect must not auto-decide; stop for human.
+
+plan_revision: "7.2"
+date: "2026-09-22"
+architect_policy:
+  default_choice: BEST_FIT
+  may_auto_decide: [open]
+  must_not_reopen_without_adr: [locked, decided, closed]
+  autonomy_without_operator: [A1, A2]
+  always_operator:
+    - operator_gate
+    - A3
+    - A4
+    - secrets
+    - security_p1
+
+forks:
+  - id: implementation.path
+    status: locked
+    decision: BEST_FIT
+    chosen: logic_skills_plugins_frameworks
+    alternatives:
+      - id: logic_skills_plugins_frameworks
+        summary: Domain logic + adapted skills/plugins/frameworks; no weight training
+      - id: train_model_first
+        summary: Rejected — no negatives, no GPU, opaque vs P01-P18
+    rationale: Operator 2026-09-18/19; ADR-008, ADR-009
+    operator_gate: false
+    related_waves: [W1-contract]
+
+  - id: tz.classifier
+    status: decided
+    decision: BEST_FIT
+    chosen: logical_scorer
+    alternatives:
+      - id: logical_scorer
+        summary: Deterministic scorer on F-P01..18 + M01..06 with calibrated thresholds; P/R/F1 via ts eval
+      - id: sklearn_logistic
+        summary: Rejected — 100 positives only, label leakage, opaque relative to patterns
+      - id: waiver_after_organizer
+        summary: Fallback only if organizers reject logical model reading of "или логически"
+    rationale: ADR-009 §A; TZ p.2 «математически (или логически)»
+    operator_gate: false
+    related_waves: [W2-scorer-eval]
+    related_requirements: [TZ-01, EV-01, EV-02, EV-03]
+
+  - id: llm.provider
+    status: open
+    decision: null
+    preferred_default: BEST_FIT
+    alternatives:
+      - id: yandex_ai_studio
+        summary: YandexGPT 5 / Qwen3 235B via OpenAI-compatible endpoint behind LiteLLM alias ts-llm-allowlisted
+      - id: gigachat
+        summary: GigaChat 2 Lite/Pro/Max API
+      - id: openai_direct
+        summary: gpt-4.1 direct (not via OpenRouter)
+      - id: local_hf_cpu
+        summary: Small Qwen3 via llama.cpp on CPU — slow, no cloud
+    selection_rule: >
+      Operator provides keys → BEST_FIT=yandex_ai_studio. Until then dev uses OpenRouter
+      through the same alias with model_id logged and NO claim of TZ compliance.
+    operator_gate: true
+    related_waves: [W1-contract, W3-live]
+    related_requirements: [TZ-10, LLM-01]
+
+  - id: backend.reuse
+    status: decided
+    decision: BEST_FIT
+    chosen: extend_via_urls
+    alternatives:
+      - id: extend_via_urls
+        summary: Own compose (PG+pgvector, API, UI); VM101 SearXNG/Docling/TEI/LiteLLM/Playwright by URL; laptop profile swaps them
+      - id: greenfield_in_workspace
+        summary: Everything local — rejected for VM dev, kept as laptop profile
+    rationale: docker ps 2026-09-19; ADR-009 §C
+    operator_gate: false
+    related_waves: [W1-contract]
+    related_requirements: [TZ-11, TZ-12, RM-01]
+
+  - id: graph.neo4j
+    status: closed
+    decision: MINIMAL
+    chosen: drop_pg_tables
+    alternatives:
+      - id: drop_pg_tables
+        summary: nodes/edges tables in PG; SQL/CTE queries; UI relation list
+      - id: projection_now
+        summary: Rejected — no Neo4j on VM, 8 days
+    rationale: ADR-009 §B; replacement matrix PLAN_7.2 §6
+    operator_gate: false
+    related_requirements: [RM-01]
+
+  - id: sources.epo_cordis
+    status: closed
+    decision: MINIMAL
+    chosen: stub_unavailable
+    alternatives:
+      - id: stub_unavailable
+        summary: Channel marked unavailable; no zero growth emitted; arXiv/OpenAlex/Crossref/GitHub/Google Patents via SearXNG instead
+      - id: enable_after_quota_check
+        summary: Only if credentials appear before W3
+    rationale: ADR-009; no EPO/CORDIS credentials
+    operator_gate: false
+    related_waves: [W3-live]
+
+  - id: ui.stack
+    status: decided
+    decision: MINIMAL
+    chosen: streamlit_ru
+    alternatives:
+      - id: streamlit_ru
+        summary: Streamlit pages in Russian — allowed by TZ 3.2
+      - id: refine_antd
+        summary: React+Refine — only if time remains after W4
+    rationale: ADR-009 §B
+    operator_gate: false
+    related_waves: [W4-ui]
+    related_requirements: [TZ-04, TZ-06]
+
+  - id: goal.controller
+    status: locked
+    decision: MINIMAL
+    chosen: three_invariants_in_domain
+    alternatives:
+      - id: three_invariants_in_domain
+        summary: TS-INV-01..03 in domain code; TS-AG-01..18 kept in lineage
+      - id: goal_control_in_pg
+        summary: Superseded 7.1 design (18 criteria) — too large for hackathon
+      - id: auto_goal_daemon
+        summary: Rejected — second controller / file ledger
+    rationale: ADR-006 → ADR-009 §E
+    operator_gate: false
+    related_requirements: [TS-INV-01, TS-INV-02, TS-INV-03]
+
+  - id: sot.store
+    status: locked
+    decision: BEST_FIT
+    chosen: postgresql
+    alternatives:
+      - id: postgresql
+        summary: Single writable SoT for facts, runs, decisions, vectors
+    rationale: Plan 6.1 + ADR-009
+    operator_gate: false
+
+  - id: llm.finetune
+    status: locked
+    decision: MINIMAL
+    chosen: frozen_llm_no_lora
+    alternatives:
+      - id: frozen_llm_no_lora
+        summary: Frozen allowlisted LLM; harness + evidence
+      - id: lora_qlora
+        summary: Rejected — no GPU, no error corpus
+    rationale: Operator 2026-09-19; ADR-009
+    operator_gate: false
+
+  - id: hosting.sourcecraft
+    status: decided
+    decision: BEST_FIT
+    chosen: sourcecraft_plus_github_mirror
+    alternatives:
+      - id: sourcecraft_plus_github_mirror
+        summary: SourceCraft canonical remote; GitHub mirror mandatory for submission (TZ p.5)
+      - id: sourcecraft_only
+        summary: Rejected — TZ requires GitLab/GitHub
+    rationale: Operator 2026-09-18; ADR-008; ADR-009 §F
+    operator_gate: false
+    related_waves: [W1-contract, W5-release]
+    related_requirements: [LP-05, TZ-15]
+
+  - id: runtime.adapter
+    status: decided
+    decision: MINIMAL
+    chosen: python_harness_hermes_optional
+    alternatives:
+      - id: python_harness_hermes_optional
+        summary: Explicit Python state machine; Hermes via HTTP allowlist for deep countersearch only
+      - id: hermes_primary
+        summary: 7.1 default — superseded; adapter boundary kept
+      - id: opencode_fallback
+        summary: Not needed in first implementation
+    rationale: ADR-009 §B
+    operator_gate: false
+    related_waves: [W3-live]
+
+decisions_log:
+  - fork_id: implementation.path
+    choice: logic_skills_plugins_frameworks
+    class: BEST_FIT
+    wave_id: W0b-bootstrap
+    reason: Operator — no mandatory model training
+    at: "2026-09-18"
+    autonomy: A1
+  - fork_id: hosting.sourcecraft
+    choice: sourcecraft_yandex
+    class: BEST_FIT
+    wave_id: W0b-bootstrap
+    reason: Operator — project hosted on SourceCraft
+    at: "2026-09-18"
+    autonomy: A1
+  - fork_id: tz.classifier
+    choice: optional_later
+    class: MINIMAL
+    wave_id: W0b-bootstrap
+    reason: Operator — training optional (superseded 7.2)
+    at: "2026-09-18"
+    autonomy: A1
+  - fork_id: tz.classifier
+    choice: logical_scorer
+    class: BEST_FIT
+    wave_id: W1-contract
+    reason: Official TZ mandates classifier + P/R/F1; "или логически" allows logical model; ADR-009
+    at: "2026-09-22"
+    autonomy: A1
+  - fork_id: backend.reuse
+    choice: extend_via_urls
+    class: BEST_FIT
+    wave_id: W1-contract
+    reason: Live inventory 2026-09-19; ADR-009
+    at: "2026-09-22"
+    autonomy: A1
+  - fork_id: graph.neo4j
+    choice: drop_pg_tables
+    class: MINIMAL
+    wave_id: W1-contract
+    reason: No Neo4j on VM; function kept in PG (replacement matrix)
+    at: "2026-09-22"
+    autonomy: A1
+  - fork_id: sources.epo_cordis
+    choice: stub_unavailable
+    class: MINIMAL
+    wave_id: W1-contract
+    reason: No credentials; open APIs instead
+    at: "2026-09-22"
+    autonomy: A1
+  - fork_id: ui.stack
+    choice: streamlit_ru
+    class: MINIMAL
+    wave_id: W1-contract
+    reason: TZ allows Streamlit; 8 days
+    at: "2026-09-22"
+    autonomy: A1
+  - fork_id: goal.controller
+    choice: three_invariants_in_domain
+    class: MINIMAL
+    wave_id: W1-contract
+    reason: ADR-009 §E
+    at: "2026-09-22"
+    autonomy: A1
+  - fork_id: runtime.adapter
+    choice: python_harness_hermes_optional
+    class: MINIMAL
+    wave_id: W1-contract
+    reason: ADR-009 §B
+    at: "2026-09-22"
+    autonomy: A1
+  - fork_id: hosting.sourcecraft
+    choice: sourcecraft_plus_github_mirror
+    class: BEST_FIT
+    wave_id: W1-contract
+    reason: TZ p.5 requires GitHub/GitLab
+    at: "2026-09-22"
+    autonomy: A1

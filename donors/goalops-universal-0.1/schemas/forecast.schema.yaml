@@ -1,0 +1,25 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: GoalOps Forecast Register Entry
+type: object
+required: [id, question, horizon, probability, assumptions, leading_indicators, decision_trigger]
+properties:
+  id: {type: string}
+  question: {type: string}
+  horizon: {type: string}
+  base_rate: {type: [number, string]}
+  probability:
+    type: object
+    required: [low, high]
+    properties:
+      low: {type: number, minimum: 0, maximum: 1}
+      high: {type: number, minimum: 0, maximum: 1}
+      midpoint: {type: number, minimum: 0, maximum: 1}
+  evidence_for: {type: array, items: {type: string}}
+  evidence_against: {type: array, items: {type: string}}
+  assumptions: {type: array, items: {type: string}}
+  leading_indicators: {type: array, items: {type: string}}
+  decision_trigger: {type: string}
+  reversible_action_now: {type: string}
+  review_date: {type: string}
+  outcome: {type: string}
+additionalProperties: true

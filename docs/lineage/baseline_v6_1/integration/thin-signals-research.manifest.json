@@ -1,0 +1,24 @@
+{
+  "manifest_version": 1,
+  "goal": "Подготовить проверяемый срез ранних технологических изменений с источниками, ограничениями и следующими проверками",
+  "preset": "research",
+  "autonomy_class": "A1",
+  "modules": ["work.research", "work.web", "integration.api-read", "work.data", "assurance.review"],
+  "criteria": [
+    {"id":"C01","description":"Область, дата среза, словарь, бюджет и доступность источников явно зафиксированы","role":"researcher"},
+    {"id":"C02","description":"Существенные утверждения связаны с доступными фрагментами источников либо явно помечены непроверенными","role":"researcher"},
+    {"id":"C03","description":"Различены технологии, применения, организации и события; проверены дубли и происхождение","role":"researcher"},
+    {"id":"C04","description":"Показатели рассчитаны воспроизводимо; несопоставимые или неполные ряды имеют null и причину","role":"tester"},
+    {"id":"C05","description":"Выполнены релевантные ветки P01–P18 и поиск опровержений; статус кандидата обоснован","role":"researcher"},
+    {"id":"C06","description":"Снимок результата содержит ссылки, ограничения, нерешённые вопросы и условия следующей проверки","role":"researcher"}
+  ],
+  "instructions": [
+    {"id":"evidence-boundary","kind":"constraint","text":"Новый URL не равен независимому событию. Не объявляй текст evidence проверенным без сохранённого фрагмента и предметной проверки.","roles":["researcher","tester","reviewer","verifier"]},
+    {"id":"process-versus-signal","kind":"constraint","text":"PASS критерия процесса означает корректно выполненную проверку, а не обязательное подтверждение технологии. HOLD, WATCHLIST и REJECT могут быть правильными результатами исследования.","roles":["researcher","tester","reviewer","verifier"]},
+    {"id":"frozen-verification","kind":"constraint","text":"Финальный verifier получает полный индекс всех обязательных критериев и immutable snapshot доказательств; не изменяет критерии и не записывает собственный PASS перед итоговой проверкой.","roles":["verifier"]},
+    {"id":"bounded-data-work","kind":"constraint","text":"Работай только с файлами текущего исследования и разрешёнными источниками. Изменение facts, прав, внешние отправки и deployment не входят в полномочия этой карточки.","roles":["implementer","tester","researcher"]},
+    {"id":"temporal-integrity","kind":"constraint","text":"Разделяй available_at, event_at, fetched_at и planned_for. Анонс будущего запуска не является состоявшимся внедрением.","roles":["researcher","tester","reviewer","verifier"]}
+  ],
+  "automation":{"cursor_stop_checkpoint":false,"telegram_checkpoint":false},
+  "context":{"max_bytes":16000}
+}

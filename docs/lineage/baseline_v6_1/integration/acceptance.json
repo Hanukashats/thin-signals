@@ -1,0 +1,205 @@
+{
+  "plan_version": "6.1",
+  "date": "2026-09-17",
+  "requirements": [
+    {
+      "id": "TS-AG-01",
+      "priority": "P1",
+      "owner_role": "backend",
+      "source": "AG01,AG06",
+      "title": "Strict creation and canonical manifest",
+      "implementation_status": "planned",
+      "acceptance_status": "not_run_on_product",
+      "acceptance": "Новые цели без обязательной схемы/критериев отклонены; изменённый payload при старом digest отклонён; валидный manifest компилируется сервером.",
+      "evidence": []
+    },
+    {
+      "id": "TS-AG-02",
+      "priority": "P1",
+      "owner_role": "backend",
+      "source": "AG02",
+      "title": "Typed iteration and referential integrity",
+      "implementation_status": "planned",
+      "acceptance_status": "not_run_on_product",
+      "acceptance": "Неизвестный criterion, чужая revision, contract-строка и отсутствующий input artifact отклоняются до запуска инструмента.",
+      "evidence": []
+    },
+    {
+      "id": "TS-AG-03",
+      "priority": "P1",
+      "owner_role": "backend",
+      "source": "AG03",
+      "title": "Idempotent commands",
+      "implementation_status": "planned",
+      "acceptance_status": "not_run_on_product",
+      "acceptance": "Повтор checkpoint с прежним ключом/телом возвращает прежний результат без нового счётчика/события; изменённое тело того же ключа даёт конфликт.",
+      "evidence": []
+    },
+    {
+      "id": "TS-AG-04",
+      "priority": "P1",
+      "owner_role": "AI/backend",
+      "source": "AG04,AG08",
+      "title": "Complete frozen verifier bundle",
+      "implementation_status": "planned",
+      "acceptance_status": "not_run_on_product",
+      "acceptance": "После всех PASS verifier получает индекс всех обязательных критериев; 9-й evidence и критическое опровержение доступны; total/truncated/pagination явны; отсутствие обязательного материала блокирует финальную приёмку.",
+      "evidence": []
+    },
+    {
+      "id": "TS-AG-05",
+      "priority": "P1",
+      "owner_role": "backend/data",
+      "source": "AG05",
+      "title": "Artifact-backed acceptance",
+      "implementation_status": "planned",
+      "acceptance_status": "not_run_on_product",
+      "acceptance": "Произвольная строка, dangling evidence ref, изменённый snapshot hash и evidence другого tenant не проходят приёмку; citations связаны с доступным фрагментом.",
+      "evidence": []
+    },
+    {
+      "id": "TS-AG-06",
+      "priority": "P1",
+      "owner_role": "backend/infra",
+      "source": "AG10",
+      "title": "Authenticated role and tool scope",
+      "implementation_status": "planned",
+      "acceptance_status": "not_run_on_product",
+      "acceptance": "Подмена X-Agent не повышает полномочия; роль вне roster и cross-tenant доступ отклонены; утверждения веб-страницы не расширяют scope.",
+      "evidence": []
+    },
+    {
+      "id": "TS-AG-07",
+      "priority": "P1",
+      "owner_role": "AI/domain",
+      "source": "AG05,AG12",
+      "title": "Separate process and scientific decisions",
+      "implementation_status": "planned",
+      "acceptance_status": "not_run_on_product",
+      "acceptance": "Корректное исследование может быть verified с signal=rejected/HOLD; неподтверждённый claim не становится supported из-за закрытия процессного критерия.",
+      "evidence": []
+    },
+    {
+      "id": "TS-AG-08",
+      "priority": "P1",
+      "owner_role": "backend/AI",
+      "source": "AG09",
+      "title": "Resolve rejection before acceptance",
+      "implementation_status": "planned",
+      "acceptance_status": "not_run_on_product",
+      "acceptance": "Второй verifier не закрывает прежний blocker простым passed=true; разрешены новые доказательства/ревизия либо полномочный пересмотр с reason и сохранением исходного finding.",
+      "evidence": []
+    },
+    {
+      "id": "TS-AG-09",
+      "priority": "P1",
+      "owner_role": "backend",
+      "source": "AG11",
+      "title": "Transactional single source of state",
+      "implementation_status": "planned",
+      "acceptance_status": "not_run_on_product",
+      "acceptance": "Два competing writers не теряют данные: stale update получает конфликт/корректный retry; state и outbox атомарны; goal.json не принимает независимые записи.",
+      "evidence": []
+    },
+    {
+      "id": "TS-AG-10",
+      "priority": "P1",
+      "owner_role": "AI/domain",
+      "source": "AG12",
+      "title": "Decision-relevant research progress",
+      "implementation_status": "planned",
+      "acceptance_status": "not_run_on_product",
+      "acceptance": "Разрешение критического UNKNOWN и доказанное опровержение засчитываются; новые дубли ссылок не засчитываются; две уникальные бесполезные волны вызывают replan/HOLD.",
+      "evidence": []
+    },
+    {
+      "id": "TS-AG-11",
+      "priority": "P1",
+      "owner_role": "backend/AI",
+      "source": "design",
+      "title": "Versioned goal evolution",
+      "implementation_status": "planned",
+      "acceptance_status": "not_run_on_product",
+      "acceptance": "Смена scope/criteria создаёт новую revision с impact; старый receipt сохраняется исторически; изменённое evidence не наследует PASS автоматически.",
+      "evidence": []
+    },
+    {
+      "id": "TS-AG-12",
+      "priority": "P1",
+      "owner_role": "backend/infra",
+      "source": "design",
+      "title": "Budget lineage and cancellation fencing",
+      "implementation_status": "planned",
+      "acceptance_status": "not_run_on_product",
+      "acceptance": "Дочерняя цель/replan не обнуляет бюджет; превышение лимита блокирует новые вызовы; запоздавший ответ cancelled/stale worker не публикуется.",
+      "evidence": []
+    },
+    {
+      "id": "TS-AG-13",
+      "priority": "P1",
+      "owner_role": "backend/data",
+      "source": "design",
+      "title": "Waiting and uncertain external outcomes",
+      "implementation_status": "planned",
+      "acceptance_status": "not_run_on_product",
+      "acceptance": "Rate limit/ожидание источника не объявляются новым провалом исследования; есть timeout; timeout после внешнего эффекта запускает reconciliation до повторения.",
+      "evidence": []
+    },
+    {
+      "id": "TS-AG-14",
+      "priority": "P2",
+      "owner_role": "AI/maintainer",
+      "source": "AG13,AG14",
+      "title": "Executable profiles and independent verifier",
+      "implementation_status": "planned",
+      "acceptance_status": "not_run_on_product",
+      "acceptance": "Примеры используют только каталоговые capabilities; research profile не требует от финального verifier готовить evidence, которое он затем запрещённо проверяет.",
+      "evidence": []
+    },
+    {
+      "id": "TS-AG-15",
+      "priority": "P2",
+      "owner_role": "frontend",
+      "source": "design",
+      "title": "Truthful status and evidence inspector",
+      "implementation_status": "planned",
+      "acceptance_status": "not_run_on_product",
+      "acceptance": "UI показывает текущий вопрос, n/N процессных критериев, budget, blockers и signal state отдельно; усечённый контекст не выглядит полным.",
+      "evidence": []
+    },
+    {
+      "id": "TS-AG-16",
+      "priority": "P1",
+      "owner_role": "maintainer",
+      "source": "design",
+      "title": "Living plan release consistency",
+      "implementation_status": "planned",
+      "acceptance_status": "not_run_on_product",
+      "acceptance": "PR изменения метода содержит обновлённые requirement/ADR/schema/pattern/tests; release связывает commit и hashes; runtime не меняет production skill сам.",
+      "evidence": []
+    },
+    {
+      "id": "TS-AG-17",
+      "priority": "P1",
+      "owner_role": "data/AI",
+      "source": "v6 preserved",
+      "title": "Preserve all scientific gates",
+      "implementation_status": "planned",
+      "acceptance_status": "not_run_on_product",
+      "acceptance": "Сохранены P01–P18, mapping 100 строк, source/cutoff/coverage, countersearch, singleton и правила admitted/HOLD; добавление процессного слоя не ослабляет их.",
+      "evidence": []
+    },
+    {
+      "id": "TS-AG-18",
+      "priority": "P2",
+      "owner_role": "AI/evaluation",
+      "source": "design",
+      "title": "Measured integration benefit",
+      "implementation_status": "planned",
+      "acceptance_status": "not_run_on_product",
+      "acceptance": "Сравнить v6/v6.1 при одинаковом корпусе/бюджете; записать false stops, unsupported claims, verifier coverage, latency/cost и экспертные precision/coverage без заранее обещанного улучшения.",
+      "evidence": []
+    }
+  ],
+  "note": "Reference audit results do not imply production implementation or acceptance."
+}

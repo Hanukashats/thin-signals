@@ -1,0 +1,74 @@
+{
+  "automation": {
+    "cursor_stop_checkpoint": false,
+    "telegram_checkpoint": false
+  },
+  "autonomy_class": "A1",
+  "capabilities": [
+    "api-read",
+    "data-analysis",
+    "files-read",
+    "files-write",
+    "repo-read",
+    "research",
+    "web-read"
+  ],
+  "catalog_digest": "sha256:34fefc470637da5ed394e04c5358cb71c8efd4b8f72301b9c55671ac6ff5000b",
+  "context": {
+    "implementer": {
+      "bytes": 2133,
+      "estimated_tokens": 534
+    },
+    "planner": {
+      "bytes": 1504,
+      "estimated_tokens": 376
+    },
+    "recon": {
+      "bytes": 1485,
+      "estimated_tokens": 372
+    },
+    "researcher": {
+      "bytes": 3212,
+      "estimated_tokens": 803
+    },
+    "reviewer": {
+      "bytes": 2665,
+      "estimated_tokens": 667
+    },
+    "tester": {
+      "bytes": 3023,
+      "estimated_tokens": 756
+    },
+    "verifier": {
+      "bytes": 3034,
+      "estimated_tokens": 759
+    }
+  },
+  "manifest_digest": "sha256:b74fdd98ba4fa6a3b50ab8fba5500c7f83b000da8e36d15e0ed434a1244b40ad",
+  "modules": [
+    "control.single-controller",
+    "control.reality-first",
+    "control.small-increment",
+    "control.evidence",
+    "control.stop-rules",
+    "control.independent-verification",
+    "control.authority-boundary",
+    "work.research",
+    "work.web",
+    "integration.api-read",
+    "work.data",
+    "assurance.review"
+  ],
+  "preset": "research",
+  "roles": [
+    "planner",
+    "recon",
+    "researcher",
+    "implementer",
+    "tester",
+    "reviewer",
+    "verifier"
+  ],
+  "schema_version": 3,
+  "valid": true
+}

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Product Opportunity Lab"
+  short_description: "Adaptive product opportunity discovery and validation"
+  default_prompt: "Use $product-opportunity-lab to decide what product opportunity deserves the next bet. Route to the minimum sufficient path, allow speculative E0 hypotheses without treating them as evidence, separate Opportunity Quality from claim-level Evidence Maturity and archetype-aware Decision Readiness, short-circuit verified fatal dependencies, jump to higher-information experiments when useful, and recommend research, validation, experimental build, production build, pivot, hold, or kill."
+policy:
+  allow_implicit_invocation: true

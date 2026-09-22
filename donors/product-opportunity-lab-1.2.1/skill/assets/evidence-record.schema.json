@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Product Opportunity Lab Evidence Record v1.2.1",
+  "type": "object",
+  "required": [
+    "id",
+    "claim",
+    "claim_kind",
+    "stance",
+    "signal_for",
+    "evidence_type",
+    "source_ref",
+    "source_family",
+    "independence_key",
+    "observed_at"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "candidate_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "claim": {
+      "type": "string",
+      "minLength": 1
+    },
+    "claim_kind": {
+      "enum": [
+        "OBSERVED",
+        "INFERRED",
+        "PROJECTED"
+      ]
+    },
+    "stance": {
+      "enum": [
+        "support",
+        "rebut",
+        "neutral"
+      ]
+    },
+    "signal_for": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "problem",
+          "budget",
+          "switching",
+          "distribution",
+          "feasibility_trust",
+          "solution_commitment",
+          "retention",
+          "market",
+          "competitor"
+        ]
+      }
+    },
+    "evidence_type": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_url": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uri"
+    },
+    "source_title": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "source_family": {
+      "type": "string",
+      "minLength": 1
+    },
+    "independence_key": {
+      "type": "string",
+      "minLength": 1
+    },
+    "published_at": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "observed_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "actor_or_segment": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "commercial_signal": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "notes": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "proximity": {
+      "enum": [
+        "directional",
+        "observed",
+        "commitment",
+        "target_behavior",
+        null
+      ]
+    },
+    "segment_match": {
+      "enum": [
+        "high",
+        "medium",
+        "low",
+        "unknown",
+        null
+      ]
+    },
+    "sample_n": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,18 @@
+# Schema stubs LivingSet 7.1 — formal JSON Schema in P1 W1a
+# Objects per docs/PROCESSING_CONTRACT.md
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: ThinSignalsDomainObjects
+description: Placeholder index; real schemas land in W1a-schema
+objects:
+  - Document
+  - Fragment
+  - Entity
+  - EvidenceEvent
+  - Claim
+  - Edge
+  - Observation
+  - Decision
+  - Run
+status: stub
+plan_revision: "7.1"

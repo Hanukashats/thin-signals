@@ -1,0 +1,22 @@
+{
+  "name": "agispace-opportunity-radar",
+  "version": "0.1.1",
+  "description": "Анализ слабых сигналов, стартапов, производственных цепочек и условий входа.",
+  "author": {
+    "name": "Pavel Shats"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "AgiSpace Opportunity Radar",
+    "shortDescription": "Наука, стартапы и критические поставщики",
+    "longDescription": "Единая аналитическая процедура: источники и доказательства, новые технологии, возможности продуктов, цепочки поставщиков, прогнозы и условия участия.",
+    "developerName": "Pavel Shats",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": [
+      "Найди ранние сигналы в выбранной отрасли.",
+      "Проверь стартап и условия входа.",
+      "Найди критических поставщиков технологии."
+    ]
+  }
+}

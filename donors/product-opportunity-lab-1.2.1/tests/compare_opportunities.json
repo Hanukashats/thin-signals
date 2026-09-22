@@ -1,0 +1,16 @@
+{
+  "candidates": [
+    {
+      "id":"upside-r2","name":"High Upside R2","objective_profile":"venture","business_archetype":"commercial",
+      "pillars":{"demand":5,"economics":4.8,"adoption":4.6,"execution":5,"timing_market":5,"durability":5},
+      "gates":{"G1":"pass","G2":"pass","G3":"unknown","G4":"pass","G5":"pass","G6":"pass","G7":"pass"},
+      "critical_claims":{"problem":"E2","budget":"E1","switching":"E1","distribution":"E1","feasibility_trust":"E2","solution_commitment":"E0","retention":"E0"}
+    },
+    {
+      "id":"solid-r4","name":"Solid Proven R4","objective_profile":"balanced","business_archetype":"commercial",
+      "pillars":{"demand":4,"economics":3.8,"adoption":3.8,"execution":4,"timing_market":3.5,"durability":3},
+      "gates":{"G1":"pass","G2":"pass","G3":"pass","G4":"pass","G5":"pass","G6":"pass","G7":"pass"},
+      "critical_claims":{"problem":"E3","budget":"E3","switching":"E2","distribution":"E2","feasibility_trust":"E3","solution_commitment":"E3","retention":"E1"}
+    }
+  ]
+}

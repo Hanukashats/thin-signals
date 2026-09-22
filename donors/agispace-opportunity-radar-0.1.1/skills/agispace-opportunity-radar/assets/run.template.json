@@ -1,0 +1,23 @@
+{
+  "version": "0.1.0",
+  "as_of": "2026-09-17",
+  "mode": "SCAN",
+  "objective": "research",
+  "scope": "current_thesis",
+  "sources": [],
+  "claims": [],
+  "edges": [],
+  "gates": [],
+  "decision": {
+    "action": "HOLD",
+    "scope": "current_thesis",
+    "readiness": "R0",
+    "rationale": "Нет доказательств: заполнить исходные данные",
+    "reentry_trigger": "Появится проверяемый первоисточник",
+    "review_at": "2026-10-01"
+  },
+  "investment": {
+    "assessed": false
+  },
+  "forecasts": []
+}

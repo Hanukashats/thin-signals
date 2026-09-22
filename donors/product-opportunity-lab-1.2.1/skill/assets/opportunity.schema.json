@@ -1,0 +1,613 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Product Opportunity Lab Candidate v1.2.1",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "objective_profile",
+    "pillars",
+    "gates",
+    "critical_claims"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "objective_profile": {
+      "enum": [
+        "balanced",
+        "cashflow",
+        "venture"
+      ]
+    },
+    "business_archetype": {
+      "enum": [
+        "commercial",
+        "internal",
+        "devtool-oss",
+        "noncommercial"
+      ]
+    },
+    "pillars": {
+      "type": "object",
+      "required": [
+        "demand",
+        "economics",
+        "adoption",
+        "execution",
+        "timing_market",
+        "durability"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "demand": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "economics": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "adoption": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "execution": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "timing_market": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "durability": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 5
+        }
+      }
+    },
+    "gates": {
+      "type": "object",
+      "required": [
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "G5",
+        "G6",
+        "G7"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "G1": {
+          "oneOf": [
+            {
+              "enum": [
+                true,
+                false,
+                "pass",
+                "fail",
+                "unknown",
+                "PASS",
+                "FAIL",
+                "UNKNOWN"
+              ]
+            },
+            {
+              "type": "object",
+              "required": [
+                "state"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "state": {
+                  "enum": [
+                    "PASS",
+                    "UNKNOWN",
+                    "FAIL",
+                    "pass",
+                    "unknown",
+                    "fail",
+                    true,
+                    false
+                  ]
+                },
+                "confidence": {
+                  "enum": [
+                    "verified",
+                    "supported",
+                    "weak",
+                    "unspecified"
+                  ]
+                },
+                "scope": {
+                  "enum": [
+                    "current_wedge",
+                    "whole_problem"
+                  ]
+                },
+                "evidence_refs": {
+                  "type": "array",
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "note": {
+                  "type": "string"
+                }
+              }
+            }
+          ]
+        },
+        "G2": {
+          "oneOf": [
+            {
+              "enum": [
+                true,
+                false,
+                "pass",
+                "fail",
+                "unknown",
+                "PASS",
+                "FAIL",
+                "UNKNOWN"
+              ]
+            },
+            {
+              "type": "object",
+              "required": [
+                "state"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "state": {
+                  "enum": [
+                    "PASS",
+                    "UNKNOWN",
+                    "FAIL",
+                    "pass",
+                    "unknown",
+                    "fail",
+                    true,
+                    false
+                  ]
+                },
+                "confidence": {
+                  "enum": [
+                    "verified",
+                    "supported",
+                    "weak",
+                    "unspecified"
+                  ]
+                },
+                "scope": {
+                  "enum": [
+                    "current_wedge",
+                    "whole_problem"
+                  ]
+                },
+                "evidence_refs": {
+                  "type": "array",
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "note": {
+                  "type": "string"
+                }
+              }
+            }
+          ]
+        },
+        "G3": {
+          "oneOf": [
+            {
+              "enum": [
+                true,
+                false,
+                "pass",
+                "fail",
+                "unknown",
+                "PASS",
+                "FAIL",
+                "UNKNOWN"
+              ]
+            },
+            {
+              "type": "object",
+              "required": [
+                "state"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "state": {
+                  "enum": [
+                    "PASS",
+                    "UNKNOWN",
+                    "FAIL",
+                    "pass",
+                    "unknown",
+                    "fail",
+                    true,
+                    false
+                  ]
+                },
+                "confidence": {
+                  "enum": [
+                    "verified",
+                    "supported",
+                    "weak",
+                    "unspecified"
+                  ]
+                },
+                "scope": {
+                  "enum": [
+                    "current_wedge",
+                    "whole_problem"
+                  ]
+                },
+                "evidence_refs": {
+                  "type": "array",
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "note": {
+                  "type": "string"
+                }
+              }
+            }
+          ]
+        },
+        "G4": {
+          "oneOf": [
+            {
+              "enum": [
+                true,
+                false,
+                "pass",
+                "fail",
+                "unknown",
+                "PASS",
+                "FAIL",
+                "UNKNOWN"
+              ]
+            },
+            {
+              "type": "object",
+              "required": [
+                "state"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "state": {
+                  "enum": [
+                    "PASS",
+                    "UNKNOWN",
+                    "FAIL",
+                    "pass",
+                    "unknown",
+                    "fail",
+                    true,
+                    false
+                  ]
+                },
+                "confidence": {
+                  "enum": [
+                    "verified",
+                    "supported",
+                    "weak",
+                    "unspecified"
+                  ]
+                },
+                "scope": {
+                  "enum": [
+                    "current_wedge",
+                    "whole_problem"
+                  ]
+                },
+                "evidence_refs": {
+                  "type": "array",
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "note": {
+                  "type": "string"
+                }
+              }
+            }
+          ]
+        },
+        "G5": {
+          "oneOf": [
+            {
+              "enum": [
+                true,
+                false,
+                "pass",
+                "fail",
+                "unknown",
+                "PASS",
+                "FAIL",
+                "UNKNOWN"
+              ]
+            },
+            {
+              "type": "object",
+              "required": [
+                "state"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "state": {
+                  "enum": [
+                    "PASS",
+                    "UNKNOWN",
+                    "FAIL",
+                    "pass",
+                    "unknown",
+                    "fail",
+                    true,
+                    false
+                  ]
+                },
+                "confidence": {
+                  "enum": [
+                    "verified",
+                    "supported",
+                    "weak",
+                    "unspecified"
+                  ]
+                },
+                "scope": {
+                  "enum": [
+                    "current_wedge",
+                    "whole_problem"
+                  ]
+                },
+                "evidence_refs": {
+                  "type": "array",
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "note": {
+                  "type": "string"
+                }
+              }
+            }
+          ]
+        },
+        "G6": {
+          "oneOf": [
+            {
+              "enum": [
+                true,
+                false,
+                "pass",
+                "fail",
+                "unknown",
+                "PASS",
+                "FAIL",
+                "UNKNOWN"
+              ]
+            },
+            {
+              "type": "object",
+              "required": [
+                "state"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "state": {
+                  "enum": [
+                    "PASS",
+                    "UNKNOWN",
+                    "FAIL",
+                    "pass",
+                    "unknown",
+                    "fail",
+                    true,
+                    false
+                  ]
+                },
+                "confidence": {
+                  "enum": [
+                    "verified",
+                    "supported",
+                    "weak",
+                    "unspecified"
+                  ]
+                },
+                "scope": {
+                  "enum": [
+                    "current_wedge",
+                    "whole_problem"
+                  ]
+                },
+                "evidence_refs": {
+                  "type": "array",
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "note": {
+                  "type": "string"
+                }
+              }
+            }
+          ]
+        },
+        "G7": {
+          "oneOf": [
+            {
+              "enum": [
+                true,
+                false,
+                "pass",
+                "fail",
+                "unknown",
+                "PASS",
+                "FAIL",
+                "UNKNOWN"
+              ]
+            },
+            {
+              "type": "object",
+              "required": [
+                "state"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "state": {
+                  "enum": [
+                    "PASS",
+                    "UNKNOWN",
+                    "FAIL",
+                    "pass",
+                    "unknown",
+                    "fail",
+                    true,
+                    false
+                  ]
+                },
+                "confidence": {
+                  "enum": [
+                    "verified",
+                    "supported",
+                    "weak",
+                    "unspecified"
+                  ]
+                },
+                "scope": {
+                  "enum": [
+                    "current_wedge",
+                    "whole_problem"
+                  ]
+                },
+                "evidence_refs": {
+                  "type": "array",
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "note": {
+                  "type": "string"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "critical_claims": {
+      "type": "object",
+      "required": [
+        "problem",
+        "budget",
+        "switching",
+        "distribution",
+        "feasibility_trust",
+        "solution_commitment",
+        "retention"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "problem": {
+          "enum": [
+            "E0",
+            "E1",
+            "E2",
+            "E3",
+            "E4"
+          ]
+        },
+        "budget": {
+          "enum": [
+            "E0",
+            "E1",
+            "E2",
+            "E3",
+            "E4"
+          ]
+        },
+        "switching": {
+          "enum": [
+            "E0",
+            "E1",
+            "E2",
+            "E3",
+            "E4"
+          ]
+        },
+        "distribution": {
+          "enum": [
+            "E0",
+            "E1",
+            "E2",
+            "E3",
+            "E4"
+          ]
+        },
+        "feasibility_trust": {
+          "enum": [
+            "E0",
+            "E1",
+            "E2",
+            "E3",
+            "E4"
+          ]
+        },
+        "solution_commitment": {
+          "enum": [
+            "E0",
+            "E1",
+            "E2",
+            "E3",
+            "E4"
+          ]
+        },
+        "retention": {
+          "enum": [
+            "E0",
+            "E1",
+            "E2",
+            "E3",
+            "E4"
+          ]
+        }
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": true
+}
