@@ -12,7 +12,7 @@ Host of record: Georg VM101 `/opt/thin-signals` (cursor-agent). Plan: `docs/plan
 | Done in W1 | LivingSet 7.2; ADR-009; METHODOLOGY; PLAN_7.2 persisted; donors/ + reference/ + lineage handoff with hashes; `ts/` skeleton (schemas, scoring/policy F03-fixed, 39 tests OK); compose pg (pgvector 0.8.6 on PG16 verified `CREATE EXTENSION vector`); venv `.venv` |
 | Left in W1 | Alembic v1 (schema tables); seed import 100 as `seed_unverified`; LiteLLM alias `ts-llm-allowlisted` (dev) |
 | Next wave | W2-scorer-eval: rules-0.1.yaml, negatives_v1.json, `ts eval`, P/R/F1 report |
-| Blockers (operator) | official organizer dataset (hidden labels) not received; presentation template not received; LLM provider keys (Yandex AI Studio / GigaChat / OpenAI direct) — fork `llm.provider` operator_gate |
+| Blockers (operator) | dataset: operator re-sent XLSX 2026-09-22 (`…_2.xlsx`, SHA256 `1349a208…`), byte-identical to `sources/` — treated as the official **visible** dataset (100 positives; hidden labels stay with organizers, so `ts eval` adapter must accept rows with only Технология/Область/Компании/Источники); presentation template not received; LLM provider keys (Yandex AI Studio / GigaChat / OpenAI direct) — fork `llm.provider` operator_gate |
 
 ## Decisions this INTEGRATE (7.2, 2026-09-22)
 
