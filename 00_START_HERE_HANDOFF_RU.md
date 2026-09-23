@@ -30,3 +30,7 @@ docker compose up -d pg && docker compose exec pg psql -U ts -d thin_signals -c 
 ## Инвариант
 
 LivingSet и код — одна ревизия. INTEGRATE каждой волны обновляет `STATUS.md` и затронутые ID. Исторические срезы — `docs/lineage/` (immutable). Правила скоринга версионируются (`rules-x.y`) и меняются только через повторный `ts eval`.
+
+## Хосты
+
+Основной dev/demo-хост — VM230 `agi-thin-signals` на домашнем Proxmox (`docs/ops/VM230.md`, `docs/ops/hosts.yaml`). VM101 остаётся агентским хостом и источником сервисов. Код синхронизируется только через SourceCraft.

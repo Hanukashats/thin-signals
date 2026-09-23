@@ -40,6 +40,10 @@ ZIP SHA256 `cfa98189…697646`; SHA256SUMS 150/150 OK. Radar 0.1.1, GoalOps 0.1,
 - planned W1: LLM-01 (OpenRouter ZDR decided 2026-09-22, key in place)
 - removed to lineage: SC-01, SC-04, SC-05, SC-08, SC-10, TS-AG-01…16, TS-AG-18
 
+## Hosts
+
+- VM230 `agi-thin-signals` (home PVE, 192.168.5.230) provisioned 2026-09-23: Ubuntu 24.04, Docker 29.8, sing-box AMS1 egress, repo checkout `9d6f3f1`, 39 tests pass, pg+pgvector healthy. See `docs/ops/VM230.md`, `docs/ops/hosts.yaml`. Pending: NetBird setup-key.
+
 ## SourceCraft
 
 Repo `https://sourcecraft.dev/shats123/thin-signals` (private). **Pushed 2026-09-22:** `main` @ `3c0fbcb` (LP-05 implemented). Push auth: HTTPS + `GIT_ASKPASS=.secrets/git-askpass.sh`. SSH key not registered (UI-only).

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Thin Signals pre-push gate: tests + LivingSet link check. Install: scripts/install-hooks.sh
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+PY=.venv/bin/python; [ -x "$PY" ] || PY=python3
+"$PY" -m pytest -q ts/tests
+"$PY" scripts/check_living_links.py
