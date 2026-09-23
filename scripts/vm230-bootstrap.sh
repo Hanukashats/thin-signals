@@ -68,6 +68,8 @@ sudo ufw allow from 192.168.5.0/24 to any port 8501 proto tcp comment 'streamlit
 sudo ufw allow from 10.200.200.0/24 to any port 8501 proto tcp
 sudo ufw allow from 192.168.5.0/24 to any port 8000 proto tcp comment 'fastapi LAN demo'
 sudo ufw allow from 10.200.200.0/24 to any port 8000 proto tcp
+# sing-box auto_redirect sends container traffic to a local listener -> must pass INPUT
+sudo ufw allow from 172.16.0.0/12 comment 'docker bridges -> host (sing-box redirect, host services)'
 sudo ufw --force enable
 
 log "unattended security upgrades"

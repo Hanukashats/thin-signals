@@ -42,6 +42,8 @@ Docker 29.8.1 + compose v5.5.1 (official repo), NetBird 0.79.0 (official repo, �
 
 С домашнего IP `109.195.243.128` OpenRouter отвечает `Access denied by security policy`. Установлен официальный sing-box 1.13.16 (бинарь = VM101, sha `9069f805…`), конфиг выведен из VM101: те же outbounds Amsterdam-1/2, `bind_interface eth0`, inbounds `mixed-local`, `mixed-docker0`, TUN `agi-tun0`. Rule-set сервер `212.34.145.238:2088` недоступен с обоих хостов → rule-sets положены локально из официальных SagerNet `sing-geosite`/`sing-geoip`. Результат: egress `144.124.252.222`, ya.ru напрямую (302), OpenRouter ZDR-запрос `qwen/qwen3.6-35b-a3b` → provider Venice, OK. Сервис enabled. Откат: `systemctl disable --now agi-sing-box`.
 
+Контейнеры сначала не имели интернета (host — да): auto_redirect перенаправляет forwarded-трафик на локальный listener, а ufw INPUT policy drop его резал. Исправлено `ufw allow from 172.16.0.0/12` (в bootstrap-скрипте). Проверка: `docker run curlimages/curl https://ifconfig.me` → `144.124.252.222`, OpenRouter из контейнера HTTP 200.
+
 ## Ш4–Ш5
 
 - `scripts/git-hooks/pre-push` (pytest + links), `scripts/install-hooks.sh` → `core.hooksPath`.
