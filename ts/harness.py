@@ -39,6 +39,7 @@ class Searcher(Protocol):
 class RunReport:
     id: str
     query: str
+    idempotency_key: str
     repeated: bool
     steps: list[dict]
     sources: list[dict]
@@ -98,7 +99,7 @@ class Harness:
         steps.append({"name": "rank", "status": "ok", "admitted": len(top), "shortfall": TOP_N - len(top),
                       "connector_failures": failures})
         report = RunReport(
-            id=key[:16], query=query, repeated=False, steps=steps, sources=sources, events=events,
+            id=key[:16], query=query, idempotency_key=key, repeated=False, steps=steps, sources=sources, events=events,
             card=card, top=top, shortfall=TOP_N - len(top), exclusion_registry=excluded,
             model_id=model_id, provider=provider,
         )

@@ -76,50 +76,16 @@ def cmd_eval(args: argparse.Namespace) -> int:
 
 
 def cmd_run(args: argparse.Namespace) -> int:
-    import httpx
+    from ts.live import run_query
 
-    from ts.harness import Harness
-    from ts.settings import load
-    from ts.sources.connectors import (
-        ArxivConnector,
-        CrossrefConnector,
-        GithubConnector,
-        OpenAlexConnector,
-        SearxConnector,
-    )
-
-    s = load()
-    if s.product_mode and args.extract:
-        print(json.dumps({
-            "error": "product_mode",
-            "why": "В режиме сдачи OpenRouter выключен: нужен отдельный разрешённый шлюз. Сейчас извлечение только в лабораторном режиме.",
-        }, ensure_ascii=False))
-        return 2
-
-    def get(url: str) -> str:
-        response = httpx.get(url, timeout=40, follow_redirects=True, headers={"User-Agent": "thin-signals/0.1"})
-        response.raise_for_status()
-        return response.text
-
-    connectors = []
-    if s.searxng_url:
-        connectors.append(SearxConnector(s.searxng_url, get))
-    connectors += [ArxivConnector(get), OpenAlexConnector(get), CrossrefConnector(get), GithubConnector(get)]
-    extractor = None
-    if args.extract:
-        from ts.extract import Extractor
-        from ts.llm import OpenRouterClient
-        extractor = Extractor(OpenRouterClient(s), model=args.model or s.llm_primary, mode="ledger")
-    report = Harness(rules_version=s.rules_version, snapshot_dir=s.snapshot_dir).run(
-        args.query, connectors, limit=args.limit, extractor=extractor, fetch_body=get if args.snapshot else None,
-    )
+    payload = run_query(args.query, limit=args.limit, extract=args.extract)
     print(json.dumps({
-        "id": report.id, "repeated": report.repeated, "model_id": report.model_id, "provider": report.provider,
-        "steps": report.steps, "sources": len(report.sources), "events": len(report.events),
-        "label": report.card["label"], "policy_action": report.card["policy_action"],
-        "policy_reason": report.card["policy_reason"], "top": len(report.top), "shortfall": report.shortfall,
-        "excluded": len(report.exclusion_registry),
-        "planned_not_deployment": report.card["planned_not_deployment"],
+        "id": payload["run_id"], "repeated": payload["repeated"], "model_id": payload.get("model_id"),
+        "run_status": payload["run_status"], "signal_label": payload["signal_label"],
+        "sources": payload["counters"]["sources"], "events": payload["events"],
+        "policy_action": payload["policy_action"], "policy_reason": payload["policy_reason"],
+        "top": len(payload["top"]), "shortfall": payload["shortfall"],
+        "excluded": len(payload["exclusion_registry"]),
     }, ensure_ascii=False, indent=1))
     return 0
 

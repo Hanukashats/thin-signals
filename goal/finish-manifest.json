@@ -1,0 +1,43 @@
+{
+  "manifest_version": 1,
+  "goal": "Thin Signals returns a live query with sources, an exclusion registry and ZDR OpenRouter extraction",
+  "preset": "software-change",
+  "autonomy_class": "A2",
+  "owner": "cursor-agent",
+  "criteria": [
+    {
+      "id": "C01",
+      "description": "Repeating the same query returns the same PostgreSQL run id and does not search again"
+    },
+    {
+      "id": "C02",
+      "description": "POST /v1/runs returns sources, signal label, run status and the exclusion registry as separate fields"
+    },
+    {
+      "id": "C03",
+      "description": "The Russian screen shows signal label and run status separately, plus sources and the shortfall"
+    },
+    {
+      "id": "C04",
+      "description": "Product extraction uses the OpenRouter ZDR allowlist and rejects a model outside that list"
+    }
+  ],
+  "instructions": [
+    {
+      "id": "zdr-openrouter",
+      "kind": "constraint",
+      "text": "OpenRouter is allowed only with zdr=true and data_collection=deny. Do not call a model that is off the allowlist or has no ZDR endpoint.",
+      "roles": ["implementer"]
+    },
+    {
+      "id": "no-second-controller",
+      "kind": "constraint",
+      "text": "GOAL v3 stays in the backend goal-kernel. The product keeps only TS-INV-01..03. Do not embed a second goal daemon.",
+      "roles": ["implementer", "planner"]
+    }
+  ],
+  "automation": {
+    "cursor_stop_checkpoint": false,
+    "telegram_checkpoint": false
+  }
+}

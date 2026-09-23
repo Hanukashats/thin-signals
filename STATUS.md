@@ -50,6 +50,6 @@ Repo `https://sourcecraft.dev/shats123/thin-signals` (private). **Pushed 2026-09
 
 ## Next trigger
 
-1. W3 started 2026-09-23: `ts run` hits SearXNG+arXiv+OpenAlex+Crossref+GitHub (photonic query: 10 sources, 0 failures, TOP-15 empty, policy WATCHLIST, shortfall 15). Dedup by DOI, roadmap is not deployment. Not yet: Postgres persist, Docling, TEI vectors, UI.
+1. GOAL v3 `g-2a54ff75ca41` on goal-kernel 0.3.0: C01 persist, C02 API, C04 ZDR OpenRouter PASS (2026-09-23). C03 Russian screen is UNKNOWN: stopped for operator Figma login. The Telegram session cannot open the Figma plugin auth card.
 2. W2: `ts/scoring/rules-0.1.yaml`, `data/negatives_v1.json`, `ts eval`, `reports/eval_<date>.md`.
 3. Operator: presentation template; optional dedicated OpenRouter key for thin-signals.

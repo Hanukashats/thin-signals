@@ -24,6 +24,7 @@ Thumbs.db
 .sourcecraft/logs/
 
 .secrets/
+.goal-active
 snapshots/
 reports/*.jsonl
 donors_pack/

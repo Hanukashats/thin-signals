@@ -1,0 +1,33 @@
+"""HTTP API. Parsing and inference stay out of the UI process (TZ-12)."""
+from __future__ import annotations
+
+from fastapi import FastAPI
+from pydantic import BaseModel, Field
+
+
+class QueryIn(BaseModel):
+    query: str = Field(min_length=2, max_length=400)
+    limit: int = Field(default=3, ge=1, le=8)
+    extract: bool = False
+
+
+def create_app(runner) -> FastAPI:
+    app = FastAPI(title="Thin Signals", version="0.1.0")
+
+    @app.get("/health")
+    def health() -> dict:
+        return {"ok": True}
+
+    @app.post("/v1/runs")
+    def create_run(body: QueryIn) -> dict:
+        return runner(body.query, body.limit, body.extract)
+
+    return app
+
+
+def default_runner(query: str, limit: int, extract: bool) -> dict:
+    from ts.live import run_query
+    return run_query(query, limit=limit, extract=extract)
+
+
+app = create_app(default_runner)
