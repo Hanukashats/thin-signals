@@ -8,7 +8,7 @@ Host of record: Georg VM101 `/opt/thin-signals` (cursor-agent). Plan: `docs/plan
 | Field | Value |
 |---|---|
 | Phase | **P1 Contract72** |
-| Wave | **W1-contract** — in_progress |
+| Wave | **W3-live** — in_progress |
 | Done in W1 | LivingSet 7.2; ADR-009; METHODOLOGY; PLAN_7.2 persisted; donors/ + reference/ + lineage handoff with hashes; `ts/` skeleton (schemas, scoring/policy F03-fixed, 39 tests OK); compose pg (pgvector 0.8.6 on PG16 verified `CREATE EXTENSION vector`); venv `.venv` |
 | Left in W1 | — (2026-09-23: Alembic v1 `90f5cc54dd46` applied on VM230, 11 tables incl. pgvector; `ts seed import` → 100 `seed_unverified`, idempotent; `ts llm zdr-check`/`probe` OK: qwen3.6 via Venice 0.7 s, gpt-5.6-luna via Azure 1.5 s; 47 tests) → W1 closes after independent check |
 | Next wave | W2-scorer-eval: rules-0.1.yaml, negatives_v1.json, `ts eval`, P/R/F1 report |
@@ -50,6 +50,6 @@ Repo `https://sourcecraft.dev/shats123/thin-signals` (private). **Pushed 2026-09
 
 ## Next trigger
 
-1. W2 description-eval done 2026-09-23: holdout n=95 acc 0.947 P 0.946 R 0.963 F1 0.954 (replay from cache identical). Separation is M01–M06, not τ (τ collapsed to 0.10; rules keep 0.30). EV-01 still short: 70 negatives, no per-row source, single adjudication. Next: W3 ledger mode.
+1. W3 started 2026-09-23: `ts run` hits SearXNG+arXiv+OpenAlex+Crossref+GitHub (photonic query: 10 sources, 0 failures, TOP-15 empty, policy WATCHLIST, shortfall 15). Dedup by DOI, roadmap is not deployment. Not yet: Postgres persist, Docling, TEI vectors, UI.
 2. W2: `ts/scoring/rules-0.1.yaml`, `data/negatives_v1.json`, `ts eval`, `reports/eval_<date>.md`.
 3. Operator: presentation template; optional dedicated OpenRouter key for thin-signals.

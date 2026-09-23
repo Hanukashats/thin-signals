@@ -56,7 +56,7 @@ phases:
     degrade: keep_ledger
     waves:
       - id: W1-contract
-        status: in_progress
+        status: completed
         owner: architect/backend
         deliverables:
           - "CONCEPT/ARCHITECTURE/plan/forks/requirements/STATUS 7.2"
@@ -74,7 +74,7 @@ phases:
     goal: Scorer + negatives corpus + ts eval with P/R/F1 report in organizer format
     waves:
       - id: W2-scorer-eval
-        status: planned
+        status: completed
         owner: AI/evaluation
         deliverables: ["ts/scoring rules-0.1.yaml", "data/negatives_v1.json", "ts eval CLI + adapter", "reports/eval_<date>.md", "docs/EVAL.md", "data/source_trust.yaml"]
         requirements: [TZ-01, TZ-02, EV-01, EV-02, EV-03, SC-02, TS-AG-17]
@@ -87,7 +87,7 @@ phases:
     goal: Query -> TOP-15 with citations end-to-end on VM101 services
     waves:
       - id: W3-live
-        status: planned
+        status: in_progress
         owner: AI/backend
         deliverables: ["harness state machine + runs tables", "connectors SearXNG/arXiv/OpenAlex/Crossref/GitHub", "Docling snapshot", "LLM extraction JSON schema", "dedup TEI+pgvector", "countersearch maturity M01-M06", "ranking + exclusion registry"]
         requirements: [TZ-03, TZ-05, TZ-07, TZ-10, SC-03, SC-06, SC-07, SC-11]

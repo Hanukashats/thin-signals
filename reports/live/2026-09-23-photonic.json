@@ -1,0 +1,106 @@
+{
+ "id": "b16934c2d5d29b3d",
+ "repeated": false,
+ "model_id": null,
+ "provider": null,
+ "steps": [
+  {
+   "name": "search",
+   "connector": "searxng",
+   "status": "ok",
+   "n": 2
+  },
+  {
+   "name": "search",
+   "connector": "arxiv",
+   "status": "ok",
+   "n": 2
+  },
+  {
+   "name": "search",
+   "connector": "openalex",
+   "status": "ok",
+   "n": 2
+  },
+  {
+   "name": "search",
+   "connector": "crossref",
+   "status": "ok",
+   "n": 2
+  },
+  {
+   "name": "search",
+   "connector": "github",
+   "status": "ok",
+   "n": 2
+  },
+  {
+   "name": "snapshot",
+   "status": "skipped",
+   "reason": "no fetcher"
+  },
+  {
+   "name": "dedup",
+   "status": "ok",
+   "events": 10,
+   "merged": 0
+  },
+  {
+   "name": "countersearch",
+   "connector": "searxng",
+   "status": "ok",
+   "n": 2
+  },
+  {
+   "name": "countersearch",
+   "connector": "arxiv",
+   "status": "ok",
+   "n": 2
+  },
+  {
+   "name": "countersearch",
+   "connector": "openalex",
+   "status": "ok",
+   "n": 2
+  },
+  {
+   "name": "countersearch",
+   "connector": "crossref",
+   "status": "ok",
+   "n": 2
+  },
+  {
+   "name": "countersearch",
+   "connector": "github",
+   "status": "ok",
+   "n": 0
+  },
+  {
+   "name": "extract",
+   "status": "skipped",
+   "reason": "no extractor"
+  },
+  {
+   "name": "score",
+   "status": "ok",
+   "label": "noise",
+   "gate": "WATCHLIST"
+  },
+  {
+   "name": "rank",
+   "status": "ok",
+   "admitted": 0,
+   "shortfall": 15,
+   "connector_failures": []
+  }
+ ],
+ "sources": 10,
+ "events": 10,
+ "label": "noise",
+ "policy_action": "WATCHLIST",
+ "policy_reason": "no_verified_change",
+ "top": 0,
+ "shortfall": 15,
+ "excluded": 1,
+ "planned_not_deployment": []
+}

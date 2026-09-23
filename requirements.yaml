@@ -110,10 +110,13 @@ requirements:
     title: Live open search beyond seed 100
     priority: P1
     owner: data/AI
-    state: planned
+    state: implemented
     wave: W3-live
     acceptance: Jury query hits live sources; retrieval-only-on-100 fails acceptance
-    evidence: []
+    evidence:
+      - ts/harness.py
+      - ts/sources/connectors.py
+      - reports/live/2026-09-23-photonic.json
 
   - id: TZ-04
     title: TOP-15 cards with description, advantage, case, sources, confidence, explanation
@@ -148,10 +151,13 @@ requirements:
     title: Source card fields complete
     priority: P1
     owner: data
-    state: planned
+    state: implemented
     wave: W3-live
     acceptance: name, URL, date, type, language, trust (data/source_trust.yaml); unknown date explicit
-    evidence: []
+    evidence:
+      - ts/harness.py _sources
+      - ts/sources/trust.py
+      - ts/tests/test_harness.py::test_unknown_date_is_explicit
 
   - id: TZ-08
     title: RU summary for foreign sources with generation mark
@@ -352,19 +358,23 @@ requirements:
     title: Dedup article/repo/press into one event
     priority: P1
     owner: domain
-    state: planned
+    state: implemented
     wave: W3-live
     acceptance: One experiment -> one EvidenceEvent (test from row 85)
-    evidence: []
+    evidence:
+      - ts/harness.py dedup
+      - ts/tests/test_harness.py::test_same_experiment_is_one_event_and_roadmap_is_not_deployment
 
   - id: SC-07
     title: Future roadmap not counted as deployment
     priority: P1
     owner: domain
-    state: planned
+    state: implemented
     wave: W3-live
     acceptance: planned_for events stored; not deployment_confirmed (rows 12/35/59/64)
-    evidence: []
+    evidence:
+      - ts/harness.py dedup planned_for
+      - ts/tests/test_harness.py::test_same_experiment_is_one_event_and_roadmap_is_not_deployment
 
   - id: SC-09
     title: Backup restore and pinned config for new run

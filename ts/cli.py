@@ -75,6 +75,55 @@ def cmd_eval(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_run(args: argparse.Namespace) -> int:
+    import httpx
+
+    from ts.harness import Harness
+    from ts.settings import load
+    from ts.sources.connectors import (
+        ArxivConnector,
+        CrossrefConnector,
+        GithubConnector,
+        OpenAlexConnector,
+        SearxConnector,
+    )
+
+    s = load()
+    if s.product_mode and args.extract:
+        print(json.dumps({
+            "error": "product_mode",
+            "why": "В режиме сдачи OpenRouter выключен: нужен отдельный разрешённый шлюз. Сейчас извлечение только в лабораторном режиме.",
+        }, ensure_ascii=False))
+        return 2
+
+    def get(url: str) -> str:
+        response = httpx.get(url, timeout=40, follow_redirects=True, headers={"User-Agent": "thin-signals/0.1"})
+        response.raise_for_status()
+        return response.text
+
+    connectors = []
+    if s.searxng_url:
+        connectors.append(SearxConnector(s.searxng_url, get))
+    connectors += [ArxivConnector(get), OpenAlexConnector(get), CrossrefConnector(get), GithubConnector(get)]
+    extractor = None
+    if args.extract:
+        from ts.extract import Extractor
+        from ts.llm import OpenRouterClient
+        extractor = Extractor(OpenRouterClient(s), model=args.model or s.llm_primary, mode="ledger")
+    report = Harness(rules_version=s.rules_version, snapshot_dir=s.snapshot_dir).run(
+        args.query, connectors, limit=args.limit, extractor=extractor, fetch_body=get if args.snapshot else None,
+    )
+    print(json.dumps({
+        "id": report.id, "repeated": report.repeated, "model_id": report.model_id, "provider": report.provider,
+        "steps": report.steps, "sources": len(report.sources), "events": len(report.events),
+        "label": report.card["label"], "policy_action": report.card["policy_action"],
+        "policy_reason": report.card["policy_reason"], "top": len(report.top), "shortfall": report.shortfall,
+        "excluded": len(report.exclusion_registry),
+        "planned_not_deployment": report.card["planned_not_deployment"],
+    }, ensure_ascii=False, indent=1))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="ts", description="Thin Signals harness")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -103,6 +152,14 @@ def main(argv: list[str] | None = None) -> int:
     ev.add_argument("--workers", type=int, default=4)
     ev.add_argument("--limit", type=int)
     ev.set_defaults(fn=cmd_eval)
+
+    run = sub.add_parser("run", help="live query: search, dedup, countersearch, rank")
+    run.add_argument("--query", required=True)
+    run.add_argument("--limit", type=int, default=3)
+    run.add_argument("--extract", action="store_true", help="ledger extraction via allowlisted OpenRouter model")
+    run.add_argument("--model")
+    run.add_argument("--snapshot", action="store_true")
+    run.set_defaults(fn=cmd_run)
 
     args = p.parse_args(argv)
     return args.fn(args)
