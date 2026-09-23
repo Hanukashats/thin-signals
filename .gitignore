@@ -27,3 +27,5 @@ Thumbs.db
 snapshots/
 reports/*.jsonl
 donors_pack/
+*.egg-info/
+alembic.ini.local
