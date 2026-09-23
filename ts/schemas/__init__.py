@@ -42,13 +42,13 @@ class Document(BaseModel):
     content_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
     blob_ref: str
     fetched_at: datetime
-    published_at: Optional[date] = None
-    published_at_unknown_reason: Optional[str] = None
-    translation_method: Optional[str] = None
+    published_at: date | None = None
+    published_at_unknown_reason: str | None = None
+    translation_method: str | None = None
     summary_generated: bool = False
 
     @model_validator(mode="after")
-    def _date_or_reason(self) -> "Document":
+    def _date_or_reason(self) -> Document:
         if self.published_at is None and not self.published_at_unknown_reason:
             raise ValueError("published_at unknown requires published_at_unknown_reason")
         return self
@@ -58,9 +58,9 @@ class Fragment(BaseModel):
     id: str
     document_id: str
     quote: str = Field(min_length=1)
-    page: Optional[int] = None
-    start: Optional[int] = None
-    end: Optional[int] = None
+    page: int | None = None
+    start: int | None = None
+    end: int | None = None
     fragment_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
 
 
@@ -86,17 +86,17 @@ class EvidenceEvent(BaseModel):
     id: str
     type: EventType
     entity_ids: list[str]
-    event_at: Optional[date] = None
-    planned_for: Optional[date] = None
-    available_at: Optional[date] = None
-    date_unknown_reason: Optional[str] = None
+    event_at: date | None = None
+    planned_for: date | None = None
+    available_at: date | None = None
+    date_unknown_reason: str | None = None
     origin_group_id: str
     source_fragment_ids: list[str] = Field(min_length=1)
     dedup_status: Literal["canonical", "duplicate_of", "pending"] = "pending"
-    duplicate_of: Optional[str] = None
+    duplicate_of: str | None = None
 
     @model_validator(mode="after")
-    def _dates(self) -> "EvidenceEvent":
+    def _dates(self) -> EvidenceEvent:
         if self.event_at is None and self.planned_for is None and not self.date_unknown_reason:
             raise ValueError("event without event_at/planned_for requires date_unknown_reason")
         if self.type == "deployment_confirmed" and self.planned_for and self.event_at is None:
@@ -111,15 +111,15 @@ class Claim(BaseModel):
     id: str
     subject_id: str
     predicate: str
-    value: Optional[str] = None
-    unit: Optional[str] = None
-    scope: Optional[str] = None
+    value: str | None = None
+    unit: str | None = None
+    scope: str | None = None
     kind: Literal["source_fact", "vendor_statement", "analyst_inference", "hypothesis", "forecast"]
     status: ClaimStatus
     critical: bool = False
     evidence_for: list[str] = Field(min_length=1, description="fragment ids — TS-INV-02")
     evidence_against: list[str] = []
-    event_id: Optional[str] = None
+    event_id: str | None = None
 
 
 class Edge(BaseModel):
@@ -131,8 +131,8 @@ class Edge(BaseModel):
         "announces", "pilots", "depends_on", "supplier_of", "potential_supplier_of",
     ]
     claim_ids: list[str] = Field(min_length=1)
-    valid_from: Optional[date] = None
-    valid_to: Optional[date] = None
+    valid_from: date | None = None
+    valid_to: date | None = None
 
 
 class Observation(BaseModel):
@@ -158,13 +158,13 @@ class Decision(BaseModel):
     as_of: date
     rules_version: str
     action: str
-    label: Optional[SignalLabel] = None
-    confidence: Optional[float] = Field(default=None, ge=0, le=1)
+    label: SignalLabel | None = None
+    confidence: float | None = Field(default=None, ge=0, le=1)
     reason_codes: list[str]
     predictors: list[dict] = Field(default_factory=list, description="visible components, each with fragment refs")
     unresolved: list[str] = []
-    next_action: Optional[str] = None
-    review_at: Optional[date] = None
+    next_action: str | None = None
+    review_at: date | None = None
 
 
 class RunStatus(str, Enum):
@@ -182,8 +182,8 @@ class Run(BaseModel):
     query: str
     corpus_version: str
     rules_version: str
-    model_id: Optional[str] = None
+    model_id: str | None = None
     idempotency_key: str = Field(pattern=r"^[0-9a-f]{64}$")
     status: RunStatus = RunStatus.queued
     created_at: datetime
-    finished_at: Optional[datetime] = None
+    finished_at: datetime | None = None

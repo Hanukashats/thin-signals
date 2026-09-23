@@ -9,7 +9,7 @@ import pytest
 from ts.scoring.policy import normalized_growth, route, validate_contract
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "reference"))
-import policy as reference  # noqa: E402  (v6.1 unchanged donor)
+import policy as reference
 
 
 def base(**changes):

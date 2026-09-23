@@ -1,0 +1,21 @@
+Metadata-Version: 2.4
+Name: thin-signals
+Version: 0.1.0
+Summary: Thin Signals — weak technology signal detection with a logical model (Gazprombank.Tech hackathon)
+Requires-Python: >=3.12
+Requires-Dist: pydantic<3,>=2.7
+Requires-Dist: pyyaml>=6
+Provides-Extra: api
+Requires-Dist: fastapi>=0.115; extra == "api"
+Requires-Dist: uvicorn[standard]>=0.30; extra == "api"
+Requires-Dist: sqlalchemy>=2.0; extra == "api"
+Requires-Dist: alembic>=1.13; extra == "api"
+Requires-Dist: psycopg[binary]>=3.2; extra == "api"
+Requires-Dist: pgvector>=0.3; extra == "api"
+Requires-Dist: httpx>=0.27; extra == "api"
+Provides-Extra: ui
+Requires-Dist: streamlit>=1.38; extra == "ui"
+Requires-Dist: httpx>=0.27; extra == "ui"
+Provides-Extra: dev
+Requires-Dist: pytest>=8; extra == "dev"
+Requires-Dist: ruff>=0.6; extra == "dev"

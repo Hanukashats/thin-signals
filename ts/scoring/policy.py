@@ -11,9 +11,10 @@ Order of gates is intentionally identical to the reference and covered by tests.
 """
 from __future__ import annotations
 
+from collections.abc import Mapping
 from datetime import date
 from math import log2
-from typing import Any, Mapping, Optional
+from typing import Any
 
 STATUSES = frozenset({"verified", "supported", "unknown", "disputed", "refuted"})
 NOVELTY = frozenset({"new", "known", "unclear"})
@@ -41,7 +42,7 @@ def _is_str_in(value: Any, allowed: frozenset) -> bool:
     return isinstance(value, str) and value in allowed
 
 
-def validate_contract(s: Any) -> Optional[dict[str, Any]]:
+def validate_contract(s: Any) -> dict[str, Any] | None:
     """Return a HOLD dict when the input violates the contract, else None."""
     if not isinstance(s, Mapping):
         return _hold("invalid_contract", "pass_mapping_with_required_fields")
@@ -73,7 +74,7 @@ def route(s: Any) -> dict[str, Any]:
     bad = validate_contract(s)
     if bad:
         return bad
-    hold_or = lambda action: "HOLD" if s["budget_exhausted"] else action  # noqa: E731
+    hold_or = lambda action: "HOLD" if s["budget_exhausted"] else action
 
     if not s["source_availability_valid"]:
         return _hold("unresolved_availability", "dated_accessible_evidence", "availability")
@@ -110,7 +111,7 @@ def route(s: Any) -> dict[str, Any]:
     return {"action": "RANK_ELIGIBLE", "reason": "evidence_gates_passed", "trigger": None, "gate": "admit"}
 
 
-def normalized_growth(recent: Any, previous: Any, *, required_days: Optional[int] = 90) -> Optional[float]:
+def normalized_growth(recent: Any, previous: Any, *, required_days: int | None = 90) -> float | None:
     """log2 ratio of smoothed shares over two equal, complete, non-overlapping windows.
 
     Product configuration (METHODOLOGY §5) pins required_days=90; pass None to accept any equal length.
