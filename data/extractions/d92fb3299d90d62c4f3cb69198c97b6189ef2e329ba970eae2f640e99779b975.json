@@ -1,0 +1,172 @@
+{
+ "input": "Технология: Метавселенная как площадка для корпоративных совещаний\nОбласть: XR\nКомпании/акторы: Meta (Horizon Workrooms), Microsoft Mesh",
+ "output": {
+  "primary_pattern": "P06",
+  "secondary_patterns": [
+   "P05",
+   "P16"
+  ],
+  "features": [
+   {
+    "code": "P01",
+    "status": "supported",
+    "why": "Horizon Workrooms и Mesh предлагают специфические 3D-пространства, отличные от 2D-видеоконференций. Дата: 2021-2022 (запуски). Суммы: инвестиции Meta в Reality Labs >$10 млрд/год."
+   },
+   {
+    "code": "P02",
+    "status": "supported",
+    "why": "Преодоление задержек (latency) и улучшение рендеринга для синхронного взаимодействия. Факты: улучшения в Unity/Unreal для enterprise-сегмента в 2022-2023."
+   },
+   {
+    "code": "P03",
+    "status": "supported",
+    "why": "Переход к реальному применению: пилоты в крупных корпорациях (например, Ford, Walmart с Meta; Microsoft с enterprise-клиентами). Дата: 2022-2023."
+   },
+   {
+    "code": "P04",
+    "status": "supported",
+    "why": "Конвергенция капитала: венчурные инвестиции в enterprise XR-стартапы и внутренние бюджеты Meta/Microsoft. Суммы: раунды Series A/B в XR-инфраструктуре 2021-2022."
+   },
+   {
+    "code": "P05",
+    "status": "supported",
+    "why": "Появление самостоятельного продуктового слоя: отдельные SaaS-решения поверх VR/AR (например, Spatial, Engage, Horizon Workrooms как отдельный продукт). Дата: 2021-2023."
+   },
+   {
+    "code": "P06",
+    "status": "verified",
+    "why": "Новое применение зрелой технологии: использование VR/AR (зрелых для игр) для корпоративных совещаний. Факт: массовое внедрение Meta Quest в бизнес-сегмент с 2021 г."
+   },
+   {
+    "code": "P07",
+    "status": "supported",
+    "why": "Узкое место: качество аудио/видео в 3D. Дополняющая инфраструктура: облачные вычисления для рендеринга (Azure, AWS). Дата: 2022-2023."
+   },
+   {
+    "code": "P08",
+    "status": "supported",
+    "why": "Стандарты: попытки внедрения OpenXR, метавселенских стандартов (Metaverse Standards Forum). Дата: 2022-2023."
+   },
+   {
+    "code": "P09",
+    "status": "supported",
+    "why": "Нормативный стимул: запрос на безопасность данных в корпоративном секторе, стимулирующий локальные развертывания. Факты: требования GDPR/CCPA к XR-данным 2022."
+   },
+   {
+    "code": "P10",
+    "status": "supported",
+    "why": "Перенос вычислений: edge computing для снижения задержек в XR-совещаниях. Факты: партнерства Microsoft/Azure и Meta/AWS 2021-2022."
+   },
+   {
+    "code": "P11",
+    "status": "supported",
+    "why": "Исследовательское сближение: публикации по иммерсивному обучению и коллаборации в VR. Источники: IEEE, ACM, 2021-2023."
+   },
+   {
+    "code": "P12",
+    "status": "supported",
+    "why": "Рост экосистемы: SDK для разработчиков enterprise XR-приложений. Факты: Unity/Unreal enterprise SDKs, 2022-2023."
+   },
+   {
+    "code": "P13",
+    "status": "supported",
+    "why": "Разрыв: высокий интерес СМИ к метавселенным vs низкая реальная интеграция в ежедневные процессы. Факты: снижение энтузиазма в 2023-2024."
+   },
+   {
+    "code": "P14",
+    "status": "supported",
+    "why": "Новая модель извлечения ценности: подписка на enterprise-функции XR-платформ. Факты: ценообразование Microsoft Mesh и Meta Horizon Workrooms 2022-2023."
+   },
+   {
+    "code": "P15",
+    "status": "supported",
+    "why": "Обязательство пользователя: пилотные проекты в крупных компаниях (Ford, Boeing). Факты: публичные анонсы пилотов 2021-2022."
+   },
+   {
+    "code": "P16",
+    "status": "verified",
+    "why": "Соединение VR/AR и видеоконференций. Факт: интеграция Horizon Workrooms с Zoom/Teams, Mesh с Teams. Дата: 2021-2022."
+   },
+   {
+    "code": "P17",
+    "status": "supported",
+    "why": "Возвращение идеи виртуальных офисов (неудачной в 90-е) с новыми технологиями. Факты: интерес к виртуальным офисам в 2020-2021."
+   },
+   {
+    "code": "P18",
+    "status": "supported",
+    "why": "Гранты и исследовательские программы: NSF, EU Horizon 2020 по иммерсивным технологиям. Дата: 2021-2023."
+   }
+  ],
+  "counters": [
+   {
+    "code": "M01",
+    "fired": true,
+    "why": "Выраженные лидеры: Meta, Microsoft, Unity, Nvidia. Публичные доли: сложно оценить, но есть четкие рейтинги Gartner/Forrester 2022-2023."
+   },
+   {
+    "code": "M02",
+    "fired": false,
+    "why": "Нет единого принятого стандарта или обязательной сертификации для корпоративных XR-совещаний."
+   },
+   {
+    "code": "M03",
+    "fired": false,
+    "why": "Массовое внедрение отсутствует. Есть пилоты, но нет массовой поставки у многих клиентов. Deployment ограничен энтузиастами."
+   },
+   {
+    "code": "M04",
+    "fired": true,
+    "why": "Много индикаторных источников: пресс-релизы Meta/Microsoft, соцсети, аналитика Gartner. Verified claims (работающие объекты) редки."
+   },
+   {
+    "code": "M05",
+    "fired": true,
+    "why": "Хайп 2021-2022 без первичных фактов массового использования. В 2023-2024 наблюдается коррекция."
+   },
+   {
+    "code": "M06",
+    "fired": false,
+    "why": "Категория не старая: это новое применение XR, а не просто улучшение видеоконференций."
+   }
+  ],
+  "transition": {
+   "status": "supported",
+   "why": "Есть подтвержденное изменение стадии: от исследований (2020) к пилотам (2021-2022). Переход к контрактам ограничен."
+  },
+  "distinct_actors": 5,
+  "distinct_events": 8,
+  "one_line_ru": "Корпоративные XR-совещания (Meta Horizon Workrooms, Microsoft Mesh) — это новое применение зрелых VR/AR технологий для бизнеса, поддерживаемое крупными игроками, но пока находящееся на стадии пилотов и хайпа без массового внедрения."
+ },
+ "meta": {
+  "model_id": "qwen/qwen3.6-35b-a3b",
+  "provider": "AkashML",
+  "usage": {
+   "prompt_tokens": 833,
+   "completion_tokens": 2004,
+   "total_tokens": 2837,
+   "cost": 0.0018869,
+   "is_byok": false,
+   "prompt_tokens_details": {
+    "cached_tokens": 0,
+    "cache_write_tokens": 0,
+    "audio_tokens": 0,
+    "video_tokens": 0
+   },
+   "cost_details": {
+    "upstream_inference_cost": 0.0018869,
+    "upstream_inference_prompt_cost": 8.33e-05,
+    "upstream_inference_completions_cost": 0.0018036
+   },
+   "completion_tokens_details": {
+    "reasoning_tokens": 0,
+    "image_tokens": 0,
+    "audio_tokens": 0
+   }
+  },
+  "latency_s": 13.85,
+  "prompt_version": "extract-v1",
+  "mode": "description",
+  "cached": false
+ }
+}

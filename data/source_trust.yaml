@@ -1,0 +1,70 @@
+# Source trust levels (METHODOLOGY §7, TZ п.5). Used by connectors (W3) to set Document.trust and by M04.
+version: source-trust-0.1
+levels:
+  primary:
+    weight: 1.0
+    description: регуляторы, реестры, патентные базы, рецензируемые статьи/препринты, официальные сайты разработчиков, отраслевые ассоциации, гранты
+    source_types: [paper, patent, registry, official_site, repository]
+    domains:
+      - arxiv.org
+      - openalex.org
+      - crossref.org
+      - patents.google.com
+      - worldwide.espacenet.com
+      - fips.ru
+      - sec.gov
+      - eur-lex.europa.eu
+      - federalregister.gov
+      - cbr.ru
+      - consultant.ru
+      - ietf.org
+      - iso.org
+      - ieee.org
+      - nist.gov
+      - cordis.europa.eu
+      - github.com          # release/commit history only; stars are indicator
+      - clinicaltrials.gov
+  professional:
+    weight: 0.7
+    description: отраслевые медиа, аналитические отчёты, конференционные материалы
+    source_types: [industry_media, analyst_report]
+    domains:
+      - siliconangle.com
+      - techcrunch.com
+      - theregister.com
+      - ieee-spectrum (spectrum.ieee.org)
+      - nature.com/news
+      - cnews.ru
+      - tadviser.ru
+      - kommersant.ru
+      - vedomosti.ru
+      - rbc.ru
+      - fintechfutures.com
+      - bankingdive.com
+      - semianalysis.com
+      - gartner.com
+      - idc.com
+      - mckinsey.com
+  indicator:
+    weight: 0.3
+    description: соцсети, блоги, агрегаторы, пресс-релизы, реклама — только индикатор, никогда не единственное основание (TZ п.5)
+    source_types: [press_release, social, blog, aggregator, other]
+    domains:
+      - x.com
+      - twitter.com
+      - linkedin.com
+      - reddit.com
+      - medium.com
+      - substack.com
+      - prnewswire.com
+      - businesswire.com
+      - globenewswire.com
+      - producthunt.com
+      - news.ycombinator.com
+      - habr.com          # blog-grade unless author is the developer (then official_site)
+      - vc.ru
+      - telegram (t.me)
+rules:
+  - "M04 fires when all documents of a candidate have trust == indicator"
+  - "A claim with only indicator evidence_for cannot reach status verified"
+  - "Unknown domain -> professional if source_type in (industry_media, analyst_report) else indicator"

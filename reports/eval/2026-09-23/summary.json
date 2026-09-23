@@ -1,0 +1,145 @@
+{
+ "date": "2026-09-23",
+ "rules_version": "rules-0.1",
+ "mode": "description",
+ "model": "qwen/qwen3.6-35b-a3b",
+ "prompt_version": "extract-v1",
+ "n_positives": 100,
+ "n_negatives": 70,
+ "calibration": {
+  "tau": 0.1,
+  "tau_watchlist": 0.06,
+  "train": {
+   "n": 75,
+   "tp": 45,
+   "fp": 4,
+   "fn": 1,
+   "tn": 25,
+   "accuracy": 0.9333,
+   "precision": 0.9184,
+   "recall": 0.9783,
+   "f1": 0.9474
+  }
+ },
+ "holdout": {
+  "n": 95,
+  "tp": 52,
+  "fp": 3,
+  "fn": 2,
+  "tn": 38,
+  "accuracy": 0.9474,
+  "precision": 0.9455,
+  "recall": 0.963,
+  "f1": 0.9541
+ },
+ "overall": {
+  "n": 170,
+  "tp": 97,
+  "fp": 7,
+  "fn": 3,
+  "tn": 63,
+  "accuracy": 0.9412,
+  "precision": 0.9327,
+  "recall": 0.97,
+  "f1": 0.951
+ },
+ "default_thresholds_overall": {
+  "n": 170,
+  "tp": 97,
+  "fp": 7,
+  "fn": 3,
+  "tn": 63,
+  "accuracy": 0.9412,
+  "precision": 0.9327,
+  "recall": 0.97,
+  "f1": 0.951
+ },
+ "confusion_3way": {
+  "weak_signal->weak_signal": 97,
+  "weak_signal->mature": 2,
+  "weak_signal->noise": 1,
+  "mature->mature": 50,
+  "noise->mature": 9,
+  "noise->noise": 2,
+  "mature->weak_signal": 1,
+  "watchlist->weak_signal": 4,
+  "noise->weak_signal": 2,
+  "watchlist->mature": 2
+ },
+ "errors": 0,
+ "providers": {
+  "SiliconFlow": 14,
+  "Phala": 22,
+  "Parasail": 39,
+  "AkashML": 84,
+  "CoreWeave": 11
+ },
+ "recall_by_dataset_pattern": {
+  "P01": {
+   "n": 6,
+   "recall": 1.0
+  },
+  "P02": {
+   "n": 10,
+   "recall": 1.0
+  },
+  "P03": {
+   "n": 5,
+   "recall": 1.0
+  },
+  "P05": {
+   "n": 12,
+   "recall": 1.0
+  },
+  "P06": {
+   "n": 20,
+   "recall": 0.9
+  },
+  "P07": {
+   "n": 7,
+   "recall": 1.0
+  },
+  "P08": {
+   "n": 6,
+   "recall": 1.0
+  },
+  "P09": {
+   "n": 13,
+   "recall": 0.923
+  },
+  "P10": {
+   "n": 7,
+   "recall": 1.0
+  },
+  "P11": {
+   "n": 1,
+   "recall": 1.0
+  },
+  "P14": {
+   "n": 5,
+   "recall": 1.0
+  },
+  "P16": {
+   "n": 6,
+   "recall": 1.0
+  },
+  "P17": {
+   "n": 2,
+   "recall": 1.0
+  }
+ },
+ "specificity_by_negative_label": {
+  "mature": {
+   "n": 51,
+   "rate": 0.98
+  },
+  "noise": {
+   "n": 13,
+   "rate": 0.846
+  },
+  "watchlist": {
+   "n": 6,
+   "rate": 0.333
+  }
+ }
+}

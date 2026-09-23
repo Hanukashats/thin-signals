@@ -273,25 +273,32 @@ requirements:
     state: planned
     wave: W2-scorer-eval
     acceptance: data/negatives_v1.json >= 80 items, each with class, rationale, >=1 source, adjudicated flag
-    evidence: []
+    evidence:
+      - data/negatives_v1.json (70 rows, class+note; sources and second adjudication still missing — acceptance not met)
 
   - id: EV-02
     title: Holdout split by semantic family, no label leakage
     priority: P0
     owner: AI/evaluation
-    state: planned
+    state: implemented
     wave: W2-scorer-eval
     acceptance: split file lists families kept together; features exclude dataset_score/trend/rationale
-    evidence: []
+    evidence:
+      - ts/eval.py (FAMILIES, split, contamination: Item has no rationale/score/trend)
+      - ts/tests/test_eval.py
+      - reports/eval/2026-09-23/summary.json
 
   - id: EV-03
     title: Organizer-format adapter for ts eval
     priority: P0
     owner: AI/evaluation
-    state: planned
+    state: implemented
     wave: W2-scorer-eval
-    acceptance: ts eval --input <csv|json> --label-col <name> runs on official dataset when received; runs on seed+negatives now
-    evidence: []
+    acceptance: ts eval --positives <xlsx|csv|json> runs on organizer columns; label column optional
+    evidence:
+      - ts/eval.py read_organizer
+      - ts/tests/test_eval.py::test_organizer_xlsx_adapter
+      - reports/eval/2026-09-23/report.md
 
   # --- LLM provider ---
   - id: LLM-01

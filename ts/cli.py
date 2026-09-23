@@ -53,6 +53,28 @@ def cmd_llm(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_eval(args: argparse.Namespace) -> int:
+    from pathlib import Path
+
+    from ts.eval import load_negatives, load_positives, read_organizer, run_eval
+    from ts.extract import Extractor
+    from ts.llm import OpenRouterClient
+    from ts.scoring.scorer import load_rules
+    from ts.settings import load
+
+    s = load()
+    rules = load_rules(args.rules)
+    positives = read_organizer(Path(args.positives)) if args.positives else load_positives()
+    negatives = read_organizer(Path(args.negatives), label_default="mature") if args.negatives else load_negatives()
+    if args.limit:
+        positives, negatives = positives[: args.limit], negatives[: args.limit]
+    ex = Extractor(OpenRouterClient(s), model=args.model or s.llm_primary, mode=args.mode, rules=rules)
+    summary = run_eval(ex, positives, negatives, rules, workers=args.workers)
+    print(json.dumps({k: summary[k] for k in ("holdout", "overall", "calibration", "confusion_3way", "errors", "out_dir")},
+                     ensure_ascii=False, indent=1))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="ts", description="Thin Signals harness")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -71,6 +93,16 @@ def main(argv: list[str] | None = None) -> int:
     llm.add_argument("action", choices=["probe", "zdr-check"])
     llm.add_argument("--model")
     llm.set_defaults(fn=cmd_llm)
+
+    ev = sub.add_parser("eval", help="P/R/F1 on positives + negatives (EV-01..03)")
+    ev.add_argument("--positives", help="organizer XLSX/CSV/JSON (default data/dataset_patterns_100.json)")
+    ev.add_argument("--negatives", help="JSON/CSV with label column (default data/negatives_v1.json)")
+    ev.add_argument("--rules", default="rules-0.1")
+    ev.add_argument("--mode", default="description", choices=["description", "ledger"])
+    ev.add_argument("--model")
+    ev.add_argument("--workers", type=int, default=4)
+    ev.add_argument("--limit", type=int)
+    ev.set_defaults(fn=cmd_eval)
 
     args = p.parse_args(argv)
     return args.fn(args)

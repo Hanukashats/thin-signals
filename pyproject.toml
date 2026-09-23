@@ -12,6 +12,7 @@ dependencies = [
 api = ["fastapi>=0.115", "uvicorn[standard]>=0.30", "sqlalchemy>=2.0", "alembic>=1.13", "psycopg[binary]>=3.2", "pgvector>=0.3", "httpx>=0.27"]
 ui = ["streamlit>=1.38", "httpx>=0.27"]
 dev = ["pytest>=8", "ruff>=0.6"]
+eval = ["openpyxl>=3.1", "httpx>=0.27"]
 
 [project.scripts]
 ts = "ts.cli:main"
@@ -26,3 +27,9 @@ python_files = ["test_*.py"]
 [tool.ruff]
 line-length = 110
 target-version = "py312"
+
+[tool.ruff.lint]
+ignore = ["C408"]
+
+[tool.ruff.lint.per-file-ignores]
+"ts/tests/*" = ["DTZ001"]

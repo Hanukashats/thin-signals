@@ -50,6 +50,6 @@ Repo `https://sourcecraft.dev/shats123/thin-signals` (private). **Pushed 2026-09
 
 ## Next trigger
 
-1. W2: rules-0.1.yaml, negatives_v1.json, `ts eval` (P/R/F1, organizer-format adapter).
+1. W2 description-eval done 2026-09-23: holdout n=95 acc 0.947 P 0.946 R 0.963 F1 0.954 (replay from cache identical). Separation is M01–M06, not τ (τ collapsed to 0.10; rules keep 0.30). EV-01 still short: 70 negatives, no per-row source, single adjudication. Next: W3 ledger mode.
 2. W2: `ts/scoring/rules-0.1.yaml`, `data/negatives_v1.json`, `ts eval`, `reports/eval_<date>.md`.
 3. Operator: presentation template; optional dedicated OpenRouter key for thin-signals.

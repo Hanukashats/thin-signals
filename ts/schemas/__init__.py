@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from datetime import date, datetime
 from enum import Enum
-from typing import Literal, Optional
+from typing import Literal, Optional  # noqa: F401
 
 from pydantic import BaseModel, Field, HttpUrl, model_validator
 

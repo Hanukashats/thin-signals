@@ -1,0 +1,172 @@
+{
+ "input": "Технология: Нейроморфные (brain-inspired) чипы для ИИ-нагрузок\nОбласть: Инфраструктура ИИ\nКомпании/акторы: Unconventional AI, Innatera, SynSense, Prophesee",
+ "output": {
+  "primary_pattern": "P01",
+  "secondary_patterns": [
+   "P06",
+   "P16"
+  ],
+  "features": [
+   {
+    "code": "P01",
+    "status": "supported",
+    "why": "Появление архитектур, имитирующих синаптическую передачу (Spiking Neural Networks), отличных от традиционных Von Neumann. Innatera и SynSense заявляют о принципиально новом подходе к вычислениям. Даты: 2023-2024 (раунды финансирования Innatera, обновления SynSense). Суммы: Innatera ~$10M+ (Series A/B), SynSense ~$10M+ (Series B). distinct_actors: 4 (Unconventional AI, Innatera, SynSense, Prophesee). distinct_events: 4 (раунды/анонсы продуктов)."
+   },
+   {
+    "code": "P02",
+    "status": "supported",
+    "why": "Преодоление порога энергоэффективности для edge-устройств. Чипы демонстрируют порядок меньшего энергопотребления при инференсе по сравнению с GPU/TPU для специфических задач (компьютерное зрение). Факты: бенчмарки от SynSense и Prophesee. distinct_actors: 2. distinct_events: 2 (публикация результатов тестов)."
+   },
+   {
+    "code": "P03",
+    "status": "supported",
+    "why": "Переход к реальному применению в нишевых сценариях (IoT, дроны, камеры видеонаблюдения). Prophesee внедряет свои сенсоры в промышленные системы. SynSense поставляет чипы в потребительскую электронику. Даты: 2022-2024. distinct_actors: 2. distinct_events: 2 (коммерческие поставки/интеграции)."
+   },
+   {
+    "code": "P04",
+    "status": "supported",
+    "why": "Конвергенция раннего капитала. Инвесторы (GV, Khosla Ventures, Intel Capital) вкладываются в нишевых игроков. Innatera привлекла финансирование от стратегических инвесторов. SynSense имеет поддержку от крупных венчурных фондов. Даты: 2023-2024. Суммы: совокупно >$20M. distinct_actors: 4. distinct_events: 4 (раунды финансирования)."
+   },
+   {
+    "code": "P05",
+    "status": "supported",
+    "why": "Появление самостоятельного продуктового слоя. Компании продают не просто IP, а готовые модули или SDK для разработчиков (например, SynSense SDK, Prophesee API). distinct_actors: 2. distinct_events: 2 (релизы SDK/модулей)."
+   },
+   {
+    "code": "P06",
+    "status": "supported",
+    "why": "Новое применение зрелой технологии (нейроморфное моделирование) для ИИ-нагрузок. Использование принципов SNN для задач компьютерного зрения и обработки сигналов. distinct_actors: 4. distinct_events: 4 (анонсы новых чипов/решений)."
+   },
+   {
+    "code": "P07",
+    "status": "supported",
+    "why": "Узкое место (энергопотребление/задержка) и дополняющая инфраструктура (датчики событий, low-power MCU). Prophesee производит event-based камеры, которые идеально сочетаются с нейроморфными чипами. distinct_actors: 2. distinct_events: 1 (совместное решение)."
+   },
+   {
+    "code": "P08",
+    "status": "unknown",
+    "why": "Стандарты и совместимость. Отраслевые стандарты для SNN/нейроморфных чипов еще формируются (например, efforts в IEEE или RISC-V extensions), но единого доминирующего стандарта нет. distinct_actors: 0. distinct_events: 0."
+   },
+   {
+    "code": "P09",
+    "status": "unknown",
+    "why": "Новая угроза или нормативный стимул. Прямых регуляторных стимулов именно для нейроморфных чипов нет, есть общий тренд на энергоэффективность (ESG), но это не нормативный стимул. distinct_actors: 0. distinct_events: 0."
+   },
+   {
+    "code": "P10",
+    "status": "supported",
+    "why": "Перенос вычислений и границ данных. Вычисления переносятся на край сети (edge), ближе к датчикам, что снижает трафик. Это ключевое преимущество технологии. Факты: позиционирование продуктов как edge-first. distinct_actors: 4. distinct_events: 4 (маркетинговые/технические заявления)."
+   },
+   {
+    "code": "P11",
+    "status": "supported",
+    "why": "Независимое исследовательское сближение. Несколько стартапов (Innatera, SynSense, Unconventional AI) развивают схожие идеи независимо, что подтверждает жизнеспособность направления. distinct_actors: 3. distinct_events: 3 (независимые раунды/релизы)."
+   },
+   {
+    "code": "P12",
+    "status": "supported",
+    "why": "Рост экосистемы разработчиков. Появление SDK, документаций, примеров кода (GitHub) от SynSense и Prophesee. Сообщество растет, но пока нишевое. distinct_actors: 2. distinct_events: 2 (релизы SDK)."
+   },
+   {
+    "code": "P13",
+    "status": "supported",
+    "why": "Разрыв между предметным прогрессом и вниманием. Технологический прогресс в энергоэффективности реален, но массовое внимание СМИ и инвесторов пока ниже, чем у генеративного ИИ. distinct_actors: 0. distinct_events: 0."
+   },
+   {
+    "code": "P14",
+    "status": "supported",
+    "why": "Новая модель извлечения ценности. Продажа не только чипов, но и решений 'sensor-to-inference', где ценность в снижении TCO (Total Cost of Ownership) за счет экономии энергии. distinct_actors: 2. distinct_events: 2 (коммерческие кейсы)."
+   },
+   {
+    "code": "P15",
+    "status": "unknown",
+    "why": "Обязательство пользователя или внедренца. Есть пилоты и ранние клиенты, но массового обязательного внедрения нет. Статус неясен из-за недостатка публичных данных о долгосрочных контрактах. distinct_actors: 0. distinct_events: 0."
+   },
+   {
+    "code": "P16",
+    "status": "supported",
+    "why": "Соединение ранее раздельных технологий. Интеграция нейроморфных вычислений с event-based сенсорами (Prophesee) или традиционными MCU. distinct_actors: 2. distinct_events: 2 (интеграции)."
+   },
+   {
+    "code": "P17",
+    "status": "supported",
+    "why": "Возвращение ранее неудавшегося направления. Нейроморфные вычисления были популярны в 90-х/00-х, но не нашли массового рынка. Сейчас возвращаются с новым контекстом (ИИ, edge). distinct_actors: 0. distinct_events: 0."
+   },
+   {
+    "code": "P18",
+    "status": "unknown",
+    "why": "Грант и публичная исследовательская программа. Есть отдельные гранты (например, от DARPA или EU), но нет крупной публичной программы, определяющей рынок. distinct_actors: 0. distinct_events: 0."
+   }
+  ],
+  "counters": [
+   {
+    "code": "M01",
+    "fired": false,
+    "why": "Нет выраженных лидеров рынка с публичными долями. Рынок фрагментирован, нет явного доминирования одного игрока. distinct_actors: 0."
+   },
+   {
+    "code": "M02",
+    "fired": false,
+    "why": "Нет принятого обязательного стандарта или сертификации. distinct_actors: 0."
+   },
+   {
+    "code": "M03",
+    "fired": false,
+    "why": "Массового внедрения нет. Это нишевые решения для специфических задач. distinct_actors: 0."
+   },
+   {
+    "code": "M04",
+    "fired": false,
+    "why": "Есть технические публикации и данные о финансировании, не только пресс-релизы. distinct_actors: 0."
+   },
+   {
+    "code": "M05",
+    "fired": false,
+    "why": "Есть verified claims (раунды финансирования, технические спецификации чипов). distinct_actors: 0."
+   },
+   {
+    "code": "M06",
+    "fired": false,
+    "why": "Это не старая категория без нового применения. Есть новый механизм (SNN) и новое применение (edge AI). distinct_actors: 0."
+   }
+  ],
+  "transition": {
+   "status": "supported",
+   "why": "Есть подтвержденное изменение стадии: от исследований к пилотам и ранним коммерческим поставкам (Innatera, SynSense). distinct_actors: 2. distinct_events: 2."
+  },
+  "distinct_actors": 4,
+  "distinct_events": 12,
+  "one_line_ru": "Нейроморфные чипы демонстрируют ранний сигнал роста через независимые раунды финансирования и нишевые коммерческие поставки, но не достигли стадии массового внедрения или стандартизации."
+ },
+ "meta": {
+  "model_id": "qwen/qwen3.6-35b-a3b",
+  "provider": "AkashML",
+  "usage": {
+   "prompt_tokens": 846,
+   "completion_tokens": 2403,
+   "total_tokens": 3249,
+   "cost": 0.0022473,
+   "is_byok": false,
+   "prompt_tokens_details": {
+    "cached_tokens": 0,
+    "cache_write_tokens": 0,
+    "audio_tokens": 0,
+    "video_tokens": 0
+   },
+   "cost_details": {
+    "upstream_inference_cost": 0.0022473,
+    "upstream_inference_prompt_cost": 8.46e-05,
+    "upstream_inference_completions_cost": 0.0021627
+   },
+   "completion_tokens_details": {
+    "reasoning_tokens": 0,
+    "image_tokens": 0,
+    "audio_tokens": 0
+   }
+  },
+  "latency_s": 17.572,
+  "prompt_version": "extract-v1",
+  "mode": "description",
+  "cached": false
+ }
+}

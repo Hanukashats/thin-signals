@@ -1,0 +1,74 @@
+# Thin Signals logical model — rules v0.1 (METHODOLOGY §2–§4). Versioned; changing = new file + ADR + ts eval.
+version: rules-0.1
+as_of_default: "2026-09-23"
+
+# value of a feature status
+value:
+  verified: 1.0
+  supported: 0.5
+  unknown: 0.0
+  absent: 0.0
+
+weights:
+  primary: 0.35          # w for the candidate's primary pattern
+  secondary: 0.15        # w per secondary pattern
+  secondary_cap: 0.30    # Σ secondary contributions ≤ cap
+  independence: 0.20     # ind = min(1,(events-1)/4) * min(1,(origins-1)/2)
+  transition: 0.15       # tr = 1 if stage/mechanism transition verified (0.5 if supported)
+
+penalties:               # u_j — subtracted when counter-feature fires
+  M01: 0.30
+  M02: 0.30
+  M03: 0.30
+  M04: 0.30
+  M05: 0.30
+  M06: 0.30
+
+# counter-feature -> label (they short-circuit scoring; card shows the reason, not a percent)
+counter_labels:
+  M01: mature
+  M02: mature
+  M03: mature
+  M04: noise
+  M05: noise
+  M06: mature
+
+thresholds:
+  weak_signal: 0.60      # τ, calibrated by ts eval on train split; holdout reported separately
+  watchlist: 0.35
+
+# extraction mode caps (eval-v1 has no source fragments → nothing can be "verified")
+modes:
+  description:           # features from technology/domain/companies text only
+    max_status: supported
+    thresholds: {weak_signal: 0.30, watchlist: 0.18}   # calibrated 2026-09-23, see reports/eval
+  ledger:                # W3: features from Documents/Fragments/Claims
+    max_status: verified
+
+patterns:
+  P01: Новый технический механизм
+  P02: Преодоление порога эффективности
+  P03: Переход к реальному применению
+  P04: Конвергенция раннего капитала
+  P05: Появление самостоятельного продуктового слоя
+  P06: Новое применение зрелой технологии
+  P07: Узкое место и дополняющая инфраструктура
+  P08: Стандарты и совместимость
+  P09: Новая угроза или нормативный стимул
+  P10: Перенос вычислений и границ данных
+  P11: Независимое исследовательское сближение
+  P12: Рост экосистемы разработчиков
+  P13: Разрыв между предметным прогрессом и вниманием
+  P14: Новая модель извлечения ценности
+  P15: Обязательство пользователя или внедренца
+  P16: Соединение ранее раздельных технологий
+  P17: Возвращение ранее неудавшегося направления
+  P18: Грант и публичная исследовательская программа
+
+counters:
+  M01: Выраженные лидеры рынка (≥3 поставщика с публичными долями / рейтинг «лидеров»)
+  M02: Принятый стандарт или обязательная сертификация в силе
+  M03: Массовое внедрение (deployment у многих клиентов / массовая поставка)
+  M04: Только индикаторные источники (соцсети, пресс-релизы, агрегаторы)
+  M05: Хайп без первичных фактов (много упоминаний, 0 verified claims)
+  M06: Старая категория без нового применения/механизма
