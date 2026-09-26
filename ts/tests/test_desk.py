@@ -93,6 +93,13 @@ def test_score_story_is_not_a_startup_probability():
     assert "Метка сигнала: шум" in text
 
 
+def test_viewer_is_not_behind_login():
+    from pathlib import Path
+    text = Path("ui/app.py").read_text(encoding="utf-8")
+    assert "st.stop()" not in text
+    assert "не обязателен" in text
+
+
 def test_empty_chain_says_so():
     chain = reasoning({"signal_label": "weak_signal"})
     assert chain["steps"] == ["Цепочка пуста: прогон не вернул причины."]

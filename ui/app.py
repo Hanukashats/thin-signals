@@ -29,35 +29,34 @@ st.title("Тонкие сигналы")
 st.caption("Поиск по открытым источникам. Метка сигнала и статус прогона — разные поля.")
 
 
-def login() -> None:
-    st.subheader("Вход")
-    if not ACCOUNTS.exists():
-        st.error("Файл учётных записей на хосте не найден. Пароли в репозиторий не кладутся.")
-        st.stop()
-    username = st.text_input("Имя", help="admin, hanuka, yana — полные права. user1, user2, user3 — только просмотр и запуск.")
-    password = st.text_input("Пароль", type="password", help="Пароль сверяется с хэшем на хосте. В чат и в git он не пишется.")
-    if st.button("Войти", type="primary"):
-        try:
-            role = role_for(load_accounts(ACCOUNTS), username, password)
-        except (ValueError, TypeError):
-            st.error("Файл учётных записей повреждён.")
+def optional_login() -> None:
+    """Login is not required to run or read a signal."""
+    with st.expander("Вход для админки, не обязателен"):
+        if st.session_state.get("role"):
+            st.write(f"Сейчас вошли как **{st.session_state['username']}**.")
+            if st.button("Выйти"):
+                st.session_state.pop("role", None)
+                st.session_state.pop("username", None)
+                st.rerun()
             return
-        if role is None:
-            st.error("Неверное имя или пароль.")
+        if not ACCOUNTS.exists():
+            st.caption("Файл учётных записей на хосте не найден. Смотровой экран от этого не зависит.")
             return
-        st.session_state["role"] = role
-        st.session_state["username"] = username.strip()
-        st.rerun()
-    st.stop()
+        username = st.text_input("Имя")
+        password = st.text_input("Пароль", type="password")
+        if st.button("Войти"):
+            try:
+                role = role_for(load_accounts(ACCOUNTS), username, password)
+            except (ValueError, TypeError):
+                st.error("Файл учётных записей повреждён.")
+                return
+            if role is None:
+                st.error("Неверное имя или пароль.")
+                return
+            st.session_state["role"] = role
+            st.session_state["username"] = username.strip()
+            st.rerun()
 
-
-if "role" not in st.session_state:
-    login()
-
-st.write(f"Вы вошли как **{st.session_state['username']}** ({'админ' if can_admin(st.session_state['role']) else 'пользователь'}).")
-if st.button("Выйти"):
-    st.session_state.clear()
-    st.rerun()
 
 st.subheader("Смотровой экран")
 direction = st.text_input("Направление", help=field_help("direction"))
@@ -111,7 +110,9 @@ if payload:
     st.download_button("Скачать документ", text, file_name="thin-signals.md", mime="text/markdown")
     st.caption("Письмо на почту появится, когда будет ящик для отправки. Сейчас результат — этот документ.")
 
-if can_admin(st.session_state["role"]):
+optional_login()
+
+if can_admin(st.session_state.get("role")):
     st.subheader("Админка")
     st.caption("Живые правила и промпт экран не подменяет. Здесь видны числа и черновик правки.")
     logic = live_logic()
@@ -125,4 +126,4 @@ if can_admin(st.session_state["role"]):
         save_draft(DRAFT, prompt_draft, logic_note)
         st.success("Черновик сохранён на хосте. На скоринг он не встал.")
 else:
-    st.caption("Админка скрыта: у этой учётной записи только смотровой экран.")
+    st.caption("Админка, вход и борт не нужны, чтобы запустить поиск и увидеть сигнал. Их очередь в конце.")

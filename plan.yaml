@@ -127,14 +127,21 @@ phases:
           - "roles admin/hanuka/yana and user1/user2/user3, hashes only on the host"
         requirements: [TZ-04, TZ-18]
         forks: [ui.stack]
-        note: "Cursor builds the screens. Codex and Figma wait until this wave opens and its test passes."
+        note: "Viewer runs without login. Admin, login and dashboard are not required for a live signal."
       - id: W4b-figma
         status: planned
         owner: codex
         deliverables: ["visual polish of the working W4a screens in Figma"]
         requirements: [TZ-04]
         forks: [ui.stack]
-        note: "Do not start until W4a is reachable and the field-split test passes."
+        note: "Do not start until W4a is reachable and the field-split test passes. After the public name, not before the viewer."
+      - id: W4d-admin-optional
+        status: planned
+        owner: cursor
+        deliverables: ["optional login", "admin notes", "dashboard"]
+        requirements: [TZ-04]
+        forks: [ui.stack]
+        note: "Last and optional. A live signal must work with this wave still planned."
       - id: W4c-ingress
         status: planned
         owner: infra
@@ -142,10 +149,10 @@ phases:
           - "DNS tsignal.agispace.ru to MikroTik Grigory public address"
           - "dst-nat 80/443 only onto VM101"
           - "reverse proxy with auto-renewing TLS"
-          - "login wall; postgres and other backend ports stay closed"
+          - "only the signals app; login stays optional; postgres and other backend ports stay closed"
         requirements: [TZ-13]
         forks: [hosting.sourcecraft]
-        note: "Document download first. Email when a mailbox exists. Beget key is not in git."
+        note: "agispace.ru is on FirstVDS nameservers, not in the Beget account. Do not change MikroTik guru360 hub NAT. Optional and after the viewer works."
 
   - id: P5
     name: Release
