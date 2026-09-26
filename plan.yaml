@@ -36,9 +36,14 @@ execution:
     report_after_each_wave: true
     consecutive_failures_before_stop: 2
     architect_names_unresolved_stoppers: true
+    architect_may_close_after_proper_check: true
+    proper_check: second_hat_reruns_the_criterion
+    implementer_cannot_verify_own_increment: true
   notes: >
     7.2 compresses the 11-step cycle to 4. INTEGRATE must update STATUS + touched IDs.
-    7.3 adds screens, public name tsignal.agispace.ru, and the empty-loop rules above.
+    7.3 adds screens, public name tsignal.aispaces.ru, and the empty-loop rules above.
+    The chief architect may close a card only after another hat re-runs the check.
+    The implementer hat still cannot verify the increment it just wrote.
     Those rules live in this file. They are not a second controller inside the product.
     Do not revive a HANDOFF card. Do not share a chat card with another product.
     Critical path: logical model + harness + eval + RU UI (ADR-009). No weight training.
@@ -146,13 +151,13 @@ phases:
         status: planned
         owner: infra
         deliverables:
-          - "DNS tsignal.agispace.ru to MikroTik Grigory public address"
+          - "DNS tsignal.aispaces.ru, zone already on Beget, apex stays put"
           - "dst-nat 80/443 only onto VM101"
           - "reverse proxy with auto-renewing TLS"
           - "only the signals app; login stays optional; postgres and other backend ports stay closed"
         requirements: [TZ-13]
         forks: [hosting.sourcecraft]
-        note: "agispace.ru is on FirstVDS nameservers, not in the Beget account. Do not change MikroTik guru360 hub NAT. Optional and after the viewer works."
+        note: "Chosen name tsignal.aispaces.ru. agispace.ru is FirstVDS and is not used. DNS record not written yet. Do not change MikroTik guru360 hub NAT."
 
   - id: P5
     name: Release

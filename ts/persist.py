@@ -56,6 +56,20 @@ def save_report(session: Session, report: RunReport) -> str:
     return report.id
 
 
+def latest_succeeded(session: Session) -> dict | None:
+    """Newest finished run, for the viewer. Does not score."""
+    row = session.scalar(
+        select(Run).where(Run.status == "succeeded").order_by(Run.finished_at.desc(), Run.created_at.desc())
+    )
+    if row is None:
+        return None
+    stats = dict(row.stats or {})
+    stats.setdefault("run_id", row.id)
+    stats.setdefault("run_status", row.status)
+    stats.setdefault("query", row.query)
+    return stats
+
+
 def load_report(session: Session, idempotency_key: str) -> dict | None:
     row = session.scalar(select(Run).where(Run.idempotency_key == idempotency_key))
     if row is None:

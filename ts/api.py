@@ -11,12 +11,18 @@ class QueryIn(BaseModel):
     extract: bool = False
 
 
-def create_app(runner) -> FastAPI:
+def create_app(runner, latest=None) -> FastAPI:
     app = FastAPI(title="Thin Signals", version="0.1.0")
 
     @app.get("/health")
     def health() -> dict:
         return {"ok": True}
+
+    @app.get("/v1/runs/latest")
+    def latest_run() -> dict:
+        if latest is None:
+            return {"run": None}
+        return {"run": latest()}
 
     @app.post("/v1/runs")
     def create_run(body: QueryIn) -> dict:
@@ -30,4 +36,13 @@ def default_runner(query: str, limit: int, extract: bool) -> dict:
     return run_query(query, limit=limit, extract=extract)
 
 
-app = create_app(default_runner)
+def default_latest() -> dict | None:
+    from ts.db import session_factory
+    from ts.persist import latest_succeeded
+
+    factory = session_factory()
+    with factory() as session:
+        return latest_succeeded(session)
+
+
+app = create_app(default_runner, default_latest)

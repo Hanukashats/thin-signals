@@ -98,6 +98,21 @@ def test_api_separates_run_status_label_and_exclusion():
     assert "дата не указана" in text or "источник не указал дату" in text
 
 
+def test_latest_run_is_shown_without_scoring():
+    stored = {
+        "run_status": "succeeded", "signal_label": "noise", "query": "клетка",
+        "shortfall": 15, "sources": [], "exclusion_registry": [], "predictors": [],
+        "confidence": None, "top": [],
+    }
+    client = TestClient(create_app(lambda *args: {}, latest=lambda: stored))
+    body = client.get("/v1/runs/latest").json()
+    assert body["run"]["run_status"] == "succeeded"
+    assert body["run"]["signal_label"] == "noise"
+    assert body["run"]["run_status"] != body["run"]["signal_label"]
+    empty = TestClient(create_app(lambda *args: {}, latest=lambda: None))
+    assert empty.get("/v1/runs/latest").json()["run"] is None
+
+
 def test_openrouter_allowlist_rejects_unknown_model(tmp_path):
     client = make_client(tmp_path)
     assert isinstance(client, OpenRouterClient)

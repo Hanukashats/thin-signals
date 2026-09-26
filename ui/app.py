@@ -59,6 +59,20 @@ def optional_login() -> None:
 
 
 st.subheader("Смотровой экран")
+if "payload" not in st.session_state:
+    try:
+        latest = httpx.get(f"{API}/v1/runs/latest", timeout=5).json().get("run")
+    except httpx.HTTPError:
+        latest = None
+    if latest:
+        st.session_state["payload"] = latest
+        st.session_state["meta"] = {
+            "direction": latest.get("query") or "",
+            "correction": "",
+            "start": "",
+            "end": "",
+        }
+        st.caption("Показан последний сохранённый прогон. Новый запуск ниже его заменит.")
 direction = st.text_input("Направление", help=field_help("direction"))
 correction = st.text_input("Небольшая правка", help=field_help("correction"))
 left, right = st.columns(2)
