@@ -10,7 +10,7 @@ from ts.persist import load_report, save_report
 from ts.sources.connectors import Hit
 from ts.tests.test_harness import Scripted
 from ts.tests.test_llm import make_client, settings
-from ts.ui_text import screen
+from ts.ui_text import panels, screen
 
 
 def _report(tmp_path):
@@ -89,6 +89,12 @@ def test_api_separates_run_status_label_and_exclusion():
     text = "\n".join(view["lines"] + view["sources"] + view["excluded"])
     assert "Статус прогона: succeeded" in text
     assert "Метка сигнала: шум" in text
+    board = panels(body)
+    assert board["run_status"] == "succeeded"
+    assert board["signal_label"] == "шум"
+    assert board["run_status"] != board["signal_label"]
+    assert board["shortfall"] == 15
+    assert board["sources"] and "Paper" in board["sources"][0]
     assert "дата не указана" in text or "источник не указал дату" in text
 
 

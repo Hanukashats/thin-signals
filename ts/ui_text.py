@@ -29,3 +29,16 @@ def screen(payload: dict) -> dict:
         for row in payload.get("exclusion_registry") or []
     ]
     return {"lines": lines, "sources": sources, "excluded": excluded}
+
+
+def panels(payload: dict) -> dict:
+    """Four facts the analyst screen must show apart. No scoring."""
+    label = payload.get("signal_label")
+    view = screen(payload)
+    return {
+        "run_status": payload.get("run_status") or "—",
+        "signal_label": LABELS.get(label, label or "—"),
+        "sources": view["sources"],
+        "shortfall": payload.get("shortfall", "—"),
+        "excluded": view["excluded"],
+    }

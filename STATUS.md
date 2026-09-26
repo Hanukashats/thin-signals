@@ -1,6 +1,8 @@
 # STATUS.md — Thin Signals LivingSet
 
-Updated: **2026-09-22** · Plan revision: **7.2** · Deadline: **2026-09-29 23:59 MSK**
+Updated: **2026-09-26** · Plan revision: **7.3** (parent 7.2) · Deadline: **2026-09-29 23:59 MSK**
+
+7.3 slice: W4a screens are in `ui/app.py` (viewer + admin, hover help, document download). W3 stays `in_progress` until an honest TOP-15. W4b Figma and W4c `tsignal.agispace.ru` are not done. Account hashes live only in `.secrets/accounts.yaml`.
 Host of record: Georg VM101 `/opt/thin-signals` (cursor-agent). Plan: `docs/plan/PLAN_7.2.md`, ADR-009.
 
 ## Current

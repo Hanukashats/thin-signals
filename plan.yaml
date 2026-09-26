@@ -1,9 +1,10 @@
-# plan.yaml — Thin Signals LivingSet v7.2
-# Machine-readable waves. Human narrative: docs/plan/PLAN_7.2.md, CONCEPT, STATUS.
+# plan.yaml — Thin Signals LivingSet v7.3
+# Machine-readable waves. Human narrative: docs/plan/PLAN_7.2.md, docs/plan/PLAN_7.3.md, CONCEPT, STATUS.
+# 7.3 is a patch on 7.2. Waves W0–W6 stay. W4a/W4b/W4c are the added slices.
 
-plan_revision: "7.2"
-parent_revision: "7.1"
-date: "2026-09-22"
+plan_revision: "7.3"
+parent_revision: "7.2"
+date: "2026-09-26"
 deadline: "2026-09-29T23:59:00+03:00"
 status: active
 degrade_default: keep_ledger
@@ -26,10 +27,20 @@ execution:
     - VERIFY
     - INTEGRATE
   empty_waves_before_hold: 2
+  goal_loop:
+    one_live_card_per_chat: true
+    empty_checkpoints_before_replan: 2
+    handoff_is_terminal: true
+    verifier_is_a_different_bot: true
+    telegram_bar_only_while_bot_replies: true
   notes: >
     7.2 compresses the 11-step cycle to 4. INTEGRATE must update STATUS + touched IDs.
+    7.3 adds screens, public name tsignal.agispace.ru, and the empty-loop rules above.
+    Those rules live in this file. They are not a second controller inside the product.
+    Do not revive a HANDOFF card. Do not share a chat card with another product.
     Critical path: logical model + harness + eval + RU UI (ADR-009). No weight training.
     Git SoT: SourceCraft; GitHub mirror for submission.
+    Passwords and DNS keys stay in the host secrets file, never in this plan.
 
 phases:
   - id: P0
@@ -104,6 +115,34 @@ phases:
         deliverables: ["query page", "TOP-15 list with confidence + predictors", "report page", "source cards trust/translation", "relations list", "exclusion registry", "counters"]
         requirements: [TZ-04, TZ-06, TZ-08, TZ-09, TZ-18, SC-12]
         forks: [ui.stack]
+      - id: W4a-screens
+        status: completed
+        owner: cursor
+        deliverables:
+          - "viewer: direction, correction, period, run, document download"
+          - "admin: settings, prompt draft, logic note, reasoning chain, hover help"
+          - "roles admin/hanuka/yana and user1/user2/user3, hashes only on the host"
+        requirements: [TZ-04, TZ-18]
+        forks: [ui.stack]
+        note: "Cursor builds the screens. Codex and Figma wait until this wave opens and its test passes."
+      - id: W4b-figma
+        status: planned
+        owner: codex
+        deliverables: ["visual polish of the working W4a screens in Figma"]
+        requirements: [TZ-04]
+        forks: [ui.stack]
+        note: "Do not start until W4a is reachable and the field-split test passes."
+      - id: W4c-ingress
+        status: planned
+        owner: infra
+        deliverables:
+          - "DNS tsignal.agispace.ru to MikroTik Grigory public address"
+          - "dst-nat 80/443 only onto VM101"
+          - "reverse proxy with auto-renewing TLS"
+          - "login wall; postgres and other backend ports stay closed"
+        requirements: [TZ-13]
+        forks: [hosting.sourcecraft]
+        note: "Document download first. Email when a mailbox exists. Beget key is not in git."
 
   - id: P5
     name: Release
