@@ -21,13 +21,19 @@ def _key(query: str, rules_version: str, corpus: str = "live-w3") -> str:
     return hashlib.sha256(f"{query}|{corpus}|{rules_version}".encode()).hexdigest()
 
 
+def _maker(session_factory):
+    """session_factory() from ts.db returns a maker. A passed maker is used as-is."""
+    if session_factory is None:
+        from ts.db import session_factory as build
+        return build()
+    return session_factory
+
+
 def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Settings | None = None,
               connectors=None, session_factory=None) -> dict:
     s = settings or load()
     key = _key(query, s.rules_version)
-    factory = session_factory
-    if factory is None:
-        from ts.db import session_factory as factory
+    factory = _maker(session_factory)
     with factory() as session:
         stored = load_report(session, key)
     if stored is not None:

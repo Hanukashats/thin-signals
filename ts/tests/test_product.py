@@ -98,6 +98,25 @@ def test_api_separates_run_status_label_and_exclusion():
     assert "дата не указана" in text or "источник не указал дату" in text
 
 
+def test_default_db_factory_is_built_before_a_session_opens(monkeypatch):
+    opened = []
+
+    class Sess:
+        def __enter__(self):
+            opened.append("in")
+            return self
+
+        def __exit__(self, *args):
+            opened.append("out")
+            return False
+
+    monkeypatch.setattr("ts.db.session_factory", lambda: (lambda: Sess()))
+    from ts.live import _maker
+    with _maker(None)() as session:
+        assert session is not None
+    assert opened == ["in", "out"]
+
+
 def test_latest_run_is_shown_without_scoring():
     stored = {
         "run_status": "succeeded", "signal_label": "noise", "query": "клетка",
