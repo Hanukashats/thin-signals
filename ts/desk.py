@@ -90,6 +90,43 @@ def compose_query(direction: str, correction: str, start: str, end: str) -> str:
     return query
 
 
+NOT_A_MARKET_FORECAST = (
+    "Это не вероятность, что открытие станет стартапом, что вырастет спрос, "
+    "что откроется цепочка поставок или что двинется акция. Такого числа модель не считает."
+)
+
+
+def score_story(payload: dict) -> dict:
+    """Plain chain of the contributions the scorer already returned. No new verdict."""
+    predictors = payload.get("predictors") or []
+    confidence = payload.get("confidence")
+    lines = []
+    if confidence is None:
+        lines.append("Контр-признак остановил сумму. Процент не считается, видна причина.")
+    else:
+        lines.append(
+            "Уверенность складывается по порядку: главный признак, затем дополнительные, "
+            "затем независимость источников, затем смена стадии. Сумма обрезается от 0 до 1."
+        )
+        lines.append(f"Итог суммы: {confidence}.")
+    for row in predictors:
+        if isinstance(row, dict):
+            lines.append(
+                f"{row.get('code', '—')}: вклад {row.get('contribution', '—')}, "
+                f"вес {row.get('weight', '—')}, значение {row.get('value', '—')}"
+            )
+        else:
+            lines.append(str(row))
+    top = []
+    for item in payload.get("top") or []:
+        if isinstance(item, dict):
+            label = LABELS.get(item.get("label"), item.get("label") or "—")
+            top.append(f"{item.get('technology') or 'карточка'}: {label}, уверенность {item.get('confidence')}")
+        else:
+            top.append(str(item))
+    return {"lines": lines, "disclaimer": NOT_A_MARKET_FORECAST, "top": top}
+
+
 def reasoning(payload: dict) -> dict:
     """Visible chain from fields the API already returned. No new verdict."""
     steps = []
@@ -124,6 +161,7 @@ def reasoning(payload: dict) -> dict:
 def document(payload: dict, direction: str, correction: str, start: str, end: str) -> str:
     view = panels(payload)
     chain = reasoning(payload)
+    story = score_story(payload)
     lines = [
         "# Тонкие сигналы",
         "",
@@ -138,6 +176,14 @@ def document(payload: dict, direction: str, correction: str, start: str, end: st
         *[f"- {step}" for step in chain["steps"]],
         "",
         f"Вывод: {chain['conclusion']}",
+        "",
+        "## Как сложилось число",
+        *[f"- {step}" for step in story["lines"]],
+        "",
+        story["disclaimer"],
+        "",
+        "## Список до ТОП-15",
+        *([f"- {row}" for row in story["top"]] or ["- В список никто не прошёл. Недобор выше честный, места не заполняются."]),
         "",
         "## Источники",
         *([f"- {row}" for row in view["sources"]] or ["- Источников нет."]),

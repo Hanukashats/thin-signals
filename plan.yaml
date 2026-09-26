@@ -33,6 +33,9 @@ execution:
     handoff_is_terminal: true
     verifier_is_a_different_bot: true
     telegram_bar_only_while_bot_replies: true
+    report_after_each_wave: true
+    consecutive_failures_before_stop: 2
+    architect_names_unresolved_stoppers: true
   notes: >
     7.2 compresses the 11-step cycle to 4. INTEGRATE must update STATUS + touched IDs.
     7.3 adds screens, public name tsignal.agispace.ru, and the empty-loop rules above.

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from ts.access import can_admin, hash_password, role_for, verify_password
-from ts.desk import compose_query, document, field_help, load_draft, reasoning, save_draft
+from ts.desk import compose_query, document, field_help, load_draft, reasoning, save_draft, score_story
 
 PAYLOAD = {
     "run_status": "succeeded",
@@ -68,6 +68,29 @@ def test_viewer_cannot_open_admin_and_password_roundtrip(tmp_path):
     loaded = load_draft(path)
     assert loaded["prompt_draft"] == "новый чек-лист"
     assert "applied_to_scorer: false" in path.read_text(encoding="utf-8")
+
+
+def test_score_story_is_not_a_startup_probability():
+    story = score_story({
+        "confidence": 0.42,
+        "predictors": [
+            {"code": "P01", "contribution": 0.35, "weight": 0.35, "value": "verified"},
+            {"code": "IND", "contribution": 0.07, "weight": 0.2, "value": 0.35},
+        ],
+        "top": [{"technology": "фотон", "label": "weak_signal", "confidence": 0.42}],
+    })
+    assert story["lines"][1] == "Итог суммы: 0.42."
+    assert story["lines"][2].startswith("P01:")
+    assert story["lines"][3].startswith("IND:")
+    assert "стартап" in story["disclaimer"]
+    assert "акци" in story["disclaimer"]
+    assert story["top"] == ["фотон: слабый сигнал, уверенность 0.42"]
+    stopped = score_story({"confidence": None, "predictors": [{"code": "M04", "contribution": -0.3, "weight": -0.3, "value": 1}]})
+    assert stopped["lines"][0].startswith("Контр-признак")
+    text = document(PAYLOAD, "клетка", "", "", "")
+    assert "не вероятность" in text
+    assert "Статус прогона: succeeded" in text
+    assert "Метка сигнала: шум" in text
 
 
 def test_empty_chain_says_so():

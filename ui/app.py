@@ -8,7 +8,16 @@ import httpx
 import streamlit as st
 
 from ts.access import can_admin, load_accounts, role_for
-from ts.desk import compose_query, document, field_help, live_logic, load_draft, reasoning, save_draft
+from ts.desk import (
+    compose_query,
+    document,
+    field_help,
+    live_logic,
+    load_draft,
+    reasoning,
+    save_draft,
+    score_story,
+)
 from ts.ui_text import panels
 
 API = os.environ.get("TS_API_URL", "http://127.0.0.1:8095")
@@ -87,6 +96,13 @@ if payload:
     for step in chain["steps"]:
         st.write(f"- {step}")
     st.write(f"**Вывод:** {chain['conclusion']}")
+    story = score_story(payload)
+    st.subheader("Как сложилось число")
+    for step in story["lines"]:
+        st.write(f"- {step}")
+    st.caption(story["disclaimer"])
+    st.subheader("Список до ТОП-15")
+    st.write("\n".join(f"- {row}" for row in story["top"]) or "В список никто не прошёл. Недобор честный, места не заполняются.")
     st.subheader("Источники")
     st.write("\n".join(f"- {row}" for row in view["sources"]) or "Источников нет.")
     st.subheader("Реестр исключений")
