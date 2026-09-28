@@ -41,10 +41,7 @@ PARITY_CASES = [
     base(maturity="established"),
     base(novelty="unclear"),
     base(countersearch_done=False),
-    base(evidence_events=1, independent_origins=1),
-    base(evidence_events=2, independent_origins=2),
     base(branches_complete=False),
-    base(transition_verified=False),
     base(),
     base(critical_claims=["refuted"]),
     base(budget_exhausted=True, countersearch_done=False),
@@ -94,9 +91,18 @@ def test_verified_refutation_beats_budget():
     assert route(base(fatal_finding="verified", budget_exhausted=True))["action"] == "REJECT_OR_REFRAME"
 
 
-def test_row85_many_articles_one_event_is_singleton():
-    # 10 media reprints deduplicated to one canonical event from one origin group
-    assert route(base(evidence_events=1, independent_origins=1))["action"] == "WATCHLIST_SINGLETON"
+def test_missing_stage_change_is_not_an_admission_stop():
+    live = route(base(transition_verified=False))
+    assert live["action"] == "RANK_ELIGIBLE"
+    assert reference.route(base(transition_verified=False))["action"] == "WATCHLIST"
+
+
+def test_one_event_is_not_an_admission_stop():
+    # The brief does not forbid a single primary source. Reprints of a press
+    # release are stopped earlier, by the indicator rule, not by this count.
+    live = route(base(evidence_events=1, independent_origins=1))
+    assert live["action"] == "RANK_ELIGIBLE"
+    assert reference.route(base(evidence_events=1, independent_origins=1))["action"] == "WATCHLIST_SINGLETON"
 
 
 def test_mature_parent_reframes_not_rejects():

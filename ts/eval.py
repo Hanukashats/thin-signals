@@ -16,7 +16,7 @@ from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
-from ts.extract import Extractor, to_feature_vector
+from ts.extract import PROMPT_VERSION, Extractor, to_feature_vector
 from ts.scoring.scorer import FeatureVector, score
 
 POSITIVE = "weak_signal"
@@ -193,7 +193,7 @@ def run_eval(extractor: Extractor, positives: list[Item], negatives: list[Item],
 
     summary = {
         "date": datetime.now(tz=UTC).date().isoformat(), "rules_version": rules["version"], "mode": mode,
-        "model": extractor.model, "prompt_version": "extract-v1",
+        "model": extractor.model, "prompt_version": PROMPT_VERSION,
         "n_positives": len(positives), "n_negatives": len(negatives),
         "calibration": {"tau": tau, "tau_watchlist": tau_w, "train": metrics(train)},
         "holdout": metrics(hold), "overall": metrics(records),

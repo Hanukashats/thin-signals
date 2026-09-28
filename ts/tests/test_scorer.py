@@ -24,6 +24,13 @@ def test_full_evidence_is_weak_signal_with_visible_predictors():
     assert all("contribution" in p and "weight" in p for p in r.predictors)
 
 
+def test_unnamed_search_does_not_invent_an_early_money_sign():
+    r = score(FeatureVector(primary_pattern="P04", named_primary=False, evidence_events=1,
+                            independent_origins=1, mode="ledger"), R)
+    assert "P04_unknown" not in r.reason_codes
+    assert all(p["code"] != "P04" for p in r.predictors)
+
+
 def test_counter_feature_short_circuits_to_mature_or_noise():
     assert score(fv(counters={"M02": True}), R).label == "mature"
     assert score(fv(counters={"M04": True}), R).label == "noise"

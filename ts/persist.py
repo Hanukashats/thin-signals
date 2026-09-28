@@ -11,14 +11,18 @@ from sqlalchemy.orm import Session
 
 from ts.db.models import Candidate, Decision, Run
 from ts.harness import RunReport
+from ts.nearest import build_nearest
 
 
 def save_report(session: Session, report: RunReport) -> str:
     existing = session.scalar(select(Run).where(Run.idempotency_key == report.idempotency_key))
     if existing is not None:
         return existing.id
-    candidate_id = f"live-{report.id}"
-    if session.get(Candidate, candidate_id) is None:
+    candidate = session.scalar(
+        select(Candidate).where(Candidate.origin == "live", Candidate.technology == report.query)
+    )
+    if candidate is None:
+        candidate_id = f"live-{report.id}"
         session.add(Candidate(
             id=candidate_id,
             technology=report.query,
@@ -27,10 +31,12 @@ def save_report(session: Session, report: RunReport) -> str:
             source_urls=[s["url"] for s in report.sources],
         ))
         session.flush()
+    else:
+        candidate_id = candidate.id
     session.add(Run(
         id=report.id,
         query=report.query,
-        corpus_version="live-w3",
+        corpus_version=report.corpus_version,
         rules_version=report.card["rules_version"],
         model_id=report.model_id,
         provider=report.provider,
@@ -78,7 +84,7 @@ def load_report(session: Session, idempotency_key: str) -> dict | None:
 
 
 def public_report(report: RunReport) -> dict:
-    return {
+    body = {
         "run_id": report.id,
         "run_status": "succeeded",
         "query": report.query,
@@ -94,13 +100,24 @@ def public_report(report: RunReport) -> dict:
         "top": report.top,
         "shortfall": report.shortfall,
         "exclusion_registry": report.exclusion_registry,
+        "unread": list(getattr(report, "unread", None) or []),
         "model_id": report.model_id,
         "provider": report.provider,
         "rules_version": report.card["rules_version"],
+        "chain_link": report.card.get("chain_link"),
+        "fanout": report.fanout,
         "counters": {
             "sources": len(report.sources),
             "admitted": len(report.top),
             "excluded": len(report.exclusion_registry),
-            "confident": sum(1 for c in report.top if (c.get("confidence") or 0) > 0.75),
+            "unread": len(getattr(report, "unread", None) or []),
+            "confident": sum(
+                1 for c in report.top
+                if isinstance(c.get("checklist"), dict)
+                and c["checklist"].get("status") == "scored"
+                and (c.get("confidence") or 0) > 0.75
+            ),
         },
     }
+    body["nearest"] = build_nearest(body)
+    return body

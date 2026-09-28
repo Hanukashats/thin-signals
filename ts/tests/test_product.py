@@ -19,14 +19,18 @@ def _report(tmp_path):
     return harness.run("product-cell-query", [Scripted("arxiv", [hit])])
 
 
-def test_second_query_does_not_search_again(tmp_path):
+def test_second_query_does_not_search_again(tmp_path, monkeypatch):
     from sqlalchemy import delete
 
     from ts.db import session_factory
     from ts.db.models import Candidate, Decision, Run
     from ts.live import run_query
 
-    hit = Hit("arxiv", "https://arxiv.org/abs/77", "Quiet cell", "grant", "paper", published="2026-02-02", doi="10.9/quiet")
+    monkeypatch.setattr(
+        "ts.live.annotate_checklist",
+        lambda top, overflow, settings, query=None: {"top": top, "excluded": [], "overflow": overflow, "unread": [], "stats": {}},
+    )
+    hit = Hit("arxiv", "https://arxiv.org/abs/77", "Quiet cell repeat", "grant", "paper", published="2026-02-02", doi="10.9/quiet")
     src = Scripted("arxiv", [hit])
     factory = session_factory()
     first = run_query("quiet-cell-repeat", limit=2, connectors=[src], session_factory=factory)
@@ -87,10 +91,10 @@ def test_api_separates_run_status_label_and_exclusion():
     assert body["shortfall"] == 15
     view = screen(body)
     text = "\n".join(view["lines"] + view["sources"] + view["excluded"])
-    assert "Статус прогона: succeeded" in text
+    assert "Статус прогона: поиск дошёл до конца (succeeded)" in text
     assert "Метка сигнала: шум" in text
     board = panels(body)
-    assert board["run_status"] == "succeeded"
+    assert board["run_status"] == "поиск дошёл до конца (succeeded)"
     assert board["signal_label"] == "шум"
     assert board["run_status"] != board["signal_label"]
     assert board["shortfall"] == 15

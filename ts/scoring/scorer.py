@@ -34,6 +34,7 @@ class FeatureVector:
     transition: str = "unknown"                                 # verified | supported | unknown
     evidence: dict[str, str] = field(default_factory=dict)      # code -> short quote/rationale
     mode: str = "ledger"
+    named_primary: bool = True                                  # False: no pattern was chosen, do not invent one
 
 
 @dataclass
@@ -79,13 +80,14 @@ def score(fv: FeatureVector, rules: dict | None = None) -> ScoreResult:
 
     # --- Σ w_i v(F-Pi): primary + capped secondary
     conf = 0.0
-    p_status = _cap(fv.features.get(fv.primary_pattern, "unknown"), max_status)
-    c = w["primary"] * value[p_status]
-    conf += c
-    predictors.append({"code": fv.primary_pattern, "kind": "primary", "value": p_status, "weight": w["primary"],
-                       "contribution": round(c, 4), "evidence": fv.evidence.get(fv.primary_pattern, "")})
-    if p_status in ("unknown", "absent"):
-        reasons.append(f"{fv.primary_pattern}_{p_status}")
+    if fv.named_primary:
+        p_status = _cap(fv.features.get(fv.primary_pattern, "unknown"), max_status)
+        c = w["primary"] * value[p_status]
+        conf += c
+        predictors.append({"code": fv.primary_pattern, "kind": "primary", "value": p_status, "weight": w["primary"],
+                           "contribution": round(c, 4), "evidence": fv.evidence.get(fv.primary_pattern, "")})
+        if p_status in ("unknown", "absent"):
+            reasons.append(f"{fv.primary_pattern}_{p_status}")
     sec_total = 0.0
     for p in fv.secondary_patterns:
         if p == fv.primary_pattern or p not in PATTERN_IDS:

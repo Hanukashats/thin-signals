@@ -96,18 +96,14 @@ def route(s: Any) -> dict[str, Any]:
     if not s["countersearch_done"]:
         return {"action": hold_or("COUNTERSEARCH"), "reason": "missing_falsification",
                 "trigger": "counterevidence_pass", "gate": "countersearch"}
-    if s["evidence_events"] == 1 and s["independent_origins"] >= 1:
-        return {"action": "WATCHLIST_SINGLETON", "reason": "one_origin_result",
-                "trigger": "independent_replication_or_new_event", "gate": "independence"}
-    if s["evidence_events"] < MIN_EVENTS or s["independent_origins"] < MIN_ORIGINS:
-        return {"action": "WATCHLIST", "reason": "insufficient_independence",
-                "trigger": "independent_evidence", "gate": "independence"}
+    # One event is not an admission stop. The brief forbids only an indicator
+    # (press release, blog, aggregator) as the sole basis. That is M04 in the scorer.
+    # MIN_EVENTS / MIN_ORIGINS stay in the file as the old heuristic, not as a gate.
     if not s["branches_complete"]:
         return {"action": hold_or("EXECUTE_BRANCH"), "reason": "incomplete_relevant_checks",
                 "trigger": "complete_selected_branch", "gate": "branches"}
-    if not s["transition_verified"]:
-        return {"action": "WATCHLIST", "reason": "no_verified_change",
-                "trigger": "verified_technical_or_adoption_change", "gate": "transition"}
+    # Stage-change is paused. It is not in the brief, and with reading off it
+    # stopped every live find. The score can still keep a card out of the list.
     return {"action": "RANK_ELIGIBLE", "reason": "evidence_gates_passed", "trigger": None, "gate": "admit"}
 
 

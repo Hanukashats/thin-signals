@@ -14,7 +14,9 @@ from ts.desk import (
     field_help,
     live_logic,
     load_draft,
+    nearest_lines,
     reasoning,
+    run_banner,
     save_draft,
     score_story,
 )
@@ -26,7 +28,7 @@ DRAFT = Path(os.environ.get("TS_DRAFT", "/opt/thin-signals/.secrets/draft.yaml")
 
 st.set_page_config(page_title="Тонкие сигналы", layout="wide")
 st.title("Тонкие сигналы")
-st.caption("Поиск по открытым источникам. Метка сигнала и статус прогона — разные поля.")
+st.caption("Напишите, что искать. Ниже будет сказано обычными словами, дошёл ли поиск до конца и почему тема не попала в список.")
 
 
 def optional_login() -> None:
@@ -58,7 +60,7 @@ def optional_login() -> None:
             st.rerun()
 
 
-st.subheader("Смотровой экран")
+st.subheader("Что искать")
 if "payload" not in st.session_state:
     try:
         latest = httpx.get(f"{API}/v1/runs/latest", timeout=5).json().get("run")
@@ -78,7 +80,6 @@ correction = st.text_input("Небольшая правка", help=field_help("c
 left, right = st.columns(2)
 start = left.text_input("Период с", placeholder="2026-01-01", help=field_help("period"))
 end = right.text_input("Период по", placeholder="2026-09-26", help=field_help("period"))
-extract = st.checkbox("Извлечь признаки через OpenRouter (запрет сохранения и обучения)", value=False)
 
 if st.button("Запустить", type="primary"):
     try:
@@ -89,7 +90,7 @@ if st.button("Запустить", type="primary"):
         with st.spinner("Идёт поиск…"):
             response = httpx.post(
                 f"{API}/v1/runs",
-                json={"query": query, "limit": 3, "extract": extract},
+                json={"query": query, "limit": 3, "extract": False},
                 timeout=180,
             )
             response.raise_for_status()
@@ -103,7 +104,11 @@ if payload:
     left, right = st.columns(2)
     left.metric("Статус прогона", view["run_status"], help=field_help("run_status"))
     right.metric("Метка сигнала", view["signal_label"], help=field_help("signal_label"))
-    st.metric("Недобор до ТОП-15", view["shortfall"])
+    st.caption("Статус прогона говорит, отработал ли поиск. Метка говорит, что решили по теме. Это разные вещи.")
+    st.metric("Пустых мест в списке из 15", view["shortfall"])
+    st.caption("Официальный список — 15 мест. Пустые места не заполняются. Число выше — сколько мест осталось пустыми.")
+    for line in run_banner(payload):
+        st.write(line)
     chain = reasoning(payload)
     st.subheader("Что учтено и к чему пришли")
     for step in chain["steps"]:
@@ -114,11 +119,75 @@ if payload:
     for step in story["lines"]:
         st.write(f"- {step}")
     st.caption(story["disclaimer"])
-    st.subheader("Список до ТОП-15")
-    st.write("\n".join(f"- {row}" for row in story["top"]) or "В список никто не прошёл. Недобор честный, места не заполняются.")
+    official_tab, nearest_tab = st.tabs(["Официальный ТОП-15", "Ближайшие к допуску"])
+    with official_tab:
+        st.subheader("Найденные кандидаты")
+        st.caption(
+            "Сначала обычными словами, что это и на что может повлиять. "
+            "Масштаб — только то, что сказано в тексте. Остальное — гипотеза, не допуск и не прогноз цены."
+        )
+        cards = story.get("cards") or []
+        if not cards:
+            st.write("В список никто не прошёл. Пустые места не заполняются.")
+        unread = [item for item in (payload.get("unread") or []) if isinstance(item, dict)]
+        if unread:
+            st.subheader("Не прочитаны")
+            st.caption("Текста источника нет. Числа уверенности нет. Это не ноль и не отказ.")
+            for item in unread:
+                st.write(f"- {item.get('technology') or 'карточка'}")
+        for card in cards:
+            with st.container(border=True):
+                title = card["plain"] or card["title"]
+                st.markdown(f"**{card['index']}. {title}**")
+                bits = [bit for bit in (card["theme"], card["title"] if card["plain"] else "") if bit]
+                if bits:
+                    st.caption(" · ".join(bits))
+                if card["plain"]:
+                    st.caption("Русское резюме, сгенерировано моделью. Оригинальное название — в строке источника.")
+                if card["confidence_note"]:
+                    st.write(card["confidence_note"])
+                if card.get("why_here"):
+                    st.write(card["why_here"])
+                if card["scale"]:
+                    st.write(f"**Масштаб.** {card['scale']}")
+                if card["sphere"]:
+                    st.write(f"**Где может пригодиться.** {card['sphere']}")
+                if card["moves"]:
+                    st.write(f"**На что может повлиять.** {card['moves']}")
+                if card["affects"]:
+                    st.write(f"**Что ещё может задеть.** {card['affects']}")
+                if card["plus"]:
+                    st.write(f"**Плюс.** {card['plus']}")
+                if card["minus"]:
+                    st.write(f"**Минус.** {card['minus']}")
+                if card["terms"]:
+                    st.write(f"**Сложные слова.** {card['terms']}")
+                if card["if_true"]:
+                    st.write(f"**Если это подтвердится.** {card['if_true']}")
+                if card["open"]:
+                    st.write(f"**Чего текст не закрывает.** {card['open']}")
+                st.write(f"**Кейс.** {card['case']}")
+                if card["sources"]:
+                    st.write("**Источники на карточке**")
+                    for line in card["sources"]:
+                        st.caption(line)
+    near = nearest_lines(payload)
+    ladder = "не выведена" if near["ladder_percent"] is None else f"{near['ladder_percent']}%"
+    with nearest_tab:
+        st.caption(near["note"])
+        st.write(
+            f"Официальный список: {near['official_count']}. "
+            f"Ступеней допуска пройдено: {ladder}. Остановка: {near['stuck']}. {near['why']}"
+        )
+        st.write("\n".join(f"- {row}" for row in near["lines"]) or "Ближайших находок нет: поиск ничего не вернул.")
+        if near["official_count"] < 15:
+            st.caption(
+                f"В окне {near['shown']} из {near['found']}. "
+                "Дальше 15 не показываю. Пустые строки в официальный список не дописываю."
+            )
     st.subheader("Источники")
     st.write("\n".join(f"- {row}" for row in view["sources"]) or "Источников нет.")
-    st.subheader("Реестр исключений")
+    st.subheader("Почему не вошло в список")
     st.write("\n".join(f"- {row}" for row in view["excluded"]) or "Пусто.")
     text = document(payload, meta.get("direction", ""), meta.get("correction", ""), meta.get("start", ""), meta.get("end", ""))
     st.download_button("Скачать документ", text, file_name="thin-signals.md", mime="text/markdown")
@@ -140,4 +209,4 @@ if can_admin(st.session_state.get("role")):
         save_draft(DRAFT, prompt_draft, logic_note)
         st.success("Черновик сохранён на хосте. На скоринг он не встал.")
 else:
-    st.caption("Админка, вход и борт не нужны, чтобы запустить поиск и увидеть сигнал. Их очередь в конце.")
+    st.caption("Вход и настройки не нужны, чтобы запустить поиск и увидеть результат. Они в конце очереди.")

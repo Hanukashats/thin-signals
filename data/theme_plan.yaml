@@ -1,0 +1,161 @@
+# Standing themes behind one mission sentence. Version is part of that run's corpus key.
+# A concrete query is never expanded. Frame words name the assignment, not an object.
+version: themes-5
+frame:
+  - новые
+  - научные
+  - научный
+  - наука
+  - механизмы
+  - механизм
+  - технологические
+  - технологический
+  - технологическая
+  - технологии
+  - технология
+  - сдвиги
+  - сдвиг
+  - открытия
+  - открытие
+  - изменения
+  - изменение
+  - рынки
+  - рынок
+  - рынках
+  - сильно
+  - которые
+  - которая
+  - которое
+  - года
+  - году
+  - годы
+  - меняют
+  - меняет
+  - ранние
+  - ранний
+  - цепочки
+  - цепочка
+  - цепочек
+  - поставок
+  - поставки
+  - отрасли
+  - отрасль
+  - перспективные
+  - перспективный
+  - решения
+  - решение
+  - зарождающиеся
+  - тренды
+  - тренд
+  - стартапы
+  - стартап
+  - логистика
+  - логистике
+  - логистику
+  - трансфер
+  - трансфера
+  - биология
+  - биологии
+  - биологию
+  - инженерия
+  - инженерная
+  - молекулярная
+  - молекулярной
+  - генная
+  - генной
+  - ядерная
+  - ядерной
+  - ядерную
+  - энергетике
+  - энергетика
+  - энергия
+  - энергию
+  - материалах
+  - материалы
+  - материал
+  - вычислениях
+  - вычисления
+  - вычисление
+  - производстве
+  - производство
+  - процессоров
+  - процессоры
+  - процессор
+  - транспорте
+  - транспорт
+  - медицине
+  - медицина
+  - scientific
+  - discoveries
+  - discovery
+  - technological
+  - technologies
+  - technology
+  - changes
+  - change
+  - reshape
+  - production
+  - chains
+  - chain
+  - markets
+  - market
+  - early
+  - mechanisms
+  - mechanism
+  - energy
+  - energies
+  - materials
+  - material
+  - computing
+  - manufacturing
+  - transport
+  - medicine
+  - shifts
+  - shift
+  - biology
+  - logistics
+  - startups
+  - startup
+  - nuclear
+  - processors
+  - processor
+themes:
+  - id: hydrogen
+    title: Водород
+    query: proton exchange membrane electrolyzer
+  - id: carbon
+    title: Захват углекислого газа
+    query: direct air capture sorbent
+  - id: wind
+    title: Морской ветер
+    query: floating offshore wind platform
+  - id: nuclear
+    title: Ядерная энергия
+    query: small modular nuclear reactor
+  - id: heat
+    title: Тепло
+    query: propane heat pump refrigerant
+  - id: motor
+    title: Тяговый двигатель
+    query: rare-earth-free axial flux electric motor
+  - id: inverter
+    title: Силовая электроника
+    query: silicon carbide traction inverter
+  - id: cmos
+    title: Процессорный процесс
+    query: gate-all-around nanosheet transistor
+  - id: quantum
+    title: Квантовый процессор
+    query: superconducting transmon qubit processor
+  - id: bioprocess
+    title: Промышленная биология
+    query: cultivated meat bioreactor
+  - id: gene
+    title: Генная инженерия
+    query: base editing gene therapy
+  - id: molecular
+    title: Молекулярная инженерия
+    query: de novo protein binder design
+  - id: link
+    title: Связь
+    query: satellite laser communication terminal

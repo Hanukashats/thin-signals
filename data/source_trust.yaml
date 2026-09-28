@@ -7,8 +7,17 @@ levels:
     source_types: [paper, patent, registry, official_site, repository]
     domains:
       - arxiv.org
+      - doi.org
       - openalex.org
       - crossref.org
+      - europepmc.org
+      - ebi.ac.uk
+      - doaj.org
+      - hal.science
+      - openreview.net
+      - nsf.gov
+      - nih.gov
+      - reporter.nih.gov
       - patents.google.com
       - worldwide.espacenet.com
       - fips.ru
@@ -24,6 +33,34 @@ levels:
       - cordis.europa.eu
       - github.com          # release/commit history only; stars are indicator
       - clinicaltrials.gov
+      - cnesa.org
+      - catl.com
+      - hkexnews.hk
+      - sse.com.cn
+      - szse.cn
+      - cninfo.com.cn
+      - miit.gov.cn
+      # Журнал и издатель статьи. Коннектор веба часто отдаёт их как обычный сайт без даты.
+      - sciencedirect.com
+      - onlinelibrary.wiley.com
+      - mdpi.com
+      - aip.org
+      - iopscience.iop.org
+      - acs.org
+      - rsc.org
+      - springer.com
+      - springeropen.com
+      - nature.com
+      - science.org
+      - pnas.org
+      - frontiersin.org
+      - academic.oup.com
+      - tandfonline.com
+      - sagepub.com
+      - cell.com
+      - aps.org
+      - jos.ac.cn
+      - juser.fz-juelich.de
   professional:
     weight: 0.7
     description: отраслевые медиа, аналитические отчёты, конференционные материалы
@@ -45,6 +82,11 @@ levels:
       - gartner.com
       - idc.com
       - mckinsey.com
+      - scmp.com
+      - energy-storage.news
+      - reuters.com
+      - nikkei.com
+      - caixinglobal.com
   indicator:
     weight: 0.3
     description: соцсети, блоги, агрегаторы, пресс-релизы, реклама — только индикатор, никогда не единственное основание (TZ п.5)

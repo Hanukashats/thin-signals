@@ -27,6 +27,9 @@ Thumbs.db
 .goal-active
 snapshots/
 reports/*.jsonl
+data/extractions/
+data/scopes/
+data/reach/
 donors_pack/
 *.egg-info/
 alembic.ini.local

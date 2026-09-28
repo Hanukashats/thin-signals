@@ -1,11 +1,12 @@
-# plan.yaml — Thin Signals LivingSet v7.3
-# Machine-readable waves. Human narrative: docs/plan/PLAN_7.2.md, docs/plan/PLAN_7.3.md, CONCEPT, STATUS.
-# 7.3 is a patch on 7.2. Waves W0–W6 stay. W4a/W4b/W4c are the added slices.
+# plan.yaml — Thin Signals LivingSet v7.4
+# Machine-readable waves. Human narrative: docs/plan/PLAN_7.4.md, PLAN_7.3.md, CONCEPT, STATUS.
+# 7.4 keeps admission on rules-0.1 and adds order among cards that already passed.
 
-plan_revision: "7.3"
-parent_revision: "7.2"
-date: "2026-09-26"
+plan_revision: "7.4"
+parent_revision: "7.3"
+date: "2026-09-27"
 deadline: "2026-09-29T23:59:00+03:00"
+operator_stop: "2026-09-28T11:00:00+03:00"
 status: active
 degrade_default: keep_ledger
 
@@ -27,7 +28,14 @@ execution:
     - VERIFY
     - INTEGRATE
   empty_waves_before_hold: 2
+  tenant:
+    project: thin-signals
+    agent: cursor-bk2
+    card: g-72024523eeeb
+    order: 3
+    waiting_verifier: g-19b21906ceff
   goal_loop:
+    scope: project_and_agent
     one_live_card_per_chat: true
     empty_checkpoints_before_replan: 2
     handoff_is_terminal: true
@@ -46,6 +54,10 @@ execution:
     The implementer hat still cannot verify the increment it just wrote.
     Those rules live in this file. They are not a second controller inside the product.
     Do not revive a HANDOFF card. Do not share a chat card with another product.
+    This product's queue is project thin-signals, agent cursor-bk2.
+    The open door card is g-19b21906ceff. The live-query card g-6ea92015b4f8 stays in the queue and waits for another hat.
+    Read it with goalctl active project=thin-signals agent=cursor-bk2.
+    Coach and OpenMAIC stay on project coach-profi360 and agent cursor-agent.
     Critical path: logical model + harness + eval + RU UI (ADR-009). No weight training.
     Git SoT: SourceCraft; GitHub mirror for submission.
     Passwords and DNS keys stay in the host secrets file, never in this plan.
@@ -148,16 +160,16 @@ phases:
         forks: [ui.stack]
         note: "Last and optional. A live signal must work with this wave still planned."
       - id: W4c-ingress
-        status: planned
+        status: in_progress
         owner: infra
         deliverables:
-          - "DNS tsignal.aispaces.ru, zone already on Beget, apex stays put"
-          - "dst-nat 80/443 only onto VM101"
-          - "reverse proxy with auto-renewing TLS"
-          - "only the signals app; login stays optional; postgres and other backend ports stay closed"
+          - "DNS A for tsignal.aispaces.ru on the home MikroTik white IP 109.195.243.128; apex aispaces.ru stays"
+          - "name tsignal.aispaces.ru on port 443 through the home hub proxy, mesh name unchanged"
+          - "inner hop tcp/18443 from that proxy to this server, signals screen only"
+          - "postgres and other backend ports stay closed; viewer login stays optional"
         requirements: [TZ-13]
         forks: [hosting.sourcecraft]
-        note: "Chosen name tsignal.aispaces.ru. agispace.ru is FirstVDS and is not used. DNS record not written yet. Do not change MikroTik guru360 hub NAT."
+        note: "Public URL is https://tsignal.aispaces.ru. The home hub proxy chooses by name: the mesh name stays on the mesh, this name returns only the signals screen. Both certificates renew there. Port 80 is the certificate check. Port 18443 is the inner hop to this server. Office address 5.167.79.32 is not this door. Zone agispace.ru is not used."
 
   - id: P5
     name: Release

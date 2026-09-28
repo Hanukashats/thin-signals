@@ -2,7 +2,7 @@
 
 Updated: **2026-09-26** · Plan revision: **7.3** (parent 7.2) · Deadline: **2026-09-29 23:59 MSK**
 
-7.3 slice: W4a screens are in `ui/app.py` (viewer + admin, hover help, document download). W3 stays `in_progress` until an honest TOP-15. W4b Figma and W4c `tsignal.agispace.ru` are not done. Account hashes live only in `.secrets/accounts.yaml`.
+7.3 slice: W4a screens are in `ui/app.py`. W3 stays `in_progress` until an honest TOP-15; card `g-6ea92015b4f8` is 1/1 PASS and waits for another hat. W4b Figma waits until the public name opens the viewer. W4c is the current card `g-19b21906ceff`: `https://tsignal.aispaces.ru` on the home hub proxy, certificate renews with the mesh. Home ports 80 and 443 stay shared by name, not taken away. The name must not point at `5.167.79.32`. Account hashes live only in `.secrets/accounts.yaml`. Queue: project `thin-signals`, agent `cursor-bk2`.
 Host of record: Georg VM101 `/opt/thin-signals` (cursor-agent). Plan: `docs/plan/PLAN_7.2.md`, ADR-009.
 
 ## Current
