@@ -10,7 +10,7 @@ import hashlib
 import re
 from collections import OrderedDict
 from dataclasses import dataclass, field, replace
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Protocol
 
@@ -25,6 +25,9 @@ STEPS = ("search", "snapshot", "dedup", "countersearch", "score", "rank")
 TOP_N = 15
 CHAIN_CONNECTORS = frozenset({"searxng", "openalex", "crossref", "sec"})
 _DEEP = frozenset({"arxiv", "openalex", "crossref", "europepmc", "doaj", "hal"})
+# Registries, code search and the web index take a plain phrase, not an OR-list of case forms.
+_PLAIN_QUERY = frozenset({"github", "ietf", "sec", "nih", "nsf", "cordis", "clinicaltrials", "searxng"})
+_OR_GROUP = re.compile(r"\(([^()]*?\sOR\s[^()]*?)\)")
 # Phrase lists such as "market leader" are not in the brief and are not dataset
 # patterns. They are not an admission cut. Maturity still comes from a filled
 # checklist when texts are read, and from M04 when every source is a retelling.
@@ -74,6 +77,9 @@ class Harness:
         extractor=None,
         budget_exhausted: bool = False,
         fetch_body=None,
+        chain: bool = True,
+        countersearch: bool = True,
+        as_of: str | None = None,
     ) -> RunReport:
         rules = load_rules(self.rules_version)
         key = hashlib.sha256(f"{query}|{self.corpus_version}|{rules['version']}".encode()).hexdigest()
@@ -82,18 +88,29 @@ class Harness:
         steps: list[dict] = []
         hits, failures = self._search(connectors, query, limit, steps)
         chain_sources = [item for item in connectors if item.name in CHAIN_CONNECTORS]
-        if chain_sources:
+        if chain and chain_sources:
             extra, extra_failures = self._search(
                 chain_sources, _chain_query(query), limit, steps, step="chain",
             )
             hits.extend(hit for hit in extra if _on_topic(query, hit))
             failures.extend(extra_failures)
+        if as_of:
+            hits, dropped = within_window(hits, as_of)
+            steps.append({"name": "window", "dropped": dropped})
+        if script_of(query) in {"han", "kana"}:
+            hits, dropped = titled_with(hits, query)
+            steps.append({"name": "title", "dropped": dropped})
         sources = self._sources(hits)
         self._snapshot(hits, fetch_body, steps)
         events = dedup(hits)
         steps.append({"name": "dedup", "status": "ok", "events": len(events),
                       "merged": sum(1 for e in events if e["dedup_status"] == "merged")})
-        counter_hits, _ = self._search(connectors, f"{query} mass adoption industry standard", limit, steps, step="countersearch")
+        if countersearch:
+            counter_hits, _ = self._search(connectors, f"{query} mass adoption industry standard", limit, steps, step="countersearch")
+        else:
+            # Empty maturity markers make this search decide nothing. The gate still counts as done.
+            counter_hits = []
+            steps.append({"name": "countersearch", "status": "skipped"})
         counters, counter_evidence = markers(counter_hits)
         if sources and all(s["trust"] == "indicator" for s in sources):
             counters["M04"] = True
@@ -102,14 +119,14 @@ class Harness:
         origins = len({_host(h.url) for h in hits})
         if extractor is None and events:
             cards, model_id, provider = self._score_events(
-                query, hits, events, counter_hits, rules, budget_exhausted, steps,
+                query, hits, events, counter_hits, rules, budget_exhausted, steps, as_of,
             )
         else:
             fv, model_id, provider, scope = self._extract(
                 query, hits, observed, origins, counters, counter_evidence, extractor, steps,
             )
             result = score(fv, rules)
-            decision = route(_contract(fv, result, counters, budget_exhausted, countersearch_done=True))
+            decision = route(_contract(fv, result, counters, budget_exhausted, countersearch_done=True, as_of=as_of))
             steps.append({"name": "score", "status": "ok", "label": result.label, "gate": decision["action"]})
             cards = [_card(
                 query, result, decision, sources, events, model_id, _blob("", hits),
@@ -127,7 +144,7 @@ class Harness:
         self.store[key] = report
         return report
 
-    def _score_events(self, query, hits, events, counter_hits, rules, budget_exhausted, steps):
+    def _score_events(self, query, hits, events, counter_hits, rules, budget_exhausted, steps, as_of=None):
         """One card per distinct find. The same gates apply. Nothing is admitted early."""
         by_url: dict[str, list] = {}
         for hit in hits:
@@ -149,7 +166,7 @@ class Harness:
                 transition="unknown", evidence=evidence, mode="ledger", named_primary=False,
             )
             result = score(fv, rules)
-            decision = route(_contract(fv, result, counters, budget_exhausted, countersearch_done=True))
+            decision = route(_contract(fv, result, counters, budget_exhausted, countersearch_done=True, as_of=as_of))
             blob = " ".join([title, *[hit.snippet or "" for hit in group]])
             cards.append(_card(
                 title, result, decision, event_sources, [event], None, _blob(title, group),
@@ -164,7 +181,7 @@ class Harness:
         for connector in connectors:
             try:
                 depth = 8 if step == "search" and connector.name in _DEEP and limit < 8 else limit
-                found = connector.search(query, limit=depth)
+                found = connector.search(query_for(connector.name, query), limit=depth)
                 hits.extend(found)
                 steps.append({"name": step, "connector": connector.name, "status": "ok", "n": len(found)})
             except Exception as e:  # noqa: BLE001 — one dead source must not stop the run
@@ -230,6 +247,48 @@ class Harness:
                 fv.evidence[code] = evidence.get(code, fv.evidence.get(code, ""))
         steps.append({"name": "extract", "status": "ok", "model_id": meta.get("model_id")})
         return fv, meta.get("model_id"), meta.get("provider"), _scope_or_none(out.get("scope"))
+
+
+def query_for(connector_name: str, phrase: str) -> str:
+    """The phrase shape one connector accepts.
+
+    Paper indexes take the phrase as-is. Registries, GitHub, IETF and the web index get a plain
+    phrase: a surrounding "(a OR b OR c)" group of case forms collapses to its first form. A query
+    that is already a plain phrase is sent unchanged. Nothing shorter is invented.
+    """
+    if connector_name not in _PLAIN_QUERY or " OR " not in phrase:
+        return phrase
+    plain = _OR_GROUP.sub(lambda m: m.group(1).split(" OR ", 1)[0].strip(), phrase)
+    return re.sub(r"\s+", " ", plain).strip() or phrase
+
+
+def _iso_date(value: str | None) -> date | None:
+    if not value or not isinstance(value, str):
+        return None
+    try:
+        return date.fromisoformat(value[:10])
+    except ValueError:
+        return None
+
+
+def within_window(hits: list[Hit], as_of: str) -> tuple[list[Hit], int]:
+    """Drop hits with a real ISO date strictly after as_of. Undated hits stay; order is kept."""
+    edge = _iso_date(as_of)
+    if edge is None:
+        return hits, 0
+    kept = []
+    for hit in hits:
+        published = _iso_date(hit.published)
+        if published is not None and published > edge:
+            continue
+        kept.append(hit)
+    return kept, len(hits) - len(kept)
+
+
+def titled_with(hits: list[Hit], query: str) -> tuple[list[Hit], int]:
+    """For a Han or kana query only a title that contains the query string is about it."""
+    kept = [hit for hit in hits if query in (hit.title or "")]
+    return kept, len(hits) - len(kept)
 
 
 def _title_norm(title: str) -> list[str]:
@@ -314,7 +373,11 @@ def _chain_query(query: str) -> str:
 
 def _tokens(text: str) -> list[str]:
     cleaned = text.lower().replace("‐", "-").replace("–", "-")
-    return re.findall(r"[a-z0-9а-яё]{4,}", cleaned)
+    words = re.findall(r"[a-z0-9а-яё]{4,}", cleaned)
+    for run in re.findall(r"[\u4e00-\u9fff]+", text or ""):
+        words.extend(run[i : i + 2] for i in range(max(len(run) - 1, 1)))
+    words.extend(re.findall(r"[\u30a0-\u30ff]{2,}", text or ""))
+    return words
 
 
 def _holds(word: str, token: str) -> bool:
@@ -431,7 +494,10 @@ def _event_key(hit: Hit) -> str:
     if hit.doi:
         return "doi:" + hit.doi.lower().removeprefix("https://doi.org/")
     words = re.findall(r"[a-z0-9а-яё]+", hit.title.lower())
-    return "title:" + " ".join(words[:8])
+    if words:
+        return "title:" + " ".join(words[:8])
+    marks = re.findall(r"[\u3040-\u30ff\u4e00-\u9fff]", hit.title)
+    return "title:" + "".join(marks[:8])
 
 
 def _host(url: str) -> str:
@@ -440,7 +506,7 @@ def _host(url: str) -> str:
     return host.removeprefix("www.")
 
 
-def _contract(fv: FeatureVector, result, counters: dict, budget_exhausted: bool, countersearch_done: bool) -> dict:
+def _contract(fv: FeatureVector, result, counters: dict, budget_exhausted: bool, countersearch_done: bool, as_of: str | None = None) -> dict:
     mature = any(counters.get(code) for code in ("M01", "M02", "M03", "M06"))
     if fv.evidence_events == 0:
         novelty, maturity, claims = "unclear", "unclear", ["unknown"]
@@ -451,7 +517,7 @@ def _contract(fv: FeatureVector, result, counters: dict, budget_exhausted: bool,
         claims = ["verified"] if fv.transition == "verified" else ["supported"]
     origins = min(fv.independent_origins, fv.evidence_events)
     return {
-        "as_of": datetime.now(tz=UTC).date().isoformat(),
+        "as_of": as_of or datetime.now(tz=UTC).date().isoformat(),
         "novelty": novelty,
         "maturity": maturity,
         "critical_claims": claims,

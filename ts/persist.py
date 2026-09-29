@@ -62,6 +62,62 @@ def save_report(session: Session, report: RunReport) -> str:
     return report.id
 
 
+def show_found(body: dict) -> dict:
+    """A card with no readable text stays on the list and keeps an empty number."""
+    top = [item for item in (body.get("top") or []) if isinstance(item, dict)]
+    seen = set()
+    for card in top:
+        seen.add(_card_key(card))
+    wide = _is_wide(body)
+    if wide:
+        # Wide run: passers first, then papers that failed the checklist
+        # (real confidence, marked shown="excluded"), up to 15 on screen.
+        for card in body.get("exclusion_registry") or []:
+            if len(top) >= 15:
+                break
+            if not isinstance(card, dict):
+                continue
+            key = _card_key(card)
+            if key in seen:
+                continue
+            seen.add(key)
+            row = dict(card)
+            row["shown"] = "excluded"
+            top.append(row)
+    for card in body.get("unread") or []:
+        if wide and len(top) >= 15:
+            break
+        if not isinstance(card, dict):
+            continue
+        key = _card_key(card)
+        if key in seen:
+            continue
+        seen.add(key)
+        row = dict(card)
+        row["confidence"] = None
+        top.append(row)
+    shown = dict(body)
+    shown["top"] = top
+    if "shortfall" in shown:
+        shown["shortfall"] = max(0, 15 - len(top))
+    return shown
+
+
+def _is_wide(body: dict) -> bool:
+    fanout = body.get("fanout")
+    if not isinstance(fanout, dict):
+        return False
+    direction = fanout.get("direction")
+    if not isinstance(direction, dict):
+        return False
+    return direction.get("mode") == "wide"
+
+
+def _card_key(card: dict) -> tuple:
+    urls = tuple(sorted(source.get("url") or "" for source in card.get("sources") or [] if isinstance(source, dict)))
+    return (urls, str(card.get("technology") or ""))
+
+
 def latest_succeeded(session: Session) -> dict | None:
     """Newest finished run, for the viewer. Does not score."""
     row = session.scalar(
@@ -73,14 +129,14 @@ def latest_succeeded(session: Session) -> dict | None:
     stats.setdefault("run_id", row.id)
     stats.setdefault("run_status", row.status)
     stats.setdefault("query", row.query)
-    return stats
+    return show_found(stats)
 
 
 def load_report(session: Session, idempotency_key: str) -> dict | None:
     row = session.scalar(select(Run).where(Run.idempotency_key == idempotency_key))
     if row is None:
         return None
-    return {"run_id": row.id, "run_status": row.status, **(row.stats or {})}
+    return show_found({"run_id": row.id, "run_status": row.status, **(row.stats or {})})
 
 
 def public_report(report: RunReport) -> dict:
@@ -120,4 +176,4 @@ def public_report(report: RunReport) -> dict:
         },
     }
     body["nearest"] = build_nearest(body)
-    return body
+    return show_found(body)

@@ -1,6 +1,13 @@
-# Standing themes behind one mission sentence. Version is part of that run's corpus key.
-# A concrete query is never expanded. Frame words name the assignment, not an object.
-version: themes-5
+# Direction words are the assignment. Field names stay in the operator sentence.
+# Version is part of that run's corpus key. Themes are not read by the live path.
+version: mine-1g
+languages:
+  - en
+  - ru
+  - zh
+  - ja
+rarity:
+  cap_share: null
 frame:
   - новые
   - научные
@@ -49,42 +56,15 @@ frame:
   - тренд
   - стартапы
   - стартап
-  - логистика
-  - логистике
-  - логистику
-  - трансфер
-  - трансфера
-  - биология
-  - биологии
-  - биологию
-  - инженерия
-  - инженерная
-  - молекулярная
-  - молекулярной
-  - генная
-  - генной
-  - ядерная
-  - ядерной
-  - ядерную
-  - энергетике
-  - энергетика
-  - энергия
-  - энергию
-  - материалах
-  - материалы
-  - материал
-  - вычислениях
-  - вычисления
-  - вычисление
-  - производстве
-  - производство
-  - процессоров
-  - процессоры
-  - процессор
-  - транспорте
-  - транспорт
-  - медицине
-  - медицина
+  - слабые
+  - слабый
+  - слабых
+  - сигналы
+  - сигнал
+  - сигналов
+  - области
+  - область
+  - областях
   - scientific
   - discoveries
   - discovery
@@ -102,60 +82,10 @@ frame:
   - early
   - mechanisms
   - mechanism
-  - energy
-  - energies
-  - materials
-  - material
-  - computing
-  - manufacturing
-  - transport
-  - medicine
   - shifts
   - shift
-  - biology
-  - logistics
   - startups
   - startup
-  - nuclear
-  - processors
-  - processor
-themes:
-  - id: hydrogen
-    title: Водород
-    query: proton exchange membrane electrolyzer
-  - id: carbon
-    title: Захват углекислого газа
-    query: direct air capture sorbent
-  - id: wind
-    title: Морской ветер
-    query: floating offshore wind platform
-  - id: nuclear
-    title: Ядерная энергия
-    query: small modular nuclear reactor
-  - id: heat
-    title: Тепло
-    query: propane heat pump refrigerant
-  - id: motor
-    title: Тяговый двигатель
-    query: rare-earth-free axial flux electric motor
-  - id: inverter
-    title: Силовая электроника
-    query: silicon carbide traction inverter
-  - id: cmos
-    title: Процессорный процесс
-    query: gate-all-around nanosheet transistor
-  - id: quantum
-    title: Квантовый процессор
-    query: superconducting transmon qubit processor
-  - id: bioprocess
-    title: Промышленная биология
-    query: cultivated meat bioreactor
-  - id: gene
-    title: Генная инженерия
-    query: base editing gene therapy
-  - id: molecular
-    title: Молекулярная инженерия
-    query: de novo protein binder design
-  - id: link
-    title: Связь
-    query: satellite laser communication terminal
+  - weak
+  - signals
+  - signal

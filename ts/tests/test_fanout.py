@@ -16,16 +16,15 @@ RUSSIAN = "новые научные механизмы и технологич�
 
 def test_mission_sentences_are_wide_and_a_named_object_is_not():
     plan = load_theme_plan()
-    assert is_wide(MISSION, plan)
-    assert is_wide(RUSSIAN, plan)
+    assert not is_wide(MISSION, plan)
+    assert not is_wide(RUSSIAN, plan)
     assert is_wide("early discoveries in computing energy materials manufacturing transport and medicine", plan)
+    assert is_wide("слабые сигналы в энергетике", plan)
     assert not is_wide("proton exchange membrane electrolyzer", plan)
     assert not is_wide("small modular nuclear reactor", plan)
     assert not is_wide("твердооксидный топливный элемент", plan)
     assert not is_wide("ядерная энергия", plan)
-    queries = [theme["query"] for theme in plan["themes"]]
-    assert "logistics" not in " ".join(queries)
-    assert "startup" not in " ".join(queries)
+    assert plan["themes"] == []
     assert load_rules()["weights"]["primary"] == 0.35
     assert load_rules()["thresholds"]["weak_signal"] == 0.60
 
@@ -95,18 +94,29 @@ def test_reader_names_scale_and_does_not_drop_a_card():
     assert ordered[0]["scope_why"].startswith("текст")
 
 
-def test_wide_query_searches_themes_and_a_repeat_does_not(monkeypatch):
+def test_wide_query_searches_mined_phrases_and_a_repeat_does_not(monkeypatch):
+    from datetime import date
+
     from ts.db import session_factory
     from ts.live import run_query
 
     plan = {
         "version": "themes-test",
         "frame": ["scientific", "discoveries", "technological", "changes", "reshape", "production", "chains", "markets"],
-        "themes": [
-            {"id": "a", "title": "Альфа", "query": "zzfanout alpha battery cell"},
-            {"id": "b", "title": "Бета", "query": "zzfanout beta turbine blade"},
-        ],
     }
+    mined = {
+        "direction": {"mode": "wide", "tokens": ["energy"], "object": None},
+        "concepts": [
+            {"id": "a", "title": "Альфа", "query": "zzfanout alpha battery cell", "language": "en"},
+            {"id": "b", "title": "Бета", "query": "zzfanout beta turbine blade", "language": "en"},
+        ],
+        "knives": {},
+        "sample": {"en": {"titles": 4, "sources": ["openalex"]}},
+        "labels": {"en": "energy"},
+        "closed_sources": [],
+        "error": None,
+    }
+    monkeypatch.setattr("ts.live.discover", lambda *args, **kwargs: mined)
     order = []
     monkeypatch.setattr("ts.live.load_theme_plan", lambda: plan)
     monkeypatch.setattr(
@@ -155,8 +165,11 @@ def test_wide_query_searches_themes_and_a_repeat_does_not(monkeypatch):
             theme_row = session.scalar(select(Run).where(Run.query == "zzfanout alpha battery cell"))
             from ts.checklist import CHECKLIST_VERSION
             from ts.live import CORPUS
-            assert mission_row.corpus_version == f"{CORPUS}+themes-test+{CHECKLIST_VERSION}"
-            assert theme_row.corpus_version == CORPUS
+            day = date.today().isoformat()
+            assert mission_row.corpus_version == f"{CORPUS}+{day}+themes-test+{CHECKLIST_VERSION}"
+            assert theme_row.corpus_version == f"{CORPUS}+{day}"
+            assert "supply chain" not in " ".join(echo.queries)
+            assert "mass adoption" not in " ".join(echo.queries)
     finally:
         with factory() as session:
             rows = session.scalars(select(Run).where(Run.query.in_([

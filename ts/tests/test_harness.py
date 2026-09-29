@@ -3,7 +3,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ts.harness import Harness, dedup, markers
+from ts.harness import Harness, dedup, markers, query_for
+from ts.live import default_connectors
+from ts.settings import Settings
 from ts.snapshots import save_snapshot
 from ts.sources.connectors import (
     ArxivConnector,
@@ -421,3 +423,63 @@ def test_unknown_date_is_explicit():
     report = Harness(corpus_version="date").run("x", [Scripted("searxng", [hit])])
     assert report.sources[0]["date"] is None
     assert report.sources[0]["date_unknown_reason"]
+
+
+def test_a_historical_run_still_calls_every_connector(tmp_path: Path):
+    s = Settings(root=tmp_path, profile="laptop", database_url="postgresql+psycopg://ts@x/db", pg_password=None,
+                 rules_version="rules-0.1", snapshot_dir=tmp_path, openrouter_url="https://or.test/api/v1",
+                 openrouter_key=None, llm_primary="a", llm_judge="b", llm_fallback="c", llm_provider_policy={},
+                 searxng_url="http://searx.test", openalex_key="k")
+    connectors = default_connectors(s, as_of="2022-09-29", historical=True)
+    names = [item.name for item in connectors]
+    assert {"searxng", "github", "ietf", "openalex", "sec", "nih", "nsf", "cordis", "clinicaltrials"} <= set(names)
+    assert names == [item.name for item in default_connectors(s, as_of="2022-09-29", historical=False)]
+    openalex = next(item for item in connectors if item.name == "openalex")
+    assert openalex.until == "2022-09-29" and openalex.api_key == "k"
+    assert all(item.until == "2022-09-29" for item in connectors if item.name in {"arxiv", "crossref", "europepmc", "hal"})
+
+
+def test_hits_after_the_window_are_dropped_and_undated_hits_stay():
+    late = Hit("crossref", "https://doi.org/10.1/late", "Sodium cell later", "cell", "paper", doi="10.1/late", published="2026-01-01")
+    undated = Hit("searxng", "https://example.com/u", "Sodium cell page", "cell", "web")
+    early = Hit("crossref", "https://doi.org/10.1/early", "Sodium cell earlier", "cell", "paper", doi="10.1/early", published="2022-09-29")
+    report = Harness(corpus_version="window").run(
+        "sodium cell", [Scripted("crossref", [late, early]), Scripted("searxng", [undated])],
+        as_of="2022-09-29", chain=False,
+    )
+    urls = {source["url"] for source in report.sources}
+    assert urls == {undated.url, early.url}
+    undated_source = next(source for source in report.sources if source["url"] == undated.url)
+    assert undated_source["date"] is None and undated_source["date_unknown_reason"]
+    assert {"name": "window", "dropped": 1} in report.steps
+
+
+def test_a_han_query_keeps_only_titles_that_contain_it():
+    about = Hit("openalex", "https://example.org/a", "光子芯片路线图", "", "paper", doi="10.1/a", published="2026-01-01")
+    other = Hit("openalex", "https://example.org/b", "钠离子电池负极", "光子芯片", "paper", doi="10.1/b", published="2026-01-01")
+    report = Harness(corpus_version="han").run("光子芯片", [Scripted("openalex", [about, other])], chain=False)
+    assert [source["url"] for source in report.sources] == [about.url]
+    assert {"name": "title", "dropped": 1} in report.steps
+
+
+def test_query_for_sends_a_plain_phrase_to_code_and_registry_search():
+    assert " OR " not in query_for("github", "(энергетика OR энергетике)")
+    assert query_for("github", "(энергетика OR энергетике)") == "энергетика"
+    assert query_for("ietf", "gallium nitride (hemt OR hemts) gate") == "gallium nitride hemt gate"
+    assert query_for("github", "gallium nitride hemt gate") == "gallium nitride hemt gate"
+    assert query_for("openalex", "(энергетика OR энергетике)") == "(энергетика OR энергетике)"
+    assert query_for("arxiv", "sodium-ion") == "sodium-ion"
+
+    class Echo:
+        name = "github"
+
+        def __init__(self):
+            self.seen = []
+
+        def search(self, query, *, limit=5):
+            self.seen.append(query)
+            return []
+
+    echo = Echo()
+    Harness(corpus_version="shape").run("(энергетика OR энергетике)", [echo], chain=False, countersearch=False)
+    assert echo.seen == ["энергетика"]
