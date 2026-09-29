@@ -13,6 +13,27 @@ TRANSPARENT_LOGO_PATH = Path(__file__).with_name("assets") / "agi-space-logo-tra
 FAVICON_PATH = Path(__file__).with_name("assets") / "agi-space-mark.png"
 
 THEME_CSS = r"""
+@font-face {
+  font-family: "Source Sans 3";
+  src: url("app/static/fonts/SourceSans3-Regular.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Source Sans 3";
+  src: url("app/static/fonts/SourceSans3-Semibold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Source Serif 4";
+  src: url("app/static/fonts/SourceSerif4-Semibold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
 :root {
   color-scheme: dark;
   --ts-canvas: #0A0F14;
@@ -30,6 +51,7 @@ THEME_CSS = r"""
 }
 
 [data-testid="stAppViewContainer"] {
+  font-family: "Source Sans 3", "Segoe UI", Arial, sans-serif;
   background:
     radial-gradient(circle at 11% -8%, rgba(0, 229, 255, 0.13), transparent 32rem),
     radial-gradient(circle at 92% 16%, rgba(32, 92, 166, 0.10), transparent 28rem),
@@ -40,13 +62,21 @@ THEME_CSS = r"""
 [data-testid="stHeader"] { background: transparent; }
 [data-testid="stSidebar"] { background: var(--ts-rail); border-right: 1px solid var(--ts-border); }
 .block-container { max-width: 1540px; padding-top: 1.6rem; padding-bottom: 4rem; }
-h1, h2, h3, [data-testid="stMetricValue"] {
+h1, h2, h3 {
   color: var(--ts-ink) !important;
   font-family: "Source Serif 4", Georgia, "Times New Roman", serif !important;
+  font-weight: 600;
   letter-spacing: -0.018em;
 }
-p, label, button, input, textarea, [data-testid="stCaptionContainer"] {
+p, label, button, input, textarea, [data-testid="stCaptionContainer"],
+[data-testid="stMetricValue"] {
   font-family: "Source Sans 3", "Segoe UI", Arial, sans-serif;
+}
+p, li { line-height: 1.5; }
+[data-testid="stAppViewContainer"] input,
+[data-testid="stAppViewContainer"] textarea {
+  font-family: "Source Sans 3", "Segoe UI", Arial, sans-serif !important;
+  font-size: 1rem !important;
 }
 p, [data-testid="stCaptionContainer"] { color: var(--ts-secondary); }
 label, [data-testid="stWidgetLabel"] p { color: var(--ts-ink) !important; }
@@ -82,7 +112,7 @@ label, [data-testid="stWidgetLabel"] p { color: var(--ts-ink) !important; }
   object-fit: contain;
   width: 112px;
 }
-.ts-brand__name { color: #F4F8F8; font: 700 23px/1.1 "Source Serif 4", Georgia, serif; }
+.ts-brand__name { color: #F4F8F8; font: 600 23px/1.2 "Source Serif 4", Georgia, serif; }
 .ts-brand__note { color: #A8C0C6; font-size: 13px; margin-top: 4px; }
 .ts-brand__state {
   background: #12323A;
@@ -90,7 +120,7 @@ label, [data-testid="stWidgetLabel"] p { color: var(--ts-ink) !important; }
   border-radius: 999px;
   color: #BDEFF3;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   padding: 8px 13px;
   white-space: nowrap;
 }
@@ -109,6 +139,8 @@ label, [data-testid="stWidgetLabel"] p { color: var(--ts-ink) !important; }
   padding: 13px 15px;
 }
 [data-testid="stMetricValue"] {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
   font-size: 1.3rem;
   line-height: 1.18;
   overflow-wrap: anywhere;
@@ -149,7 +181,7 @@ label, [data-testid="stWidgetLabel"] p { color: var(--ts-ink) !important; }
 }
 [data-testid="stRadio"] div[role="radiogroup"] label:has(input:checked) p {
   color: var(--ts-action) !important;
-  font-weight: 750;
+  font-weight: 600;
 }
 [data-testid="stExpander"] {
   background: var(--ts-card);
@@ -176,7 +208,7 @@ label, [data-testid="stWidgetLabel"] p { color: var(--ts-ink) !important; }
   border-color: var(--ts-action);
   color: #041014;
 }
-.stButton > button[kind="primary"] p { color: #041014 !important; font-weight: 750; }
+.stButton > button[kind="primary"] p { color: #041014 !important; font-weight: 600; }
 div[data-baseweb="input"] > div, div[data-baseweb="textarea"] > div,
 div[data-baseweb="base-input"], textarea {
   background: #0D171F !important;

@@ -1,0 +1,112 @@
+{
+  "slides": 15,
+  "pdf_pages": 15,
+  "aspect": "16:9",
+  "event_date": "2026-09-29",
+  "package_date_policy": {
+    "package_date": "2026-09-29",
+    "event_only_metadata": "PASS",
+    "scope": "Organizer-authorized package date; not proof of publication, integration or submission date"
+  },
+  "hidden_date_checks": "PASS: core, notes, slides, ZIP members, PDF Info/XMP/raw objects/streams",
+  "template_first_five": "native layouts, order, shape IDs and non-logo geometry preserved",
+  "all_editable_text_font": "Montserrat",
+  "editable_content": "Native PowerPoint text and shapes; screenshot/template backgrounds are raster assets",
+  "slide14_screenshot": {
+    "sha256": "88790345959c51d677a55cb6b3c07679fe02d59097f9f2428a9f9c7b23db8b14",
+    "crop": "none",
+    "aspect_preserved": true
+  },
+  "font_coverage": {
+    "Regular": {
+      "sha256": "b54303bb3170bdc613d2fc7e118bba8c4e2000b2bc715e3b1eaaac7c45b39f3b",
+      "all_deck_characters_supported": true
+    },
+    "Bold": {
+      "sha256": "0acba4795d978b85ae0fb03673b1388321cd24e89f2d151a3a0d95b27ceb437f",
+      "all_deck_characters_supported": true
+    }
+  },
+  "pdf_fonts": {
+    "BAAAAA+Montserrat-Bold": "embedded",
+    "CAAAAA+Montserrat-Regular": "embedded"
+  },
+  "zip_integrity": "PASS",
+  "nonempty_embedded_images": 7,
+  "automated_issues": [],
+  "pptx": {
+    "bytes": 13108505,
+    "sha256": "79731ca4b535ae24403804d23ab61ef4e793350513a1b937f3f54b60eff0c125"
+  },
+  "pdf": {
+    "bytes": 1228907,
+    "sha256": "7616221ee8be00c483bbaa180e5223e094c9084a51e1dec1e97f7451bc661c9c"
+  },
+  "team_fields": {
+    "status": "placeholders_detected",
+    "placeholders": [
+      {
+        "slide": 2,
+        "markers": [
+          "[УТОЧНИТЬ]",
+          "[УТОЧНИТЬ]",
+          "[УТОЧНИТЬ]",
+          "[УТОЧНИТЬ]",
+          "[УТОЧНИТЬ]"
+        ]
+      },
+      {
+        "slide": 3,
+        "markers": [
+          "[уточнить]",
+          "[уточнить]",
+          "[уточнить]",
+          "[уточнить]",
+          "[ФИО]",
+          "УТОЧНИТЬ",
+          "[уточнить]",
+          "[уточнить]",
+          "[уточнить]",
+          "[уточнить]",
+          "[ФИО]",
+          "УТОЧНИТЬ",
+          "[уточнить]",
+          "[уточнить]",
+          "[уточнить]",
+          "[уточнить]",
+          "[ФИО]",
+          "УТОЧНИТЬ",
+          "[уточнить]",
+          "[уточнить]",
+          "[уточнить]",
+          "[уточнить]",
+          "[ФИО]",
+          "УТОЧНИТЬ",
+          "[уточнить]",
+          "[уточнить]",
+          "[уточнить]",
+          "[уточнить]",
+          "[ФИО]",
+          "УТОЧНИТЬ"
+        ]
+      },
+      {
+        "slide": 4,
+        "markers": [
+          "[УТОЧНИТЬ У КОМАНДЫ]"
+        ]
+      }
+    ],
+    "factual_validation": "Not inferred from placeholder detection; supplied team facts need human verification"
+  },
+  "unresolved": [
+    "team personal fields",
+    "independent end-to-end accuracy",
+    "authorized production UI smoke",
+    "complete durable evidence ledger",
+    "all-connectors-failed status contract",
+    "score monotonicity",
+    "competition submission"
+  ],
+  "visual_review": "PASS: all 15 rendered slides individually inspected; slide 14 package-date caption fits. Other 14 slide XML parts and rendered pages verified identical to the preceding accepted deck. See visual-review.md. Artifact-author check, not independent product acceptance."
+}

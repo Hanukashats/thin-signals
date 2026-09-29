@@ -184,6 +184,7 @@ phases:
           - "model/provider provenance from the same checklist card"
           - "honest evidence-first Streamlit result shell"
           - "versioned systemd API/UI units"
+          - "locally served Cyrillic typography with actual browser glyph verification"
         requirements: [LLM-01, TS-INV-02, TS-INV-03, TZ-04, TZ-06, SC-12, UI-POT-01, UI-OLD-01]
         forks: [llm.provider, ui.stack]
         note: "No scoring weight, threshold, registry, schema or historic eval snapshot changes. Completion requires independent review and production smoke."
@@ -194,7 +195,7 @@ phases:
     goal: Laptop compose test, docs, GitHub mirror, slides 7-11, independent verification, submit
     waves:
       - id: W5-release
-        status: planned
+        status: in_progress
         owner: release/infra
         deliverables: ["README Docker", "requirements/lock", "pipeline doc + diagram", "GitHub mirror", "slides 7-11", "independent-verifier live query receipt", "backup/restore"]
         requirements: [TZ-13, TZ-14, TZ-15, TZ-16, TZ-17, SC-09]

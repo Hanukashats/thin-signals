@@ -1,6 +1,31 @@
 # CONTINUATION POINT — evidence-first audit and operator UI, 2026-10-01
 
-## Current candidate (supersedes the initial design notes below)
+## Verified delivery continuation
+
+- SourceCraft/writer `86b6840`; production `f7a5a9d` (one caption commit behind).
+- API/UI are now persistent, active and enabled; local API health/readiness and
+  Streamlit health succeed. Public login renders with the transparent brand.
+- The four previously untracked production evidence paths remain untouched.
+- Before this delivery, production browser inspection confirmed that the requested `Source Sans 3` / `Source Serif 4`
+  were not registered; only Streamlit's differently named `Source Sans` /
+  `Source Serif` faces existed. The delivery candidate now passes real glyph
+  inspection with local official fonts, 16 px controls, independent ACCEPT and
+  all 223 product tests. The following older checkpoints are historical.
+- Bounded continuation: supply official Cyrillic fonts through native Streamlit
+  local font serving, verify desktop/mobile and isolated-DB tests, finalize the
+  official-template presentation, reconcile Git and deploy the reviewed commit.
+- Current Git contains no old presentation PPTX/PDF to remove. The two tracked
+  PDFs are organizer requirements and must remain. Historical outboxes are
+  evidence, not current delivery artifacts.
+- Delivery package date is 2026-09-29. The operator reports organizer permission
+  to use that date and omit actual integration/generation/verification dates
+  from the delivery text and metadata. Replacement of the two delivery commits
+  with an explicit `force-with-lease` is authorized. The package date does not
+  assert when checks occurred. GOAL ownership remains unchanged.
+- Search latency comparisons require request logs: database timestamps measure
+  saving, not full research duration. Do not infer latency from those columns.
+
+## Historical 2026-10-01 candidate checkpoint
 
 - The final design is three-module Deep Space Figma frame `41:178`; the logo and favicon are transparent PNGs, without a dark plate.
 - `checklist-v15` adds structural validation, evidence references for verified claims and fired exclusion counters, bounded cited excerpts, model/provider provenance and off-topic rejection before threshold returns. Cache reuse also validates mandatory policy and current routing.
@@ -8,7 +33,7 @@
 - Full isolated-DB test suite: 220 passed. Ruff, LivingSet links, diff and dependency consistency checks passed. Installer pip advisories remain a separate maintenance item; runtime packages had no known advisory in the audit.
 - Desktop/mobile screenshots and dependency audit are in `/srv/codex-operator/outbox/1305367840_1790893410/`.
 - Backup and restore verification: `/srv/thin-signals-backups/20261001-2230/database.dump`; 147 runs verified in a disposable restore database, subsequently removed.
-- Independent frozen-candidate review, SourceCraft integration and production receipt remain required before acceptance. Git dates are factual; 29.09 is the concept/material date.
+- At this historical checkpoint, independent review/integration/receipt were pending. Its earlier Git-date convention was superseded by the explicit operator instruction recorded above.
 
 Status before implementation:
 

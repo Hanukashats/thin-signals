@@ -1,0 +1,55 @@
+{
+  "event_date": "2026-09-29",
+  "date_basis": "Operator reports organizer permission to use delivery package date 2026-09-29 and omit actual integration/generation/verification dates from delivery text and metadata; the package date does not assert when checks occurred.",
+  "source_template": {
+    "name": "thin_signals_presentation_template.pptx",
+    "sha256": "1604aa9146b82cacd96f893be2c5e08c6981183ba155cd4a11c245f25cd894d5",
+    "retained_source_slides": [7, 8, 9, 10, 11],
+    "output_positions": [1, 2, 3, 4, 5],
+    "geometry_signature": "template-signature.json",
+    "original_preserved_at": "outbox/1305367840_1790712701/source/thin_signals_presentation_template.pptx"
+  },
+  "screenshot": {
+    "path": "assets/current-three-panels.png",
+    "environment": "isolated staging of current candidate, controlled authenticated QA session",
+    "viewport": [1600, 1000],
+    "module": "New Life archive",
+    "selection": "first ranked archival candidate",
+    "production_authenticated_smoke": "UNRESOLVED; screenshot is not proof of authenticated production smoke",
+    "hash_location": "presentation-verification.json#/slide14_screenshot"
+  },
+  "implementation_evidence": {
+    "product_tests_passed": 223,
+    "font_check": "CDP confirmed actual SourceSerif4-Semibold and SourceSans3 regular/semibold Cyrillic glyphs, not system fallback",
+    "main_rules": "rules-0.1 unchanged",
+    "checklist": "checklist-v15",
+    "potential": "potential-v2",
+    "old_technology_archive": {"candidates": 15, "fully_commercially_and_legally_validated": 0}
+  },
+  "timing": {
+    "query": "anode-free sodium metal pouch cell",
+    "parameters": {"limit": 2, "extract": true},
+    "method": "Approximate reconstruction from command start and database completion; not a monotonic per-step benchmark",
+    "production": {"seconds_approx": 493.4, "sources": 48, "watchlist": 2, "potential": 2},
+    "previous_comparable_staging": {"seconds_approx": 530.6, "sources": 48, "watchlist": 4, "potential": 3},
+    "warm_repeat": "fraction of a second, cached report reuse rather than new search",
+    "old_production_equivalent_duration": "UNKNOWN",
+    "audit": "outbox/1305367840_1790904365/search-timing-audit.md"
+  },
+  "retained_unresolved": [
+    "Factual personal team fields on slides 2-4",
+    "Independent end-to-end live accuracy and reliable TOP-15",
+    "Complete durable step/evidence ledger",
+    "All-connectors-failed status contract",
+    "Score monotonicity under rules-0.1",
+    "Authorized production UI smoke",
+    "External competition submission"
+  ],
+  "legacy_inventory": {
+    "scope": "current Git tree and origin/main at inspection",
+    "tracked_legacy_deck_binaries": [],
+    "preserved_organizer_requirements": ["sources/1. Газпромбанк.Тех.pdf", "sources/8. Yandex Cloud.pdf"],
+    "replaced_text_artifacts": ["docs/presentation/README.md", "docs/presentation/2026-09-29-audit.md", "docs/presentation/2026-09-29-outline.json"],
+    "historical_outboxes_retained": ["1305367840_1790712129", "1305367840_1790712701", "1305367840_1790893410"]
+  }
+}

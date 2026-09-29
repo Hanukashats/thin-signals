@@ -157,6 +157,9 @@ requirements:
       - ui/assets/agi-space-logo-metallic-2026-10-01.jpg
       - ui/assets/agi-space-logo-transparent.png
       - ts/tests/test_ui_shell.py
+      - docs/ui/TYPOGRAPHY.md
+      - ui/static/fonts/PROVENANCE.md
+      - reports/RELEASE_2026-09-29.md
 
   - id: TZ-07
     title: Source card fields complete
@@ -236,7 +239,11 @@ requirements:
     acceptance: Official template slides 7-11 preserved as the first five slides; total no more than 15, 16:9, Montserrat, factual team fields
     evidence:
       - docs/presentation/2026-09-29-audit.md
-      - "Official template recovered from outbox/1305367840_1790712701/source; final 2026-10-01 deck in progress"
+      - docs/presentation/Thin-Signals-2026-09-29.pptx
+      - docs/presentation/Thin-Signals-2026-09-29.pdf
+      - docs/presentation/presentation-verification.json
+      - docs/presentation/visual-review.md
+      - "Structural/render/visual PASS; organizer-authorized delivery package date 2026-09-29; factual personal team fields remain UNRESOLVED, so not fully accepted"
 
   - id: TZ-15
     title: Public repo (GitHub mirror) with README Docker + dependencies

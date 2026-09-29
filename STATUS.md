@@ -1,8 +1,22 @@
 # STATUS.md — Thin Signals LivingSet
 
-Updated: **2026-10-01** · Plan revision: **7.6** (parent 7.5) · Original competition deadline: **2026-09-29 23:59 MSK**
+Delivery package date: **2026-09-29** (operator reports organizer authorization) · Plan revision: **7.6** (parent 7.5)
 
-7.6 continuation: evidence and provider boundaries are hardened without changing `rules-0.1`, weights, thresholds or P01–P18. `checklist-v15` validates reader structure and rejects verified features/transitions or fired exclusion counters without an actual `[n]` fragment; off-topic rejection precedes below-watchlist return. Mandatory OpenRouter ZDR fields cannot be weakened; returned model and cached response provenance are checked. Three modules share the evidence-first shell: live signals, a separate potential queue over current scored observations, and search over the sealed 29.09 old-technology archive. Facts/hypotheses/checks/sources and run provenance stay separate. Figma v4 is node `41:178`; transparent logo/favicon are versioned. API/UI have persistent DynamicUser units ready for activation.
+Delivery continuation: production is running the three-module dark UI and persistent
+API/UI units from `f7a5a9d`; the reviewed `86b6840` caption and finalized typography/
+presentation are the current integration candidate. The new fonts are genuinely
+loaded local Cyrillic Source Sans 3 / Source Serif 4, confirmed by Chrome glyph
+inspection; controls are 16 px and metrics use tabular figures. The independent
+typography review accepted the frozen candidate. Fresh backup/restore verified
+148/148 runs. Detailed receipt: `reports/RELEASE_2026-09-29.md`.
+
+The actual production sample has **2 watchlist / 2 potential**, while the previous
+4/3 result was staging. Fresh production timing is approximately **8m13s** versus
+the immediately preceding equivalent staging's **8m51s**. Old pre-checklist
+production duration is unknown; search breadth/depth/thresholds were not weakened.
+See `reports/SEARCH_TIMING_2026-09-29.md`.
+
+7.6 continuation: evidence and provider boundaries are hardened without changing `rules-0.1`, weights, thresholds or P01–P18. `checklist-v15` validates reader structure and rejects verified features/transitions or fired exclusion counters without an actual `[n]` fragment; off-topic rejection precedes below-watchlist return. Mandatory OpenRouter ZDR fields cannot be weakened; returned model and cached response provenance are checked. Three modules share the evidence-first shell: live signals, a separate potential queue over current scored observations, and search over the sealed 29.09 old-technology archive. Facts/hypotheses/checks/sources and run provenance stay separate. Figma v4 is node `41:178`; transparent logo/favicon are versioned. API/UI run as persistent DynamicUser units, active and enabled.
 
 The public route is `https://tsignal.aispaces.ru` through the home proxy to VM101. Account hashes and provider/database credentials remain only in host `.secrets/`. GOAL queue ownership remains `project=thin-signals`, `agent=cursor-bk2`; this Codex continuation did not create, claim or take its card.
 
@@ -13,10 +27,10 @@ The public route is `https://tsignal.aispaces.ru` through the home proxy to VM10
 | Host of record | Georg VM101 `/opt/thin-signals` (`cursor-agent`) |
 | Phase | **P3 LivePath / P4 AnalystUI** |
 | W3-live | **in_progress** — live search exists; honest scored TOP-15 and durable per-step ledger remain incomplete |
-| W4-ui | **in_progress, tested candidate** — evidence-first shell and Figma complete; independent review and production smoke required before acceptance |
+| W4-ui | **in_progress, deployed shell / tested typography candidate** — three modules live; real-account authenticated production smoke remains unobserved |
 | Rules | `rules-0.1`, unchanged |
 | Checklist | `checklist-v15`; old persisted rows remain historical and are excluded from the active potential queue |
-| Production baseline before 7.6 | SourceCraft `main` `66581d0`; public UI/API healthy on transient root-run services |
+| Production before this delivery | `f7a5a9d`; API/UI persistent DynamicUser services, active+enabled, local/public health verified |
 | Canonical Git | private SourceCraft `shats123/thin-signals`; GitHub mirror required but not configured/verified on VM101 |
 
 ## Verified in this increment
@@ -43,7 +57,7 @@ The public route is `https://tsignal.aispaces.ru` through the home proxy to VM10
 
 - tested: `TZ-04`, `TZ-06`, `LLM-01`, `SC-12`, `TS-INV-02`, `TS-INV-03`
 - implemented: `LP-01…07`, `DN-01`, `RM-01`, `TZ-03`, `TZ-07`, `SC-06`, `SC-07`
-- in progress: `TZ-14` (official template found; final deck and visual verification in progress)
+- implemented: `TZ-14` (15-slide editable PPTX/PDF and complete render/visual checks; personal team fields still require factual input)
 - release blocker: `TZ-15` (GitHub mirror not verified)
 - removed to lineage: `SC-01`, `SC-04`, `SC-05`, `SC-08`, `SC-10`, `TS-AG-01…16`, `TS-AG-18`
 
@@ -54,7 +68,10 @@ The public route is `https://tsignal.aispaces.ru` through the home proxy to VM10
 
 ## Next trigger
 
-1. Complete independent code/security/UI review, isolated-DB full tests and staging desktop/mobile smoke.
-2. Reconcile with current SourceCraft `main`, commit/push the reviewed SHA, fast-forward `/opt/thin-signals`, install persistent units and verify local/public health with a recorded rollback SHA.
+1. Commit/push the independently reviewed typography and finalized presentation,
+   fast-forward `/opt/thin-signals`, restart UI and verify local/public fonts/health.
+2. Fill the factual personal team fields in slides 2–4 before external submission;
+   observe a real-account authenticated production smoke when an authorized
+   existing session is available. No accounts were read or changed for this release.
 3. Locate or create the exact GitHub mirror with dedicated repository-scoped authentication; push the identical SHA and close `TZ-15` only after comparing both refs.
 4. Open separate versioned work for connector-total-failure status, durable ledger population and score monotonicity; none may be hidden inside this UI increment.

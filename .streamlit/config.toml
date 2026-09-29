@@ -5,6 +5,7 @@ backgroundColor = "#0A0F14"
 secondaryBackgroundColor = "#101B24"
 textColor = "#EAF7F8"
 font = "sans-serif"
+baseFontSize = 16
 
 [browser]
 gatherUsageStats = false
@@ -13,3 +14,4 @@ gatherUsageStats = false
 address = "127.0.0.1"
 port = 8501
 headless = true
+enableStaticServing = true
