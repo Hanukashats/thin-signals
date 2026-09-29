@@ -213,6 +213,47 @@ def run_banner(payload: dict) -> list[str]:
     return lines
 
 
+def saved_run_state(payload: dict) -> dict:
+    """Decide whether a persisted run is safe to present as the current result.
+
+    A reverted experimental run can remain in PostgreSQL after the code returns
+    to a stable method.  The viewer must not silently call such a payload the
+    current TOP-15 when its own counters contradict its rows.
+    """
+    top = [item for item in (payload.get("top") or []) if isinstance(item, dict)]
+    counters = payload.get("counters") if isinstance(payload.get("counters"), dict) else {}
+    admitted = counters.get("admitted")
+    reported_shortfall = payload.get("shortfall")
+    is_count = lambda value: isinstance(value, int) and not isinstance(value, bool) and value >= 0
+
+    if not is_count(admitted):
+        return {
+            "safe_to_autoload": True,
+            "displayed_shortfall": reported_shortfall if is_count(reported_shortfall) else "—",
+            "message": "",
+        }
+
+    expected_shortfall = max(0, 15 - min(15, admitted))
+    inconsistent = len(top) != admitted or (
+        is_count(reported_shortfall) and reported_shortfall != expected_shortfall
+    )
+    if inconsistent:
+        return {
+            "safe_to_autoload": False,
+            "displayed_shortfall": expected_shortfall,
+            "message": (
+                "Последний сохранённый прогон выглядит устаревшим: число строк, "
+                "счётчик допуска и недобор противоречат друг другу. Он не показан "
+                "как актуальный результат; запустите новый поиск."
+            ),
+        }
+    return {
+        "safe_to_autoload": True,
+        "displayed_shortfall": reported_shortfall if is_count(reported_shortfall) else expected_shortfall,
+        "message": "",
+    }
+
+
 def score_story(payload: dict) -> dict:
     """Plain chain of the contributions the scorer already returned. No new verdict."""
     predictors = payload.get("predictors") or []

@@ -122,11 +122,14 @@ requirements:
     title: TOP-15 cards with description, advantage, case, sources, confidence, explanation
     priority: P1
     owner: frontend/AI
-    state: planned
+    state: implemented
     wave: W4-ui
     forks: [ui.stack]
     acceptance: Cards + report page; shortfall visible, no invented fillers
-    evidence: []
+    evidence:
+      - ui/app.py
+      - ts/desk.py candidate_views, score_story, saved_run_state
+      - ts/tests/test_ui_shell.py
 
   - id: TZ-05
     title: Exclude mature/hype/noise with evidence registry
@@ -141,11 +144,15 @@ requirements:
     title: Russian UI and analytics output
     priority: P1
     owner: frontend
-    state: planned
+    state: implemented
     wave: W4-ui
     forks: [ui.stack]
     acceptance: Localized fields/statuses; original source titles preserved
-    evidence: []
+    evidence:
+      - ui/app.py
+      - ui/theme.py
+      - ui/assets/agi-space-logo-official.jpg
+      - ts/tests/test_ui_shell.py
 
   - id: TZ-07
     title: Source card fields complete
@@ -398,10 +405,13 @@ requirements:
     title: Honest shortfall below 15
     priority: P1
     owner: frontend
-    state: planned
+    state: implemented
     wave: W4-ui
     acceptance: Show count + watchlist separately
-    evidence: []
+    evidence:
+      - ui/app.py result metrics and TOP/watchlist tabs
+      - ts/desk.py saved_run_state
+      - ts/tests/test_ui_shell.py::test_inconsistent_saved_run_is_not_auto_loaded
 
   # --- Process invariants (replace TS-AG-01..18) ---
   - id: TS-INV-01

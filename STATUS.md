@@ -1,8 +1,8 @@
 # STATUS.md — Thin Signals LivingSet
 
-Updated: **2026-09-26** · Plan revision: **7.3** (parent 7.2) · Deadline: **2026-09-29 23:59 MSK**
+Updated: **2026-09-29 23:52 MSK** · Plan revision: **7.3** (parent 7.2) · Deadline: **2026-09-29 23:59 MSK**
 
-7.3 slice: W4a screens are in `ui/app.py`. W3 stays `in_progress` until an honest TOP-15; card `g-6ea92015b4f8` is 1/1 PASS and waits for another hat. W4b Figma waits until the public name opens the viewer. W4c is the current card `g-19b21906ceff`: `https://tsignal.aispaces.ru` on the home hub proxy, certificate renews with the mesh. Home ports 80 and 443 stay shared by name, not taken away. The name must not point at `5.167.79.32`. Account hashes live only in `.secrets/accounts.yaml`. Queue: project `thin-signals`, agent `cursor-bk2`.
+7.3 slice: W4a now has the approved AGI Space dusk treatment, official logo, responsive mobile layout and progressive disclosure in `ui/app.py`/`ui/theme.py`. The viewer refuses to auto-present the inconsistent persisted `mine-1g` result left by reverted commit `09e8888`; it explains that a fresh search is required instead of labelling stale rows as the current TOP-15. Scoring, data and API contracts are unchanged. W3 stays `in_progress` until an honest TOP-15. The public route remains `https://tsignal.aispaces.ru` through the shared home proxy. Account hashes live only in `.secrets/accounts.yaml`. GOAL queue ownership remains project `thin-signals`, agent `cursor-bk2`; this UI continuation did not claim or take its card.
 Host of record: Georg VM101 `/opt/thin-signals` (cursor-agent). Plan: `docs/plan/PLAN_7.2.md`, ADR-009.
 
 ## Current
@@ -11,6 +11,7 @@ Host of record: Georg VM101 `/opt/thin-signals` (cursor-agent). Plan: `docs/plan
 |---|---|
 | Phase | **P1 Contract72** |
 | Wave | **W3-live** — in_progress |
+| Operator UI | **W4-ui implemented, independent acceptance pending** — dusk shell, mobile smoke, honest stale-run guard |
 | Done in W1 | LivingSet 7.2; ADR-009; METHODOLOGY; PLAN_7.2 persisted; donors/ + reference/ + lineage handoff with hashes; `ts/` skeleton (schemas, scoring/policy F03-fixed, 39 tests OK); compose pg (pgvector 0.8.6 on PG16 verified `CREATE EXTENSION vector`); venv `.venv` |
 | Left in W1 | — (2026-09-23: Alembic v1 `90f5cc54dd46` applied on VM230, 11 tables incl. pgvector; `ts seed import` → 100 `seed_unverified`, idempotent; `ts llm zdr-check`/`probe` OK: qwen3.6 via Venice 0.7 s, gpt-5.6-luna via Azure 1.5 s; 47 tests) → W1 closes after independent check |
 | Next wave | W2-scorer-eval: rules-0.1.yaml, negatives_v1.json, `ts eval`, P/R/F1 report |
@@ -36,7 +37,7 @@ ZIP SHA256 `cfa98189…697646`; SHA256SUMS 150/150 OK. Radar 0.1.1, GoalOps 0.1,
 
 ## Requirement snapshot
 
-- implemented: LP-01…07, DN-01, RM-01
+- implemented: LP-01…07, DN-01, RM-01, TZ-04, TZ-06, SC-12
 - planned W1: TZ-11, TZ-12, TS-INV-01…03
 - blocked: TZ-14 (template)
 - planned W1: LLM-01 (OpenRouter ZDR decided 2026-09-22, key in place)
