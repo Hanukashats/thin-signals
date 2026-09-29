@@ -55,6 +55,7 @@ def test_ui_theme_uses_approved_dusk_tokens_and_mobile_wrap():
 def test_large_diagnostic_sections_are_progressively_disclosed():
     text = (ROOT / "ui/app.py").read_text(encoding="utf-8")
 
+    assert "from theme import apply_theme, brand_header" in text
     assert "saved_run_state" in text
     assert 'st.expander("Как принято решение")' in text
     assert 'st.expander(f"Источники прогона · {len(view[\'sources\'])}")' in text

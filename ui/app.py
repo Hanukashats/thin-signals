@@ -6,6 +6,7 @@ from pathlib import Path
 
 import httpx
 import streamlit as st
+from theme import apply_theme, brand_header
 
 from ts.access import can_admin, load_accounts, role_for
 from ts.desk import (
@@ -22,7 +23,6 @@ from ts.desk import (
     score_story,
 )
 from ts.ui_text import panels
-from ui.theme import apply_theme, brand_header
 
 API = os.environ.get("TS_API_URL", "http://127.0.0.1:8095")
 ACCOUNTS = Path(os.environ.get("TS_ACCOUNTS", "/opt/thin-signals/.secrets/accounts.yaml"))
