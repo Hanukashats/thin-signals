@@ -152,6 +152,7 @@ requirements:
       - ui/app.py
       - ui/theme.py
       - ui/assets/agi-space-logo-official.jpg
+      - ui/assets/agi-space-mark.png
       - ts/tests/test_ui_shell.py
 
   - id: TZ-07

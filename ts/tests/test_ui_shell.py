@@ -52,10 +52,27 @@ def test_ui_theme_uses_approved_dusk_tokens_and_mobile_wrap():
     assert 'secondaryBackgroundColor = "#F5F7F6"' in streamlit_theme
 
 
+def test_brand_band_is_green_and_official_logo_is_the_favicon():
+    from PIL import Image
+
+    from ui.theme import FAVICON_PATH, LOGO_PATH, THEME_CSS
+
+    app = (ROOT / "ui/app.py").read_text(encoding="utf-8")
+
+    assert "background: #0B5D52" in THEME_CSS
+    assert ".ts-brand__name { color: #FFFFFF" in THEME_CSS
+    assert ".ts-brand__note { color: #DDEBE4" in THEME_CSS
+    assert "page_icon=FAVICON_PATH" in app
+    assert LOGO_PATH.is_file()
+    assert FAVICON_PATH.is_file()
+    with Image.open(FAVICON_PATH) as icon:
+        assert icon.size == (256, 256)
+
+
 def test_large_diagnostic_sections_are_progressively_disclosed():
     text = (ROOT / "ui/app.py").read_text(encoding="utf-8")
 
-    assert "from theme import apply_theme, brand_header" in text
+    assert "from theme import FAVICON_PATH, apply_theme, brand_header" in text
     assert "saved_run_state" in text
     assert 'st.expander("Как принято решение")' in text
     assert 'st.expander(f"Источники прогона · {len(view[\'sources\'])}")' in text

@@ -8,6 +8,7 @@ from pathlib import Path
 import streamlit as st
 
 LOGO_PATH = Path(__file__).with_name("assets") / "agi-space-logo-official.jpg"
+FAVICON_PATH = Path(__file__).with_name("assets") / "agi-space-mark.png"
 
 THEME_CSS = r"""
 :root {
@@ -42,18 +43,25 @@ p, [data-testid="stCaptionContainer"] { color: var(--ts-secondary); }
 
 .ts-brand {
   align-items: center;
-  background: #FFFFFF;
-  border: 1px solid var(--ts-border);
+  background: #0B5D52;
+  border: 1px solid #0B5D52;
   border-radius: 14px;
   display: grid;
-  gap: 16px;
-  grid-template-columns: 74px 1fr auto;
+  gap: 18px;
+  grid-template-columns: 64px 1fr auto;
   margin: 0 0 22px;
-  padding: 12px 18px;
+  padding: 12px 14px;
 }
-.ts-brand img { display: block; height: 50px; object-fit: contain; width: 74px; }
-.ts-brand__name { color: var(--ts-action); font: 700 23px/1.1 Georgia, serif; }
-.ts-brand__note { color: var(--ts-secondary); font-size: 13px; margin-top: 4px; }
+.ts-brand img {
+  background: #FFFFFF;
+  border-radius: 12px;
+  display: block;
+  height: 64px;
+  object-fit: cover;
+  width: 64px;
+}
+.ts-brand__name { color: #FFFFFF; font: 700 23px/1.1 Georgia, serif; }
+.ts-brand__note { color: #DDEBE4; font-size: 13px; margin-top: 4px; }
 .ts-brand__state {
   background: #DDEBE4;
   border-radius: 999px;
@@ -113,7 +121,7 @@ hr { border-color: var(--ts-border); }
 @media (max-width: 700px) {
   .block-container { padding: 1rem 1rem 3rem; }
   .ts-brand { grid-template-columns: 48px 1fr; padding: 9px 11px; }
-  .ts-brand img { height: 38px; width: 48px; }
+  .ts-brand img { border-radius: 9px; height: 48px; width: 48px; }
   .ts-brand__name { font-size: 18px; }
   .ts-brand__state { display: none; }
   [data-testid="stMetric"] { min-height: 96px; }
@@ -125,8 +133,8 @@ hr { border-color: var(--ts-border); }
 
 @lru_cache(maxsize=1)
 def _logo_data_uri() -> str:
-    encoded = base64.b64encode(LOGO_PATH.read_bytes()).decode("ascii")
-    return f"data:image/jpeg;base64,{encoded}"
+    encoded = base64.b64encode(FAVICON_PATH.read_bytes()).decode("ascii")
+    return f"data:image/png;base64,{encoded}"
 
 
 def apply_theme() -> None:

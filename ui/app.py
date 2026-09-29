@@ -6,7 +6,7 @@ from pathlib import Path
 
 import httpx
 import streamlit as st
-from theme import apply_theme, brand_header
+from theme import FAVICON_PATH, apply_theme, brand_header
 
 from ts.access import can_admin, load_accounts, role_for
 from ts.desk import (
@@ -30,7 +30,7 @@ DRAFT = Path(os.environ.get("TS_DRAFT", "/opt/thin-signals/.secrets/draft.yaml")
 
 st.set_page_config(
     page_title="Тонкие сигналы",
-    page_icon="◉",
+    page_icon=FAVICON_PATH,
     layout="wide",
     initial_sidebar_state="collapsed",
 )

@@ -1,6 +1,6 @@
 # STATUS.md — Thin Signals LivingSet
 
-Updated: **2026-09-29 23:52 MSK** · Plan revision: **7.3** (parent 7.2) · Deadline: **2026-09-29 23:59 MSK**
+Updated: **2026-09-30 00:19 MSK** · Plan revision: **7.3** (parent 7.2) · Deadline: **2026-09-29 23:59 MSK**
 
 7.3 slice: W4a now has the approved AGI Space dusk treatment, official logo, responsive mobile layout and progressive disclosure in `ui/app.py`/`ui/theme.py`. The viewer refuses to auto-present the inconsistent persisted `mine-1g` result left by reverted commit `09e8888`; it explains that a fresh search is required instead of labelling stale rows as the current TOP-15. Scoring, data and API contracts are unchanged. W3 stays `in_progress` until an honest TOP-15. The public route remains `https://tsignal.aispaces.ru` through the shared home proxy. Account hashes live only in `.secrets/accounts.yaml`. GOAL queue ownership remains project `thin-signals`, agent `cursor-bk2`; this UI continuation did not claim or take its card.
 Host of record: Georg VM101 `/opt/thin-signals` (cursor-agent). Plan: `docs/plan/PLAN_7.2.md`, ADR-009.
@@ -11,7 +11,7 @@ Host of record: Georg VM101 `/opt/thin-signals` (cursor-agent). Plan: `docs/plan
 |---|---|
 | Phase | **P1 Contract72** |
 | Wave | **W3-live** — in_progress |
-| Operator UI | **W4-ui implemented, independent acceptance pending** — dusk shell, mobile smoke, honest stale-run guard |
+| Operator UI | **W4-ui implemented, independent acceptance pending** — dusk shell, green AGI Space brand band, logo favicon, mobile smoke, honest stale-run guard |
 | Done in W1 | LivingSet 7.2; ADR-009; METHODOLOGY; PLAN_7.2 persisted; donors/ + reference/ + lineage handoff with hashes; `ts/` skeleton (schemas, scoring/policy F03-fixed, 39 tests OK); compose pg (pgvector 0.8.6 on PG16 verified `CREATE EXTENSION vector`); venv `.venv` |
 | Left in W1 | — (2026-09-23: Alembic v1 `90f5cc54dd46` applied on VM230, 11 tables incl. pgvector; `ts seed import` → 100 `seed_unverified`, idempotent; `ts llm zdr-check`/`probe` OK: qwen3.6 via Venice 0.7 s, gpt-5.6-luna via Azure 1.5 s; 47 tests) → W1 closes after independent check |
 | Next wave | W2-scorer-eval: rules-0.1.yaml, negatives_v1.json, `ts eval`, P/R/F1 report |
