@@ -2,13 +2,16 @@
 
 Delivery package date: **2026-09-29** (operator reports organizer authorization) · Plan revision: **7.6** (parent 7.5)
 
-Delivery continuation: production is running the three-module dark UI and persistent
-API/UI units from `f7a5a9d`; the reviewed `86b6840` caption and finalized typography/
-presentation are the current integration candidate. The new fonts are genuinely
+Delivery verified: production runs the released three-module UI, including the
+`86b6840` caption and finalized typography/presentation. The replacement package
+preserves that product behavior. API/UI units remain persistent, active and enabled.
+The new fonts are genuinely
 loaded local Cyrillic Source Sans 3 / Source Serif 4, confirmed by Chrome glyph
 inspection; controls are 16 px and metrics use tabular figures. The independent
-typography review accepted the frozen candidate. Fresh backup/restore verified
-148/148 runs. Detailed receipt: `reports/RELEASE_2026-09-29.md`.
+typography and complete delivery reviews accepted the preceding frozen delivery.
+The public production login also passes actual glyph inspection, desktop/mobile
+overflow and browser-error checks. Fresh backup/restore verified 148/148 runs.
+Detailed receipt: `reports/RELEASE_2026-09-29.md`.
 
 The actual production sample has **2 watchlist / 2 potential**, while the previous
 4/3 result was staging. Fresh production timing is approximately **8m13s** versus
@@ -27,10 +30,10 @@ The public route is `https://tsignal.aispaces.ru` through the home proxy to VM10
 | Host of record | Georg VM101 `/opt/thin-signals` (`cursor-agent`) |
 | Phase | **P3 LivePath / P4 AnalystUI** |
 | W3-live | **in_progress** — live search exists; honest scored TOP-15 and durable per-step ledger remain incomplete |
-| W4-ui | **in_progress, deployed shell / tested typography candidate** — three modules live; real-account authenticated production smoke remains unobserved |
+| W4-ui | **in_progress, deployed shell and verified typography** — three modules live; real-account authenticated production smoke remains unobserved |
 | Rules | `rules-0.1`, unchanged |
 | Checklist | `checklist-v15`; old persisted rows remain historical and are excluded from the active potential queue |
-| Production before this delivery | `f7a5a9d`; API/UI persistent DynamicUser services, active+enabled, local/public health verified |
+| Production delivery | Released three-module UI; API/UI persistent DynamicUser services, active+enabled, local/public health and actual fonts verified; package-date replacement does not change product code |
 | Canonical Git | private SourceCraft `shats123/thin-signals`; GitHub mirror required but not configured/verified on VM101 |
 
 ## Verified in this increment
@@ -44,6 +47,7 @@ The public route is `https://tsignal.aispaces.ru` through the home proxy to VM10
 - Figma frame `41:178` defines the three-module Deep Space workbench.
 - 223 tests pass against `thin_signals_test_1790887573`; ruff, LivingSet links and diff checks pass. The three added regressions first failed on the reviewed candidate and passed after correction.
 - Backup `/srv/thin-signals-backups/20261001-2230/database.dump` was restored into a disposable database; all 147 runs were present. Production data was not modified by the restore check.
+- Current private delivery backup restored all 148/148 runs. All 223 product tests and 11 presentation-verifier regressions pass for the replacement package. The prior rollout restarted only UI; the date-only replacement requires no service restart. Public/local health and API readiness pass; the production public login has no browser errors or 390 px horizontal overflow.
 
 ## Open audit findings
 
@@ -68,10 +72,8 @@ The public route is `https://tsignal.aispaces.ru` through the home proxy to VM10
 
 ## Next trigger
 
-1. Commit/push the independently reviewed typography and finalized presentation,
-   fast-forward `/opt/thin-signals`, restart UI and verify local/public fonts/health.
-2. Fill the factual personal team fields in slides 2–4 before external submission;
+1. Fill the factual personal team fields in slides 2–4 before external submission;
    observe a real-account authenticated production smoke when an authorized
    existing session is available. No accounts were read or changed for this release.
-3. Locate or create the exact GitHub mirror with dedicated repository-scoped authentication; push the identical SHA and close `TZ-15` only after comparing both refs.
-4. Open separate versioned work for connector-total-failure status, durable ledger population and score monotonicity; none may be hidden inside this UI increment.
+2. Locate or create the exact GitHub mirror with dedicated repository-scoped authentication; push the identical SHA and close `TZ-15` only after comparing both refs.
+3. Open separate versioned work for connector-total-failure status, durable ledger population and score monotonicity; none may be hidden inside this UI increment.

@@ -1,8 +1,10 @@
-# CONTINUATION POINT — evidence-first audit and operator UI, 2026-10-01
+# CONTINUATION POINT — verified delivery package 2026-09-29
 
 ## Verified delivery continuation
 
-- SourceCraft/writer `86b6840`; production `f7a5a9d` (one caption commit behind).
+- SourceCraft/writer/production shared the verified product delivery, including
+  the `86b6840` caption. The package-date replacement preserves product code;
+  the final rewritten ref and parity checks are recorded in the current outbox.
 - API/UI are now persistent, active and enabled; local API health/readiness and
   Streamlit health succeed. Public login renders with the transparent brand.
 - The four previously untracked production evidence paths remain untouched.
@@ -11,9 +13,12 @@
   `Source Serif` faces existed. The delivery candidate now passes real glyph
   inspection with local official fonts, 16 px controls, independent ACCEPT and
   all 223 product tests. The following older checkpoints are historical.
-- Bounded continuation: supply official Cyrillic fonts through native Streamlit
-  local font serving, verify desktop/mobile and isolated-DB tests, finalize the
-  official-template presentation, reconcile Git and deploy the reviewed commit.
+- Delivery complete: native local fonts are verified on production's public
+  login, the 15-slide official-template PPTX/PDF is in Git, and SourceCraft and
+  production share the release. API readiness and local/public UI health pass;
+  mobile 390 px has no horizontal overflow and the browser reports no errors.
+  Remaining external gates: factual team fields, exact GitHub mirror/access,
+  and observation of a real-account authenticated production session.
 - Current Git contains no old presentation PPTX/PDF to remove. The two tracked
   PDFs are organizer requirements and must remain. Historical outboxes are
   evidence, not current delivery artifacts.
