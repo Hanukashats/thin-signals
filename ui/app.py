@@ -92,25 +92,33 @@ def require_login() -> None:
 def session_bar() -> None:
     st.write(f"Сейчас вошли как **{st.session_state['username']}**.")
     if st.button("Выйти"):
-        for key in ("role", "username", "payload", "meta", "latest_checked"):
+        for key in (
+            "role", "username", "payload", "meta", "latest_checked", "latest_issue", "latest_loaded",
+        ):
             st.session_state.pop(key, None)
         st.rerun()
+
+
+def request_saved_reload() -> None:
+    st.session_state.pop("latest_checked", None)
 
 
 def load_latest_once() -> None:
     """Load only a self-consistent saved run; never promote incompatible history."""
     if st.session_state.get("latest_checked"):
         return
-    st.session_state["latest_checked"] = True
     try:
         response = httpx.get(f"{API}/v1/runs/latest", timeout=5)
         response.raise_for_status()
         latest = response.json().get("run")
     except (httpx.HTTPError, ValueError):
         st.session_state["latest_issue"] = (
-            "Последний прогон сейчас недоступен. Новый поиск можно запустить в первом модуле."
+            "Последний прогон сейчас недоступен. Нажмите «Загрузить последний результат», "
+            "чтобы повторить загрузку сохранённых карточек."
         )
         return
+    st.session_state["latest_checked"] = True
+    st.session_state.pop("latest_issue", None)
     if not latest:
         return
     state = saved_run_state(latest)
@@ -306,9 +314,17 @@ def thin_signals_module() -> None:
                 st.write(f"Ссылок в сохранённой выборке: {len(view['sources'])}")
     story = score_story(payload or {})
     with middle:
-        selected = signal_list(story.get("cards") or [])
+        if payload:
+            selected = signal_list(story.get("cards") or [])
+        else:
+            st.markdown("### Рейтинг находок")
+            st.info("Сохранённый результат не загружен. Нажмите «Загрузить последний результат».")
     with detail:
-        signal_detail(selected, empty_chain=reasoning(payload or {}) if payload else None)
+        if payload:
+            signal_detail(selected, empty_chain=reasoning(payload))
+        else:
+            st.markdown("### Инспектор доказательств")
+            st.info("Доказательства появятся после загрузки результата.")
 
 
 def potential_module() -> None:
@@ -317,6 +333,8 @@ def potential_module() -> None:
         "Отдельная очередь карточек, которые ещё не стали слабым сигналом, но близки к порогу или имеют "
         "подтверждённые признаки технического, спросового либо развивающего потенциала."
     )
+    if st.session_state.get("latest_issue"):
+        st.warning(st.session_state["latest_issue"], icon="⚠️")
     payload = st.session_state.get("payload") or {}
     if payload:
         integrity = run_integrity(payload, expected_checklist=CHECKLIST_VERSION)
@@ -396,6 +414,12 @@ def old_tech_module() -> None:
 
 require_login()
 load_latest_once()
+st.button(
+    "Загрузить последний результат",
+    key="reload_saved_run",
+    help="Повторно открыть сохранённый прогон без нового поиска.",
+    on_click=request_saved_reload,
+)
 
 module = st.radio(
     "Модуль",

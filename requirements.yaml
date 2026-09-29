@@ -421,12 +421,13 @@ requirements:
     owner: frontend
     state: tested
     wave: W4-ui
-    acceptance: Show count + watchlist separately
+    acceptance: Show count + watchlist separately; distinguish an unloaded result from a completed empty run and allow saved-result reload after transport failure
     evidence:
       - ui/app.py per-card verdict groups and evidence-first tabs
       - ts/desk.py saved_run_state
       - ts/tests/test_ui_shell.py::test_inconsistent_saved_run_is_not_auto_loaded
       - ts/tests/test_desk.py::test_candidate_groups_never_promote_watchlist_to_weak_signal
+      - ts/tests/test_ui_saved_result.py
 
   # --- Process invariants (replace TS-AG-01..18) ---
   - id: TS-INV-01

@@ -38,6 +38,7 @@ The public route is `https://tsignal.aispaces.ru` through the home proxy to VM10
 
 ## Verified in this increment
 
+- UI saved-result recovery hotfix is tested, pending release verification: a failed initial load remains retryable in the same session; «Загрузить последний результат» reloads saved cards without starting a search; Potential displays loading issues; unloaded Signals no longer claim a completed empty search. Existing cards survive reload failure, and successful load/logout clears stale warnings. Eight deterministic AppTest cases cover these transitions (seven RED before the fix); scoped 15/15 and safe non-database suite 227/227 pass, with four database integration tests deliberately not run for this UI-only patch. No API, schema, scoring or stored-run changes.
 - Evidence-link and LLM-policy RED/GREEN tests reproduce the defects then pass after the fix.
 - UI view-model tests prove a `watchlist` card is never grouped as a weak signal.
 - Run integrity warns about checklist drift, missing provider and missing independent evidence.
