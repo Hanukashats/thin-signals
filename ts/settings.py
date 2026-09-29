@@ -56,7 +56,6 @@ class Settings:
     docling_url: str | None = None
     litellm_url: str | None = None
     embedding_alias: str = "embedding-local"
-    openalex_key: str | None = None
     extra: dict = field(default_factory=dict)
 
     @property
@@ -92,5 +91,4 @@ def load(root: str | Path | None = None) -> Settings:
         docling_url=g("TS_DOCLING_URL"),
         litellm_url=g("TS_LITELLM_URL"),
         embedding_alias=g("TS_EMBEDDING_ALIAS", "embedding-local"),
-        openalex_key=_read_secret(g("TS_OPENALEX_KEY_FILE", ".secrets/openalex_key")),
     )

@@ -1,7 +1,9 @@
-"""A mission sentence is not a search string. Mined phrases take turns in the list.
+"""A mission sentence is not a search string. It runs the standing theme queries.
 
-Each phrase keeps the ordinary order. The official list takes one card from each
-phrase before a second card from any phrase. Score weights are not touched.
+Each theme keeps the ordinary word gate and the ordinary order. The official list
+takes one card from each theme before a second card from any theme. A read scale
+of 2 or 1 moves ahead of unread cards. Unread cards are not labeled fundamental.
+Score weights are not touched.
 """
 from __future__ import annotations
 
@@ -9,7 +11,7 @@ from pathlib import Path
 
 import yaml
 
-from ts.harness import TOP_N
+from ts.harness import TOP_N, _tokens
 from ts.scoring.order import scope_rank
 
 PLAN_PATH = Path(__file__).resolve().parents[1] / "data" / "theme_plan.yaml"
@@ -24,10 +26,18 @@ def load_theme_plan(path: Path = PLAN_PATH) -> dict:
 
 
 def is_wide(query: str, plan: dict) -> bool:
-    """True when the sentence names a field rather than one object."""
-    from ts.mine import direction
-
-    return direction(query, plan.get("frame") or [])["mode"] == "wide"
+    """True when the sentence names the assignment and almost no object."""
+    text = (query or "").strip().lower()
+    if not text:
+        return False
+    if text in {str(theme.get("query") or "").strip().lower() for theme in plan["themes"]}:
+        return False
+    tokens = _tokens(text)
+    if len(tokens) < 4:
+        return False
+    frame = set(plan["frame"])
+    distinctive = [token for token in tokens if token not in frame and not token.isdigit()]
+    return len(distinctive) < 2
 
 
 def _identity(card: dict) -> tuple:

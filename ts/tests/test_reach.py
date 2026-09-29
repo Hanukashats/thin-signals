@@ -9,7 +9,7 @@ from ts.scoring.scorer import load_rules
 
 
 def test_plan_version_is_the_reach_slice_and_weights_stay():
-    assert load_theme_plan()["version"] == "mine-1g"
+    assert load_theme_plan()["version"] == "themes-5"
     assert load_rules()["weights"]["primary"] == 0.35
     assert load_rules()["thresholds"]["weak_signal"] == 0.60
 

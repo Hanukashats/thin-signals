@@ -78,7 +78,7 @@ def cmd_eval(args: argparse.Namespace) -> int:
 def cmd_run(args: argparse.Namespace) -> int:
     from ts.live import run_query
 
-    payload = run_query(args.query, limit=args.limit, extract=args.extract, as_of=args.as_of)
+    payload = run_query(args.query, limit=args.limit, extract=args.extract)
     print(json.dumps({
         "id": payload["run_id"], "repeated": payload["repeated"], "model_id": payload.get("model_id"),
         "run_status": payload["run_status"], "signal_label": payload["signal_label"],
@@ -122,7 +122,6 @@ def main(argv: list[str] | None = None) -> int:
     run = sub.add_parser("run", help="live query: search, dedup, countersearch, rank")
     run.add_argument("--query", required=True)
     run.add_argument("--limit", type=int, default=3)
-    run.add_argument("--as-of", dest="as_of", help="window end date YYYY-MM-DD")
     run.add_argument("--extract", action="store_true", help="ledger extraction via allowlisted OpenRouter model")
     run.add_argument("--model")
     run.add_argument("--snapshot", action="store_true")

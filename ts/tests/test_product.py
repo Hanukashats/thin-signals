@@ -30,14 +30,6 @@ def test_second_query_does_not_search_again(tmp_path, monkeypatch):
         "ts.live.annotate_checklist",
         lambda top, overflow, settings, query=None: {"top": top, "excluded": [], "overflow": overflow, "unread": [], "stats": {}},
     )
-    monkeypatch.setattr(
-        "ts.live.discover",
-        lambda query, plan, as_of, get, api_key=None: {
-            "direction": {"mode": "narrow", "tokens": [query], "object": query},
-            "concepts": [{"id": query, "title": query, "query": query, "language": "en"}],
-            "knives": {}, "sample": {}, "labels": {}, "closed_sources": [], "error": None,
-        },
-    )
     hit = Hit("arxiv", "https://arxiv.org/abs/77", "Quiet cell repeat", "grant", "paper", published="2026-02-02", doi="10.9/quiet")
     src = Scripted("arxiv", [hit])
     factory = session_factory()

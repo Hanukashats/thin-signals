@@ -20,8 +20,6 @@ ARXIV_NS = {"a": "http://www.w3.org/2005/Atom"}
 
 def script_of(text: str) -> str:
     """Writing system, not a language and not a word list."""
-    if any("\u3040" <= ch <= "\u30ff" for ch in text):
-        return "kana"
     letters = [ch for ch in text if ch.isalpha()]
     if not letters:
         return ""
@@ -124,11 +122,7 @@ class ArxivConnector:
         self.get = get
 
     def search(self, query: str, *, limit: int = 5) -> list[Hit]:
-        bound = ""
-        until = getattr(self, "until", None)
-        if until:
-            bound = f"+AND+submittedDate:[19900101+TO+{until.replace('-', '')}]"
-        url = f"https://export.arxiv.org/api/query?search_query=all:{quote(query)}{bound}&max_results={limit}"
+        url = f"https://export.arxiv.org/api/query?search_query=all:{quote(query)}&max_results={limit}"
         try:
             root = ET.fromstring(self.get(url))
         except ET.ParseError as e:
@@ -157,12 +151,6 @@ class OpenAlexConnector:
 
     def search(self, query: str, *, limit: int = 5) -> list[Hit]:
         url = f"https://api.openalex.org/works?search={quote(query)}&per-page={limit}"
-        until = getattr(self, "until", None)
-        if until:
-            url += f"&filter=to_publication_date:{until}"
-        api_key = getattr(self, "api_key", None)
-        if api_key:
-            url += f"&api_key={quote(api_key)}"
         data = _get_json(self.get, url)
         hits = []
         for row in data.get("results") or []:
@@ -185,10 +173,7 @@ class CrossrefConnector:
         self.get = get
 
     def search(self, query: str, *, limit: int = 5) -> list[Hit]:
-        url = f"https://api.crossref.org/works?query.bibliographic={quote(query)}&rows={limit}"
-        until = getattr(self, "until", None)
-        if until:
-            url += f"&filter=until-pub-date:{until}"
+        url = f"https://api.crossref.org/works?query={quote(query)}&rows={limit}"
         data = _get_json(self.get, url)
         hits = []
         for row in (data.get("message") or {}).get("items") or []:
@@ -232,12 +217,8 @@ class EuropePmcConnector:
         self.get = get
 
     def search(self, query: str, *, limit: int = 5) -> list[Hit]:
-        text = query
-        until = getattr(self, "until", None)
-        if until:
-            text = f"({query}) AND FIRST_PDATE:[1990-01-01 TO {until}]"
         url = ("https://www.ebi.ac.uk/europepmc/webservices/rest/search"
-               f"?query={quote(text)}&format=json&pageSize={limit}&resultType=core")
+               f"?query={quote(query)}&format=json&pageSize={limit}&resultType=core")
         data = _get_json(self.get, url)
         hits = []
         for row in ((data.get("resultList") or {}).get("result") or [])[:limit]:
@@ -285,12 +266,8 @@ class HalConnector:
         self.get = get
 
     def search(self, query: str, *, limit: int = 5) -> list[Hit]:
-        bound = ""
-        until = getattr(self, "until", None)
-        if until:
-            bound = f"&fq=producedDate_tdate:[1990-01-01T00:00:00Z TO {until}T23:59:59Z]"
         url = ("https://api.archives-ouvertes.fr/search/"
-               f"?q={quote(query)}&wt=json&rows={limit}&fl=title_s,uri_s,producedDate_tdate,abstract_s{bound}")
+               f"?q={quote(query)}&wt=json&rows={limit}&fl=title_s,uri_s,producedDate_tdate,abstract_s")
         data = _get_json(self.get, url)
         hits = []
         for row in ((data.get("response") or {}).get("docs") or [])[:limit]:
