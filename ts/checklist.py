@@ -8,12 +8,12 @@ from __future__ import annotations
 import re
 from urllib.parse import urlparse
 
-from ts.extract import to_feature_vector
+from ts.extract import to_feature_vector, validate_scoring_output
 from ts.fanout import _identity
 from ts.scale import fetch_abstract
 from ts.scoring.scorer import load_rules, score
 
-CHECKLIST_VERSION = "checklist-v12"
+CHECKLIST_VERSION = "checklist-v14"
 TEXT_HUNT = 4
 # Four extra reads for each standing theme. One noisy theme must not spend the rest.
 BACKFILL_CAP = TEXT_HUNT * 13
@@ -21,6 +21,7 @@ DROP_COUNTERS = ("M01", "M02", "M03", "M05", "M06")
 # Connectors and the harness cut snippets here. A snippet this long was probably cut mid-text.
 SNIPPET_CAP = 500
 _FULL: dict[tuple[str, str], str] = {}
+_FRAGMENT_REF = re.compile(r"\[(\d+)\]")
 
 
 def _host(url: str) -> str:
@@ -119,11 +120,73 @@ def _case_quote(out: dict, fragments: list[str], urls: list[str]) -> dict | None
     return None
 
 
+def _has_fragment_reference(why: object, fragments: list[str]) -> bool:
+    """A verified claim must cite at least one non-empty fragment that was actually read."""
+    for raw_index in _FRAGMENT_REF.findall(str(why or "")):
+        index = int(raw_index)
+        if 1 <= index <= len(fragments) and str(fragments[index - 1]).strip():
+            return True
+    return False
+
+
+def _uncited_verified(out: dict, fragments: list[str]) -> list[str]:
+    missing: list[str] = []
+    for feature in out.get("features") or []:
+        if not isinstance(feature, dict) or feature.get("status") != "verified":
+            continue
+        if not _has_fragment_reference(feature.get("why"), fragments):
+            missing.append(str(feature.get("code") or "UNKNOWN"))
+    transition = out.get("transition") or {}
+    if (
+        isinstance(transition, dict)
+        and transition.get("status") == "verified"
+        and not _has_fragment_reference(transition.get("why"), fragments)
+    ):
+        missing.append("TR")
+    for counter in out.get("counters") or []:
+        if not isinstance(counter, dict) or counter.get("code") not in DROP_COUNTERS:
+            continue
+        if counter.get("fired") and not _has_fragment_reference(counter.get("why"), fragments):
+            missing.append(str(counter.get("code")))
+    return missing
+
+
+def _cited_fragments(out: dict, fragments: list[str], urls: list[str]) -> list[dict]:
+    """Persist bounded authoritative excerpts actually cited by verified decisions."""
+    indices: set[int] = set()
+    claims = [
+        row for row in (out.get("features") or [])
+        if isinstance(row, dict) and row.get("status") == "verified"
+    ]
+    transition = out.get("transition")
+    if isinstance(transition, dict) and transition.get("status") == "verified":
+        claims.append(transition)
+    claims.extend(
+        row for row in (out.get("counters") or [])
+        if isinstance(row, dict) and row.get("code") in DROP_COUNTERS and row.get("fired")
+    )
+    for claim in claims:
+        for raw_index in _FRAGMENT_REF.findall(str(claim.get("why") or "")):
+            index = int(raw_index)
+            if 1 <= index <= len(fragments):
+                indices.add(index)
+    return [
+        {
+            "fragment": index,
+            "text": str(fragments[index - 1])[:300],
+            "url": str(urls[index - 1]) if index - 1 < len(urls) else "",
+        }
+        for index in sorted(indices)
+    ]
+
+
 def _mark(row: dict, status: str, meta: dict | None = None) -> None:
     body = {"version": CHECKLIST_VERSION, "status": status}
     if meta:
         if meta.get("model_id"):
             body["model_id"] = meta.get("model_id")
+        if meta.get("provider"):
+            body["provider"] = meta.get("provider")
         body["cached"] = bool(meta.get("cached"))
     row["checklist"] = body
 
@@ -140,6 +203,29 @@ def _reader_failed(row: dict, error: str | None = None) -> dict:
     return {"keep": False, "unread": True, "card": row}
 
 
+def _evidence_invalid(row: dict, missing: list[str], meta: dict | None = None) -> dict:
+    """Fail closed when a claimed verification cannot be linked to the supplied evidence."""
+    _mark(row, "evidence_invalid", meta)
+    row["checklist"]["uncited_verified"] = missing
+    row["policy_reason"] = "checklist_uncited_verified"
+    row["confidence"] = None
+    row["label"] = None
+    row["reason_codes"] = []
+    row["predictors"] = []
+    return {"keep": False, "card": row}
+
+
+def _checklist_invalid(row: dict, meta: dict | None = None) -> dict:
+    """Malformed rows cannot be silently filtered or collapsed into a score."""
+    _mark(row, "checklist_invalid", meta)
+    row["policy_reason"] = "checklist_shape_invalid"
+    row["confidence"] = None
+    row["label"] = None
+    row["reason_codes"] = []
+    row["predictors"] = []
+    return {"keep": False, "card": row}
+
+
 def score_card(card: dict, reader, rules: dict) -> dict:
     row = dict(card)
     fragments, _urls = _fragments(row)
@@ -151,14 +237,23 @@ def score_card(card: dict, reader, rules: dict) -> dict:
         return {"keep": False, "unread": True, "card": row}
     try:
         read = reader(row)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 — provider failures become explicit reader_failed cards
         return _reader_failed(row, type(exc).__name__)
     if not isinstance(read, dict) or not isinstance(read.get("output"), dict):
         return _reader_failed(row)
+    meta = read.get("meta") if isinstance(read.get("meta"), dict) else {}
+    try:
+        validate_scoring_output(read["output"])
+    except (TypeError, ValueError):
+        return _checklist_invalid(row, meta)
+    missing = _uncited_verified(read["output"], fragments)
+    if missing:
+        return _evidence_invalid(row, missing, meta)
+    row["evidence_fragments"] = _cited_fragments(read["output"], fragments, _urls)
     try:
         fv = vector_for(row, read["output"])
         result = score(fv, rules)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 — malformed reader behavior fails this card closed
         return _reader_failed(row, type(exc).__name__)
     row["label"] = result.label
     row["confidence"] = result.confidence
@@ -167,8 +262,8 @@ def score_card(card: dict, reader, rules: dict) -> dict:
     _mark(row, "scored", read.get("meta") if isinstance(read.get("meta"), dict) else {})
     quote = _case_quote(
         read["output"],
-        list(read.get("fragments") or fragments),
-        list(read.get("urls") or []),
+        fragments,
+        _urls,
     )
     if quote:
         row["case_quote"] = quote
@@ -225,7 +320,7 @@ def apply_checklist(top: list[dict], overflow: list[dict], reader, rules: dict, 
         status = (outcome["card"].get("checklist") or {}).get("status")
         if status == "scored":
             scored += 1
-        elif status in {"no_fragment", "reader_failed"}:
+        elif status in {"no_fragment", "reader_failed", "evidence_invalid", "checklist_invalid"}:
             unevaluated += 1
         return outcome
 

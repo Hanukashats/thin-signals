@@ -8,6 +8,7 @@ import yaml
 
 from ts.extract import PROMPT_VERSION
 from ts.nearest import nearest_lines
+from ts.old_tech import search_old_tech_cards
 from ts.plain import (
     LANG,
     OLD_TECH_DECISIONS,
@@ -22,6 +23,7 @@ from ts.plain import (
     scope_sentence,
     stopper_line,
 )
+from ts.potential import rank_potential_cards
 from ts.scoring.scorer import load_rules
 from ts.ui_text import LABELS, panels
 
@@ -44,11 +46,11 @@ FIELDS = [
     },
     {
         "id": "period",
-        "title": "Период",
+        "title": "Период — уточнение запроса",
         "who": "both",
-        "what": "Даты, внутри которых смотреть источники.",
-        "why": "Чтобы прогон и документ помнили, за какой срок искали.",
-        "how": "Поставьте начало и конец. Пустая дата останется в документе как «не задано».",
+        "what": "Даты добавляются в текст запроса; это не строгий фильтр источников.",
+        "why": "Чтобы дать поиску временной контекст и сохранить его в документе.",
+        "how": "Поставьте начало и конец. Проверяйте даты найденных источников отдельно.",
     },
     {
         "id": "run_status",
@@ -162,8 +164,170 @@ def candidate_views(items: list) -> list[dict]:
             "url": url,
             "label": LABELS.get(item.get("label"), item.get("label") or "—"),
             "confidence": item.get("confidence"),
+            "evidence": candidate_evidence(item),
         })
     return views
+
+
+def candidate_groups(payload: dict) -> dict[str, list[dict]]:
+    """Group existing verdicts for display without promoting or re-scoring a card."""
+    groups: dict[str, list[dict]] = {
+        "weak_signals": [],
+        "watchlist": [],
+        "needs_data": [],
+        "other": [],
+    }
+    for item in payload.get("top") or []:
+        if not isinstance(item, dict):
+            continue
+        label = item.get("label")
+        if label == "weak_signal":
+            groups["weak_signals"].append(item)
+        elif label == "watchlist":
+            groups["watchlist"].append(item)
+        elif label in (None, ""):
+            groups["needs_data"].append(item)
+        else:
+            groups["other"].append(item)
+    return groups
+
+
+def _plural_ru(count: int, one: str, few: str, many: str) -> str:
+    value = abs(count) % 100
+    tail = value % 10
+    if 10 < value < 20:
+        word = many
+    elif tail == 1:
+        word = one
+    elif 2 <= tail <= 4:
+        word = few
+    else:
+        word = many
+    return f"{count} {word}"
+
+
+def run_integrity(payload: dict, *, expected_checklist: str) -> dict:
+    """Read-only run provenance and visible gaps; never derives a product verdict."""
+    groups = candidate_groups(payload)
+    parts = [
+        _plural_ru(len(groups["weak_signals"]), "слабый сигнал", "слабых сигнала", "слабых сигналов"),
+        _plural_ru(len(groups["watchlist"]), "наблюдение", "наблюдения", "наблюдений"),
+    ]
+    if groups["needs_data"]:
+        parts.append(_plural_ru(len(groups["needs_data"]), "без решения", "без решения", "без решения"))
+    if groups["other"]:
+        parts.append(_plural_ru(len(groups["other"]), "прочая карточка", "прочие карточки", "прочих карточек"))
+
+    top = [item for item in (payload.get("top") or []) if isinstance(item, dict)]
+    urls = {
+        str(source.get("url") or "").strip()
+        for item in top
+        for source in (item.get("sources") or [])
+        if isinstance(source, dict) and str(source.get("url") or "").strip()
+    }
+    versions = sorted({
+        str((item.get("checklist") or {}).get("version") or "").strip()
+        for item in top
+        if isinstance(item.get("checklist"), dict)
+        and str((item.get("checklist") or {}).get("version") or "").strip()
+    })
+    model_id = str(payload.get("model_id") or "").strip() or next((
+        str((item.get("checklist") or {}).get("model_id") or "").strip()
+        for item in top
+        if str((item.get("checklist") or {}).get("model_id") or "").strip()
+    ), "")
+    provider = str(payload.get("provider") or "").strip()
+
+    warnings: list[str] = []
+    if top and expected_checklist and versions != [expected_checklist]:
+        shown = ", ".join(versions) if versions else "не записана"
+        warnings.append(f"Версия чек-листа у карточек: {shown}; ожидается {expected_checklist}.")
+    if model_id and not provider:
+        warnings.append("Provider не записан: маршрут модели нельзя подтвердить по этому результату.")
+    if top and all(
+        any(
+            isinstance(row, dict)
+            and row.get("code") == "IND"
+            and row.get("value") in (0, 0.0, "0")
+            for row in (item.get("predictors") or [])
+        )
+        for item in top
+    ):
+        warnings.append("Независимость источников не подтверждена ни у одной карточки.")
+
+    counters = payload.get("counters") if isinstance(payload.get("counters"), dict) else {}
+    run_id = str(payload.get("run_id") or payload.get("id") or "не записан")
+    rules_version = str(payload.get("rules_version") or next((
+        item.get("rules_version") for item in top if item.get("rules_version")
+    ), "не записана"))
+    checklist = ", ".join(versions) if versions else "не записан"
+    provenance = (
+        f"RUN {run_id} · rules {rules_version} · checklist {checklist} · "
+        f"model {model_id or 'не запускалась'} · provider {provider or 'не записан'}"
+    )
+    return {
+        "composition": " · ".join(parts),
+        "selected_source_count": len(urls),
+        "run_source_count": counters.get("sources", "—"),
+        "provenance": provenance,
+        "warnings": warnings,
+        "groups": groups,
+    }
+
+
+def candidate_evidence(item: dict) -> dict[str, list[str]]:
+    """Separate returned evidence, model hypotheses, checks and source references."""
+    facts = [
+        f"Фрагмент [{row.get('fragment', '—')}]: {str(row.get('text') or '').strip()}"
+        for row in (item.get("evidence_fragments") or [])
+        if isinstance(row, dict) and str(row.get("text") or "").strip()
+    ]
+    quote = item.get("case_quote") if isinstance(item.get("case_quote"), dict) else {}
+    cited = {row.get("fragment") for row in (item.get("evidence_fragments") or []) if isinstance(row, dict)}
+    if str(quote.get("text") or "").strip() and quote.get("fragment") not in cited:
+        facts.append(f"Фрагмент [{quote.get('fragment', '—')}]: {str(quote['text']).strip()}")
+    scale = scope_sentence(item.get("scope"))
+    scale_why = str(item.get("scope_why") or "").strip()
+
+    reach = item.get("reach") if isinstance(item.get("reach"), dict) else {}
+    hypothesis_fields = (
+        ("Что это", "plain"),
+        ("Где может пригодиться", "sphere"),
+        ("На что может повлиять", "moves"),
+        ("Что ещё может задеть", "affects"),
+        ("Потенциальный плюс", "plus"),
+        ("Потенциальный минус", "minus"),
+        ("Если подтвердится", "if_true"),
+    )
+    hypotheses = [
+        f"{title}: {str(reach.get(key)).strip()}"
+        for title, key in hypothesis_fields
+        if str(reach.get(key) or "").strip()
+    ]
+
+    checklist = item.get("checklist") if isinstance(item.get("checklist"), dict) else {}
+    label = LABELS.get(item.get("label"), item.get("label") or "решение не записано")
+    confidence = item.get("confidence")
+    checks = [
+        f"Метка карточки: {label}; сумма признаков: {confidence if confidence is not None else 'не посчитана'}.",
+        "Чек-лист: {version}; состояние: {status}.".format(
+            version=checklist.get("version") or "не записан",
+            status=checklist.get("status") or "не записано",
+        ),
+    ]
+    if scale or scale_why:
+        checks.append("Проверка масштаба: " + " ".join(part for part in (scale, scale_why) if part))
+    if str(reach.get("open") or "").strip():
+        checks.append(f"Открытый вопрос: {str(reach['open']).strip()}")
+    if item.get("reason_codes"):
+        checks.append("Коды проверки: " + ", ".join(map(str, item["reason_codes"])))
+
+    sources = [
+        _source_line(source)
+        for source in (item.get("sources") or [])
+        if isinstance(source, dict)
+    ]
+    return {"facts": facts, "hypotheses": hypotheses, "checks": checks, "sources": sources}
 
 
 def _case_line(item: dict) -> str:
@@ -271,6 +435,82 @@ def near_miss_board(payload: dict) -> dict:
     }
 
 
+_POTENTIAL_REASON = {
+    "near_gate": "близко к порогу допуска",
+    "high_potential": "высокий индекс приоритета проверки по подтверждённым признакам",
+}
+_POTENTIAL_AXIS = {
+    "technical": "технологическая новизна",
+    "demand": "сигналы востребованности",
+    "development": "динамика развития",
+}
+
+
+def potential_board(payload: dict) -> dict:
+    """Present the separate review queue without calling an index a forecast."""
+    stored = payload.get("potential") if isinstance(payload, dict) else None
+    persisted = isinstance(stored, list)
+    rows = [card for card in stored if isinstance(card, dict)] if persisted else rank_potential_cards(payload)
+    cards = []
+    for index, row in enumerate(rows, start=1):
+        metrics = row.get("potential") if isinstance(row.get("potential"), dict) else {}
+        reach = row.get("reach") if isinstance(row.get("reach"), dict) else {}
+        axes = []
+        codes = metrics.get("evidence_codes") if isinstance(metrics.get("evidence_codes"), dict) else {}
+        for axis in ("technical", "demand", "development"):
+            score = metrics.get(axis)
+            axes.append({
+                "id": axis,
+                "title": _POTENTIAL_AXIS[axis],
+                "score": score if _number(score) else None,
+                "evidence": [code_words(code) for code in (codes.get(axis) or [])],
+            })
+        fragments = []
+        for fragment in row.get("evidence_fragments") or []:
+            if isinstance(fragment, dict) and str(fragment.get("text") or "").strip():
+                fragments.append({
+                    "text": str(fragment["text"]).strip(),
+                    "url": str(fragment.get("url") or "").strip(),
+                })
+        cards.append({
+            "id": str(row.get("id") or row.get("technology") or index),
+            "rank": index,
+            "title": str(reach.get("plain") or row.get("technology") or "карточка"),
+            "technology": str(row.get("technology") or ""),
+            "review_priority": row.get("review_priority"),
+            "potential_index": metrics.get("potential_index"),
+            "gate_proximity": metrics.get("gate_proximity"),
+            "gate_gap": row.get("gate_gap"),
+            "selection_reasons": [
+                _POTENTIAL_REASON.get(reason, str(reason))
+                for reason in (row.get("selection_reasons") or [])
+            ],
+            "axes": axes,
+            "coverage": metrics.get("evaluated_axes"),
+            "why_not_admitted": say(REASONS, row.get("policy_reason"), "причина не названа"),
+            "hypothesis": {
+                key: str(reach.get(key) or "").strip()
+                for key in ("plain", "sphere", "moves", "plus", "minus", "open")
+            },
+            "evidence": fragments,
+            "sources": [
+                _source_line(source)
+                for source in (row.get("sources") or [])
+                if isinstance(source, dict)
+            ],
+        })
+    note = (
+        "Очередь рассчитана из сохранённых проверенных признаков этого прогона. "
+        if persisted
+        else "Очередь пересчитана из сохранённого реестра исключений. "
+    )
+    note += (
+        "Индекс означает приоритет следующей проверки, а не вероятность успеха, "
+        "рыночного спроса, внедрения или доходности."
+    )
+    return {"cards": cards, "note": note, "persisted": persisted}
+
+
 OLD_TECH_SNAPSHOT = Path(__file__).resolve().parents[1] / "data" / "old_tech" / "snapshot_2026-09-29.json"
 
 
@@ -282,10 +522,17 @@ def _archive_date(as_of: str) -> str:
     return str(as_of)
 
 
-def old_tech_board(path: Path | None = None) -> dict:
-    """Saved research list. It does not read a search payload and does not fill TOP-15."""
+def old_tech_board(path: Path | None = None, query: str = "") -> dict:
+    """Search the sealed research archive. It never fills the current-signal list."""
     target = OLD_TECH_SNAPSHOT if path is None else Path(path)
-    empty = {"cards": [], "note": "Архив не загружен", "as_of": "", "fully_qualified_count": None}
+    empty = {
+        "cards": [],
+        "note": "Архив не загружен",
+        "as_of": "",
+        "fully_qualified_count": None,
+        "query": str(query or "").strip(),
+        "total": 0,
+    }
     try:
         raw = json.loads(target.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, json.JSONDecodeError):
@@ -293,7 +540,7 @@ def old_tech_board(path: Path | None = None) -> dict:
     if not isinstance(raw, dict) or not isinstance(raw.get("cards"), list):
         return empty
     cards = []
-    for row in raw["cards"]:
+    for row in search_old_tech_cards(raw["cards"], query):
         if not isinstance(row, dict):
             continue
         holds = [say(OLD_TECH_HOLDS, code) for code in row.get("holds") or [] if str(code).strip()]
@@ -307,23 +554,50 @@ def old_tech_board(path: Path | None = None) -> dict:
             "score_upper": upper,
             "historical_year": row.get("historical_year"),
             "history_class": str(row.get("history_class") or "").strip(),
+            "family": str(row.get("family") or "").strip(),
+            "history": str(row.get("history") or "").strip(),
             "barrier_then": str(row.get("barrier_then") or "").strip(),
             "change_now": str(row.get("change_now") or "").strip(),
+            "evidence": str(row.get("evidence") or "").strip(),
+            "first_product": str(row.get("first_product") or "").strip(),
+            "buyers": str(row.get("buyers") or "").strip(),
+            "risk": str(row.get("risk") or "").strip(),
+            "market_findings": str(row.get("market_findings") or "").strip(),
             "test": str(row.get("test") or "").strip(),
             "holds": holds,
             "decision": say(OLD_TECH_DECISIONS, row.get("decision")),
             "fully_qualified": bool(row.get("fully_qualified")),
+            "search_score": row.get("search_score"),
+            "matches": list(row.get("match_excerpts") or []),
+            "sources": [
+                {
+                    "id": source.get("id") or "",
+                    "title": source.get("title") or source.get("id") or "источник",
+                    "url": source.get("url") or "",
+                    "published": source.get("published"),
+                    "supports": source.get("supports") or "",
+                    "limitations": source.get("limitations") or "",
+                }
+                for source in (row.get("sources") or [])
+                if isinstance(source, dict)
+            ],
         })
-    cards.sort(key=lambda card: card["rank"] if isinstance(card["rank"], int) else 10**9)
     count = raw.get("fully_qualified_count")
     as_of = str(raw.get("as_of") or "")
     note = (
-        f"Исследовательский список из архива от {_archive_date(as_of)}. "
+        f"Поиск по проверяемому архиву из 15 карточек, срез от {_archive_date(as_of)}. "
         f"Полностью прошедших коммерческую и правовую проверку карточек: {count}. "
-        "Они не входят в официальный ТОП-15 и пустые места не заполняют. "
-        "Шкала 0–100 не сравнима с оценкой основного списка."
+        "Они не входят в список текущего поиска и пустые места не заполняют. "
+        "Шкала 0–100 не сравнима с оценкой основного списка. Это поиск по архиву, не свежий веб-поиск."
     )
-    return {"cards": cards, "note": note, "as_of": as_of, "fully_qualified_count": count}
+    return {
+        "cards": cards,
+        "note": note,
+        "as_of": as_of,
+        "fully_qualified_count": count,
+        "query": str(query or "").strip(),
+        "total": len(raw["cards"]),
+    }
 
 
 def _source_line(source: dict) -> str:
@@ -343,7 +617,7 @@ def run_banner(payload: dict) -> list[str]:
     sources = counters.get("sources", "—")
     lines = [
         f"Кандидатов в списке: {admitted}.",
-        f"Источников в прогоне: {sources}.",
+        f"Ссылок в сохранённой выборке: {sources}.",
     ]
     if any(_checklist_filled(item) for item in top):
         lines.append(f"С уверенностью выше 75%: {counters.get('confident', 0)}.")
@@ -443,6 +717,7 @@ def score_story(payload: dict) -> dict:
 def reasoning(payload: dict) -> dict:
     """Visible chain from fields the API already returned. No new verdict."""
     steps = []
+    empty_run = payload.get("decision_scope") == "run_empty"
     reason = payload.get("policy_reason")
     action = payload.get("policy_action")
     if reason or action:
@@ -458,7 +733,7 @@ def reasoning(payload: dict) -> dict:
     counters = payload.get("counters") or {}
     if counters:
         steps.append(
-            "Нашли источников: {sources}. Допустили в список: {admitted}. "
+            "Ссылок в сохранённой выборке: {sources}. Допустили в список: {admitted}. "
             "Отсеяли: {excluded}. С высокой уверенностью: {confident}.".format(
                 sources=counters.get("sources", "—"),
                 admitted=counters.get("admitted", "—"),
@@ -467,7 +742,11 @@ def reasoning(payload: dict) -> dict:
             )
         )
     label = payload.get("signal_label")
-    conclusion = LABELS.get(label, label or "вывода нет")
+    conclusion = (
+        "список пуст: ни одна карточка не прошла допуск"
+        if empty_run
+        else LABELS.get(label, label or "вывода нет")
+    )
     link = payload.get("chain_link") or {}
     if link.get("sentence"):
         steps.append(link["sentence"])
@@ -496,7 +775,11 @@ def document(payload: dict, direction: str, correction: str, start: str, end: st
         f"Пустых мест в списке из 15: {view['shortfall']}",
         *run_banner(payload),
         "",
-        "## Что учтено",
+        (
+            "## Почему список пуст"
+            if payload.get("decision_scope") == "run_empty"
+            else f"## Как принято решение по карточке №1: {payload.get('decision_card') or 'название не записано'}"
+        ),
         *[f"- {step}" for step in chain["steps"]],
         "",
         f"Вывод: {chain['conclusion']}",
@@ -506,7 +789,7 @@ def document(payload: dict, direction: str, correction: str, start: str, end: st
         "",
         story["disclaimer"],
         "",
-        "## Список до ТОП-15",
+        "## Отобранные находки",
         *([f"- {row}" for row in story["top"]] or ["- В список никто не прошёл. Пустые места не заполняются."]),
         "",
         "## Не прочитаны",
@@ -516,7 +799,7 @@ def document(payload: dict, direction: str, correction: str, start: str, end: st
         "## Ближайшие к допуску",
         near["note"],
         "",
-        f"Официальный список: {near['official_count']}. Ступеней допуска: {ladder}. Остановка: {near['stuck']}. {near['why']}",
+        f"Отобранных карточек: {near['official_count']}. Ступеней допуска: {ladder}. Остановка: {near['stuck']}. {near['why']}",
         f"В окне {near['shown']} из {near['found']}.",
         *([f"- {row}" for row in near["lines"]] or ["- Ближайших находок нет: поиск ничего не вернул."]),
         "",

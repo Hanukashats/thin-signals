@@ -136,6 +136,17 @@ def test_latest_run_is_shown_without_scoring():
     assert empty.get("/v1/runs/latest").json()["run"] is None
 
 
+def test_readiness_distinguishes_liveness_from_database_availability():
+    healthy = TestClient(create_app(lambda *args: {}, ready=lambda: True))
+    assert healthy.get("/health").json() == {"ok": True}
+    assert healthy.get("/ready").json() == {"ok": True, "database": "ready"}
+
+    unavailable = TestClient(create_app(lambda *args: {}, ready=lambda: False))
+    response = unavailable.get("/ready")
+    assert response.status_code == 503
+    assert response.json()["detail"] == "database unavailable"
+
+
 def test_openrouter_allowlist_rejects_unknown_model(tmp_path):
     client = make_client(tmp_path)
     assert isinstance(client, OpenRouterClient)

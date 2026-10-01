@@ -11,6 +11,7 @@ import re
 from collections import OrderedDict
 from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
+from itertools import pairwise
 from pathlib import Path
 from typing import Protocol
 
@@ -56,6 +57,7 @@ class RunReport:
     fanout: dict | None = None
     unread: list[dict] = field(default_factory=list)
     near_miss: list[dict] = field(default_factory=list)
+    potential: list[dict] = field(default_factory=list)
 
 
 @dataclass
@@ -367,7 +369,7 @@ def _subject_hits(query: str, title: str) -> int:
         return 0
     pairs = sum(
         1
-        for left, right in zip(tokens, tokens[1:])
+        for left, right in pairwise(tokens)
         if any(
             _holds(words[i], left) and _holds(words[i + 1], right)
             for i in range(len(words) - 1)

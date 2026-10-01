@@ -84,6 +84,7 @@ def load_report(session: Session, idempotency_key: str) -> dict | None:
 
 
 def public_report(report: RunReport) -> dict:
+    decision_card = report.top[0].get("technology") if report.top else None
     body = {
         "run_id": report.id,
         "run_status": "succeeded",
@@ -102,11 +103,14 @@ def public_report(report: RunReport) -> dict:
         "exclusion_registry": report.exclusion_registry,
         "unread": list(getattr(report, "unread", None) or []),
         "near_miss": list(getattr(report, "near_miss", None) or []),
+        "potential": list(getattr(report, "potential", None) or []),
         "model_id": report.model_id,
         "provider": report.provider,
         "rules_version": report.card["rules_version"],
         "chain_link": report.card.get("chain_link"),
         "fanout": report.fanout,
+        "decision_scope": "first_admitted_card" if report.top else "run_empty",
+        "decision_card": decision_card,
         "counters": {
             "sources": len(report.sources),
             "admitted": len(report.top),

@@ -1,0 +1,61 @@
+[Unit]
+Description=Thin Signals API
+Documentation=https://sourcecraft.dev/shats123/thin-signals
+Wants=network-online.target
+Requires=docker.service
+After=network-online.target docker.service
+StartLimitIntervalSec=60s
+StartLimitBurst=3
+
+[Service]
+Type=simple
+User=thin-signals-api
+Group=thin-signals-api
+DynamicUser=yes
+WorkingDirectory=/opt/thin-signals
+Environment=TS_ROOT=/opt/thin-signals
+Environment=TS_DISABLE_DOTENV=1
+Environment=TS_PROFILE=vm101
+Environment=TS_SEARXNG_URL=http://127.0.0.1:28088
+Environment=TS_DATABASE_URL=postgresql+psycopg://ts@127.0.0.1:55432/thin_signals
+Environment=TS_PG_PASSWORD_FILE=%d/pg_password
+Environment=TS_OPENROUTER_KEY_FILE=%d/openrouter_key
+Environment=TS_SNAPSHOT_DIR=/var/lib/thin-signals-api/snapshots
+Environment=TS_CACHE_ROOT=/var/cache/thin-signals-api
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+LoadCredential=pg_password:/opt/thin-signals/.secrets/pg_password
+LoadCredential=openrouter_key:/opt/thin-signals/.secrets/openrouter_key
+StateDirectory=thin-signals-api
+StateDirectoryMode=0700
+CacheDirectory=thin-signals-api
+CacheDirectoryMode=0700
+ExecStartPre=/usr/bin/pg_isready -h 127.0.0.1 -p 55432 -U ts -d thin_signals -t 5
+ExecStart=/opt/thin-signals/.venv/bin/uvicorn ts.api:app --host 127.0.0.1 --port 8095
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=30s
+KillSignal=SIGINT
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectHome=true
+ProtectSystem=strict
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectProc=invisible
+ProcSubset=pid
+RestrictSUIDSGID=true
+LockPersonality=true
+RestrictRealtime=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+SystemCallArchitectures=native
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

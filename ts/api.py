@@ -1,8 +1,9 @@
 """HTTP API. Parsing and inference stay out of the UI process (TZ-12)."""
 from __future__ import annotations
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
+from sqlalchemy import text
 
 
 class QueryIn(BaseModel):
@@ -11,12 +12,22 @@ class QueryIn(BaseModel):
     extract: bool = False
 
 
-def create_app(runner, latest=None) -> FastAPI:
+def create_app(runner, latest=None, ready=None) -> FastAPI:
     app = FastAPI(title="Thin Signals", version="0.1.0")
 
     @app.get("/health")
     def health() -> dict:
         return {"ok": True}
+
+    @app.get("/ready")
+    def readiness() -> dict:
+        check = ready or default_ready
+        try:
+            if check() is False:
+                raise RuntimeError("readiness check returned false")
+        except Exception as exc:
+            raise HTTPException(status_code=503, detail="database unavailable") from exc
+        return {"ok": True, "database": "ready"}
 
     @app.get("/v1/runs/latest")
     def latest_run() -> dict:
@@ -43,6 +54,15 @@ def default_latest() -> dict | None:
     factory = session_factory()
     with factory() as session:
         return latest_succeeded(session)
+
+
+def default_ready() -> bool:
+    from ts.db import session_factory
+
+    factory = session_factory()
+    with factory() as session:
+        session.execute(text("SELECT 1"))
+    return True
 
 
 app = create_app(default_runner, default_latest)

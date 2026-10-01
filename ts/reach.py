@@ -6,12 +6,14 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 from pathlib import Path
 
+from ts.llm import CACHE_POLICY_VERSION, cache_attestation, cached_response_is_current
 from ts.scale import _snippet, fetch_abstract
 
-CACHE = Path("data/reach")
+CACHE = Path(os.environ.get("TS_CACHE_ROOT", "data")) / "reach"
 SYSTEM = (
     "Список уже собран. Ты не отбираешь и не сортируешь. "
     "Пиши для человека без этой специальности. Короткие предложения, без формул в ответе. "
@@ -76,11 +78,17 @@ def make_reader(settings):
 
     def reader(card: dict) -> tuple[dict | None, str | None]:
         text = _text(card)
-        key = hashlib.sha256(f"reach-v3|{model}|{SYSTEM}|{text}".encode()).hexdigest()
+        key = hashlib.sha256(
+            f"{CACHE_POLICY_VERSION}|reach-v3|{model}|{SYSTEM}|{text}".encode()
+        ).hexdigest()
         path = CACHE / f"{key}.json"
         if path.exists():
-            saved = json.loads(path.read_text(encoding="utf-8"))
-            return saved.get("reach"), saved.get("model_id")
+            try:
+                saved = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, UnicodeError, json.JSONDecodeError):
+                saved = None
+            if isinstance(saved, dict) and cached_response_is_current(client, saved.get("meta"), model):
+                return saved.get("reach"), saved["meta"].get("model_id")
         response = client.chat(
             [{"role": "system", "content": SYSTEM}, {"role": "user", "content": text}],
             model,
@@ -92,7 +100,10 @@ def make_reader(settings):
         out = response.json()
         reach = _pack(out)
         path.write_text(
-            json.dumps({"reach": reach, "model_id": response.model_id}, ensure_ascii=False),
+            json.dumps(
+                {"reach": reach, "meta": cache_attestation(response)},
+                ensure_ascii=False,
+            ),
             encoding="utf-8",
         )
         return reach, response.model_id
@@ -108,7 +119,7 @@ def apply_reach(cards: list[dict], reader) -> list[dict]:
         row = dict(card)
         try:
             reach, used = reader(row)
-        except Exception:
+        except Exception:  # noqa: BLE001 — optional reader failure must not reorder/drop a card
             reach, used = None, None
         if isinstance(reach, dict):
             row["reach"] = _pack(reach)

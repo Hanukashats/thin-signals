@@ -1,6 +1,6 @@
 # ARCHITECTURE.md — Thin Signals
 
-Revision: **7.2** · Date: **2026-09-22** · Living contract  
+Revision: **7.6** · Date: **2026-10-01** · Living contract
 Основа: ADR-009 (harness-first, сжатый стек, reuse VM101); контракт объектов: `docs/PROCESSING_CONTRACT.md`; методика: `docs/METHODOLOGY.md`.
 
 ## 1. Обзор
@@ -34,8 +34,8 @@ Revision: **7.2** · Date: **2026-09-22** · Living contract
 | Search | SearXNG (VM101 :28088 или локальный контейнер) | JSON API; engines pinned |
 | Ingest | Docling Serve (VM101 :5001); fallback trafilatura/pdfminer | text + metadata + language |
 | Browser fallback | Playwright MCP (VM101) | только при блокировке fetch |
-| UI | Streamlit (RU) | страницы: запрос, список, отчёт, источники, связи, исключения |
-| Ops | Docker Compose: profiles `laptop` и `vm101`; Caddy basic-auth для стенда | без OIDC/tenant |
+| UI | Streamlit (RU) | три модуля: живые сигналы, отдельный рейтинг потенциала, поиск по архиву старых технологий; факты/гипотезы/проверки/источники |
+| Ops | PostgreSQL в Compose; API/UI в persistent systemd; Caddy TLS; вход через host accounts | разные DynamicUser, LoadCredential, loopback, без OIDC/tenant |
 | Git | SourceCraft (канон) + GitHub mirror (сдача) | секреты только в `.secrets/` |
 
 Не добавлять: Neo4j, S3, Procrastinate, Redis, Kafka, K8s, BERTopic, вторая vector DB, LoRA. Replacement matrix — `docs/plan/PLAN_7.2.md` §6.

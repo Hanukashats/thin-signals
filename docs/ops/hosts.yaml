@@ -1,14 +1,16 @@
-# Thin Signals hosts (2026-09-23). Canon for code: SourceCraft shats123/thin-signals.
+# Thin Signals hosts (2026-10-01). Canon for code: SourceCraft shats123/thin-signals.
 hosts:
   - id: vm101
-    role: backend + Telegram operator (cursor-agent); reuse services SearXNG/Docling/TEI/LiteLLM/Playwright
+    role: current production + Telegram operator (cursor-agent); PG/API/UI and reused backend services
     hypervisor: Georg PVE 192.168.0.222 (NetBird 10.200.200.109)
     netbird: 10.200.200.112
     checkout: /opt/thin-signals
+    public_url: https://tsignal.aispaces.ru
+    listeners: [127.0.0.1:55432, 127.0.0.1:8095, 127.0.0.1:8501]
     egress: agi-sing-box -> Amsterdam-1
   - id: vm230
     name: agi-thin-signals
-    role: primary dev/demo host for Thin Signals (Docker, pg+pgvector, api, ui)
+    role: stale development/demo host; not production until SourceCraft fast-forward + smoke
     hypervisor: Home-PVE 192.168.5.10 (NetBird 10.200.200.41), VMID 230
     lan: 192.168.5.230
     netbird: pending setup-key

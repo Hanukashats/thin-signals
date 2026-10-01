@@ -59,7 +59,7 @@ def test_nearest_ranks_checks_and_does_not_fill_top():
     assert board["rows"][2]["approach_percent"] < 100
     assert "Стоппер" in board["stuck"]
     assert "M04" in board["why"]
-    assert "не официальный ТОП-15" in board["note"]
+    assert "не отобранный список" in board["note"]
     assert board["rows"][0]["gaps"] == []
     assert any("дату" in gap or "доверие" in gap for gap in board["rows"][2]["gaps"])
 
@@ -116,16 +116,18 @@ def test_unknown_reason_does_not_invent_a_ladder_percent():
     assert board["shown"] == 1
     assert "процент проверок не выведен" in board["lines"][0]
     text = document(payload, "датчик", "", "", "")
-    assert "## Список до ТОП-15" in text
+    assert "## Отобранные находки" in text
     assert "В список никто не прошёл" in text
     assert "## Ближайшие к допуску" in text
-    assert "не официальный ТОП-15" in text
+    assert "не отобранный список" in text
 
 
-def test_screen_keeps_nearest_on_its_own_tab():
+def test_screen_keeps_review_items_in_their_own_module():
     from pathlib import Path
     text = Path("ui/app.py").read_text(encoding="utf-8")
-    assert 'st.tabs(["Официальный ТОП-15", "Ближайшие к допуску"])' in text
+    assert '("Тонкие сигналы", "Потенциал", "Новая жизнь")' in text
+    assert "potential_board(payload)" in text
+    assert "potential_module()" in text
 
 
 def test_admitted_card_stays_a_hundred_percent_of_stages():

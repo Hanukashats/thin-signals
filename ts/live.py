@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+from collections import Counter
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 
@@ -12,6 +13,8 @@ from ts.desk import near_miss_cards
 from ts.fanout import is_wide, load_theme_plan, merge_theme_reports
 from ts.harness import TOP_N, Harness, RunReport
 from ts.persist import load_report, public_report, save_report
+from ts.plain import REASONS, say
+from ts.potential import rank_potential_cards
 from ts.reach import annotate_reach
 from ts.scale import annotate_scopes
 from ts.scoring.order import scope_rank, sort_admitted
@@ -35,7 +38,6 @@ from ts.sources.connectors import (
     SecConnector,
 )
 
-
 CORPUS = "live-w18"
 THEME_LOOKBACK_DAYS = 365
 
@@ -58,6 +60,54 @@ def _near_miss(registry: list[dict], settings: Settings) -> list[dict]:
     """Reach is read for the short list only, never for the whole registry."""
     cards = near_miss_cards({"exclusion_registry": registry})
     return annotate_reach(cards, settings) if cards else []
+
+
+def _potential(registry: list[dict], settings: Settings) -> list[dict]:
+    """Persist the separate evidence-triage queue; it never fills the admitted list."""
+    cards = rank_potential_cards({"exclusion_registry": registry})
+    return annotate_reach(cards, settings) if cards else []
+
+
+def _checklist_route(checked: dict) -> tuple[str | None, str | None]:
+    """Return one model/provider pair from any card that the checklist read."""
+    for bucket in ("top", "excluded", "unread"):
+        for card in checked.get(bucket) or []:
+            checklist = card.get("checklist") if isinstance(card, dict) else None
+            if not isinstance(checklist, dict) or not checklist.get("model_id"):
+                continue
+            return str(checklist["model_id"]), (
+                str(checklist["provider"]) if checklist.get("provider") else None
+            )
+    return None, None
+
+
+def _empty_card(rules_version: str, registry=None, unread=None) -> dict:
+    """A run-level empty verdict; never borrow the first rejected card's verdict."""
+    reasons = Counter(
+        str(card.get("policy_reason"))
+        for card in (registry or [])
+        if isinstance(card, dict) and card.get("policy_reason")
+    )
+    unread_count = len([card for card in (unread or []) if isinstance(card, dict)])
+    parts = [
+        f"{say(REASONS, code, code)} — {count}"
+        for code, count in sorted(reasons.items(), key=lambda item: (-item[1], item[0]))[:3]
+    ]
+    if unread_count:
+        parts.append(f"нет доступного текста источника — {unread_count}")
+    sentence = "В список никто не допущен."
+    if parts:
+        sentence += " Основные причины: " + "; ".join(parts) + "."
+    return {
+        "label": None,
+        "confidence": None,
+        "policy_action": "HOLD",
+        "policy_reason": "no_admitted_cards",
+        "reason_codes": [],
+        "predictors": [],
+        "rules_version": rules_version,
+        "chain_link": {"score": 0, "families": [], "sentence": sentence},
+    }
 
 
 def _maker(session_factory):
@@ -105,15 +155,21 @@ def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Se
         report.exclusion_registry = held + list(checked["excluded"]) + list(checked["overflow"])
         report.shortfall = TOP_N - len(report.top)
         report.near_miss = _near_miss(report.exclusion_registry, s)
+        report.potential = _potential(report.exclusion_registry, s)
+        checklist_model, checklist_provider = _checklist_route(checked)
+        if checklist_model:
+            report.model_id = checklist_model
+        if checklist_provider:
+            report.provider = checklist_provider
         if report.top:
             report.card = dict(report.top[0])
             report.card.setdefault("rules_version", s.rules_version)
         else:
-            report.card = {
-                **report.card,
-                "label": None,
-                "confidence": None,
-            }
+            report.card = _empty_card(
+                s.rules_version,
+                report.exclusion_registry,
+                report.unread,
+            )
     with factory() as session:
         save_report(session, report)
     return public_report(report)
@@ -142,18 +198,14 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
     checked = annotate_checklist(merged["top"], merged["overflow"], settings, query=None)
     top = sorted(annotate_scopes(checked["top"], settings), key=scope_rank, reverse=True)
     top = annotate_reach(top, settings)
-    card = dict(top[0]) if top else {
-        "label": None,
-        "confidence": None,
-        "policy_action": "WATCHLIST",
-        "policy_reason": "no_verified_change",
-        "reason_codes": [],
-        "predictors": [],
-        "rules_version": rules["version"],
-        "chain_link": {},
-    }
-    card.setdefault("rules_version", rules["version"])
+    checklist_model, checklist_provider = _checklist_route(checked)
     registry = list(checked["excluded"]) + list(checked["overflow"])
+    card = dict(top[0]) if top else _empty_card(
+        rules["version"],
+        registry,
+        checked.get("unread"),
+    )
+    card.setdefault("rules_version", rules["version"])
     sources = []
     seen = set()
     for item in top:
@@ -179,11 +231,9 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
         exclusion_registry=registry,
         unread=list(checked.get("unread") or []),
         near_miss=_near_miss(registry, settings),
-        model_id=next((
-            (item.get("checklist") or {}).get("model_id")
-            for item in top
-            if (item.get("checklist") or {}).get("model_id")
-        ), None) or next((item.get("scope_model") for item in top if item.get("scope_model")), None),
+        potential=_potential(registry, settings),
+        model_id=checklist_model or next((item.get("scope_model") for item in top if item.get("scope_model")), None),
+        provider=checklist_provider,
         corpus_version=corpus,
         fanout={
             "version": plan["version"],

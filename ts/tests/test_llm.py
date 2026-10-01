@@ -51,10 +51,47 @@ def test_policy_sent_on_every_request(tmp_path):
     assert seen[0]["reasoning"] == {"enabled": False, "exclude": True}
 
 
+def test_security_policy_cannot_be_weakened_from_settings(tmp_path):
+    seen: list = []
+    c = make_client(tmp_path, seen=seen)
+    c.s.llm_provider_policy = {
+        "zdr": False,
+        "data_collection": "allow",
+        "allow_fallbacks": False,
+    }
+
+    c.probe()
+
+    assert seen[0]["provider"] == {
+        "zdr": True,
+        "data_collection": "deny",
+        "allow_fallbacks": False,
+        "require_parameters": False,
+    }
+
+
 def test_model_outside_tz_list_rejected(tmp_path):
     c = make_client(tmp_path)
     with pytest.raises(llm_mod.ModelNotAllowed):
         c.chat([{"role": "user", "content": "x"}], model="openrouter/auto")
+
+
+def test_unallowed_model_returned_by_provider_is_rejected_before_zdr_lookup(tmp_path):
+    c = make_client(tmp_path, model="untrusted/surprise-model")
+    lookups = 0
+
+    def zdr_once(force=False):
+        nonlocal lookups
+        lookups += 1
+        if lookups > 1:
+            raise AssertionError("returned unallowed model reached provider ZDR lookup")
+        return {"qwen/qwen3.6-35b-a3b": {"Venice"}}
+
+    c.zdr_providers = zdr_once
+
+    with pytest.raises(llm_mod.ModelNotAllowed):
+        c.probe()
+    assert lookups == 1
 
 
 def test_non_zdr_provider_in_response_rejected(tmp_path):

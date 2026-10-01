@@ -24,6 +24,8 @@ def _read_secret(path: str | None) -> str | None:
 
 
 def _load_dotenv(root: Path) -> None:
+    if os.environ.get("TS_DISABLE_DOTENV", "").lower() in {"1", "true", "yes"}:
+        return
     env = root / ".env"
     if not env.exists():
         return

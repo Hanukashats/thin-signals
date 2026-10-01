@@ -1,6 +1,6 @@
 # EVOLUTION.md — Co-evolution of LivingSet and product
 
-Revision: **7.2** · Date: **2026-09-22**
+Revision: **7.6** · Date: **2026-10-01**
 
 **Для агента-преемника:** план и концепт не статичны. В ходе реализации их обязательно обновлять. Нельзя «разработать по старому CONCEPT» и оставить документы 7.1 как музей.
 
@@ -10,7 +10,7 @@ Development adapts and moves forward while CONCEPT, plan, and old datasets freez
 
 ## LivingSet members
 
-`CONCEPT.md`, `ARCHITECTURE.md`, `requirements.yaml`, `plan.yaml`, `forks.yaml`, `STATUS.md`, `docs/adr/*`, `docs/plan/PLAN_7.2.md`, `docs/METHODOLOGY.md` (+ `ts/scoring/rules-*.yaml`), `docs/PROCESSING_CONTRACT.md`, `data/pattern_registry.json` (+ related registries), this file.
+`CONCEPT.md`, `ARCHITECTURE.md`, `requirements.yaml`, `plan.yaml`, `forks.yaml`, `STATUS.md`, `docs/adr/*`, `docs/plan/PLAN_7.2.md`…`PLAN_7.6.md`, `docs/METHODOLOGY.md` (+ `ts/scoring/rules-*.yaml`), `docs/PROCESSING_CONTRACT.md`, `data/pattern_registry.json` (+ related registries), this file.
 
 ## Change classes
 

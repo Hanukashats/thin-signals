@@ -1,7 +1,7 @@
-# Контракт обработки v6 (LivingSet v7)
+# Контракт обработки v6 (LivingSet v7.6)
 
-Статус: спецификация для реализации, не утверждение о готовом API.  
-LivingSet: revision **7.0**. Источник: пакет Thin Signals Auto-Goal Integration v6.1. Семантика объектов сохранена; эволюция — через ADR + `plan_revision` (см. `docs/EVOLUTION.md`).
+Статус: целевой контракт; реализованные и открытые части перечислены в `STATUS.md`.
+LivingSet: revision **7.6**. Источник: пакет Thin Signals Auto-Goal Integration v6.1. Семантика объектов сохранена; эволюция — через ADR + `plan_revision` (см. `docs/EVOLUTION.md`).
 
 ## Runtime boundary
 
@@ -10,6 +10,8 @@ LivingSet: revision **7.0**. Источник: пакет Thin Signals Auto-Goal
 ResearchTask: tenant_id, run_id, task_id, as_of, objective, pattern_ids, allowed_tools, allowed_models, evidence_bundle_refs, budget_tokens, budget_requests, deadline, schema_version, skill_hashes.
 
 ResearchResult: task_id, status, proposed_claims, proposed_edges, cited_fragments, unresolved_questions, suggested_next_action, artifacts, usage, model_id, instruction_hash. Адаптер не может сам выставить production gate PASS. Ошибка/timeout возвращают частичный результат с явным состоянием, а не удачный пустой JSON.
+
+В реализованном checklist каждый `verified` признак и verified transition обязан ссылаться на существующий непустой фрагмент как `[n]`; отсутствие/выход за диапазон возвращает `evidence_invalid`, не score. Модель и provider сохраняются парой из того же ответа.
 
 Task states: queued/running/retryable/failed/cancelled/succeeded. Signal states: candidate/needs_evidence/watchlist/qualified/established/disputed/rejected. Это разные автоматы. `succeeded` задачи извлечения не делает signal `qualified`.
 

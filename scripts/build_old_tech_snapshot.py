@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build the dated old-technology snapshot from the sealed research package.
 
-Reads ranking.json and candidates.json only after their SHA-256 matches MANIFEST.json.
+Reads ranking.json, candidates.json and sources.json only after their SHA-256 matches MANIFEST.json.
 Does not score, search, or edit the package.
 """
 from __future__ import annotations
@@ -14,7 +14,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGE = ROOT / "docs/lineage/novaya-zhizn-staryh-tehnologiy/thin-signals-repro-2026-09-29-v1.0"
 OUT = ROOT / "data/old_tech/snapshot_2026-09-29.json"
-SOURCES = ("research/ranking.json", "research/candidates.json")
+SOURCES = ("research/ranking.json", "research/candidates.json", "research/sources.json")
 
 
 def sha256(path: Path) -> str:
@@ -48,7 +48,9 @@ def main() -> None:
     expected = manifest_hashes()
     ranking, ranking_hash = load_checked("research/ranking.json", expected["research/ranking.json"])
     candidates, candidates_hash = load_checked("research/candidates.json", expected["research/candidates.json"])
+    sources, sources_hash = load_checked("research/sources.json", expected["research/sources.json"])
     by_id = {row["id"]: row for row in candidates if isinstance(row, dict) and row.get("id")}
+    sources_by_id = {row["id"]: row for row in sources if isinstance(row, dict) and row.get("id")}
     info = json.loads((PACKAGE / "PACKAGE_INFO.json").read_text(encoding="utf-8"))
     cards = []
     for row in ranking:
@@ -69,10 +71,30 @@ def main() -> None:
             "holds": list(row.get("holds") or []),
             "missing_dimensions": list(row.get("missing_dimensions") or []),
             "historical_year": source["historical_year"],
+            "family": source.get("family") or "",
             "history_class": source["history_class"],
+            "history": source.get("history") or "",
             "barrier_then": source["barrier_then"],
             "change_now": source["change_now"],
+            "evidence": source.get("evidence") or "",
+            "first_product": source.get("first_product") or "",
+            "buyers": source.get("buyers") or "",
+            "risk": source.get("risk") or "",
+            "market_findings": source.get("market_findings") or "",
             "test": source.get("test") or "",
+            "source_ids": list(source.get("source_ids") or []),
+            "sources": [
+                {
+                    "id": source_id,
+                    "title": sources_by_id[source_id].get("title") or source_id,
+                    "url": sources_by_id[source_id].get("url") or "",
+                    "published": sources_by_id[source_id].get("published"),
+                    "supports": sources_by_id[source_id].get("supports") or "",
+                    "limitations": sources_by_id[source_id].get("limitations") or "",
+                }
+                for source_id in (source.get("source_ids") or [])
+                if source_id in sources_by_id
+            ],
         })
     qualified = sum(1 for card in cards if card["fully_qualified"])
     if qualified:
@@ -85,6 +107,7 @@ def main() -> None:
         "source_sha256": {
             "research/ranking.json": ranking_hash,
             "research/candidates.json": candidates_hash,
+            "research/sources.json": sources_hash,
         },
         "fully_qualified_count": qualified,
         "cards": cards,

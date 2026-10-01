@@ -61,7 +61,7 @@ def test_scale_ranks_a_wide_shift_above_a_local_one_and_does_not_admit():
     assert [row["technology"] for row in top] == [
         wide["technology"], local["technology"], unread["technology"],
     ]
-    assert [row["technology"] for row in sort_admitted([wide, closer])][0] == "ближе к запросу"
+    assert next(row["technology"] for row in sort_admitted([wide, closer])) == "ближе к запросу"
 
 
 def test_chain_words_reorder_only_after_the_same_evidence():

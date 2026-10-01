@@ -2,7 +2,18 @@
 from __future__ import annotations
 
 from ts.access import can_admin, hash_password, role_for, verify_password
-from ts.desk import compose_query, document, field_help, load_draft, reasoning, save_draft, score_story
+from ts.desk import (
+    candidate_evidence,
+    candidate_groups,
+    compose_query,
+    document,
+    field_help,
+    load_draft,
+    reasoning,
+    run_integrity,
+    save_draft,
+    score_story,
+)
 
 PAYLOAD = {
     "run_status": "succeeded",
@@ -51,6 +62,110 @@ def test_query_needs_a_direction_and_stays_short():
         raise AssertionError("one letter is not a direction")
     except ValueError:
         pass
+
+
+def test_period_help_says_dates_are_query_context_not_a_typed_filter():
+    help_text = field_help("period")
+
+    assert "текст" in help_text.lower()
+    assert "фильтр" in help_text.lower()
+    assert "не" in help_text.lower()
+
+
+def test_candidate_groups_never_promote_watchlist_to_weak_signal():
+    groups = candidate_groups({
+        "top": [
+            {"technology": "подтверждённый", "label": "weak_signal"},
+            {"technology": "наблюдение", "label": "watchlist"},
+            {"technology": "без чтения", "label": None},
+            {"technology": "зрелый", "label": "mature"},
+        ]
+    })
+
+    assert [row["technology"] for row in groups["weak_signals"]] == ["подтверждённый"]
+    assert [row["technology"] for row in groups["watchlist"]] == ["наблюдение"]
+    assert [row["technology"] for row in groups["needs_data"]] == ["без чтения"]
+    assert [row["technology"] for row in groups["other"]] == ["зрелый"]
+
+
+def test_run_integrity_reports_composition_provenance_and_gaps():
+    payload = {
+        "run_id": "946f55a7eed28638",
+        "run_status": "succeeded",
+        "rules_version": "rules-0.1",
+        "model_id": "qwen/qwen3.6-35b-a3b",
+        "provider": None,
+        "counters": {"sources": 193, "admitted": 2},
+        "top": [
+            {
+                "technology": "a",
+                "label": "watchlist",
+                "checklist": {"version": "checklist-v11", "status": "scored"},
+                "predictors": [{"code": "IND", "value": 0}],
+                "sources": [{"url": "https://example.test/a"}],
+            },
+            {
+                "technology": "b",
+                "label": "watchlist",
+                "checklist": {"version": "checklist-v11", "status": "scored"},
+                "predictors": [{"code": "IND", "value": 0}],
+                "sources": [{"url": "https://example.test/b"}],
+            },
+        ],
+    }
+
+    view = run_integrity(payload, expected_checklist="checklist-v13")
+
+    assert view["composition"] == "0 слабых сигналов · 2 наблюдения"
+    assert view["selected_source_count"] == 2
+    assert view["run_source_count"] == 193
+    assert "946f55a7eed28638" in view["provenance"]
+    assert "rules-0.1" in view["provenance"]
+    warning = " ".join(view["warnings"]).lower()
+    assert "provider" in warning
+    assert "checklist-v11" in warning and "checklist-v13" in warning
+    assert "независим" in warning
+
+
+def test_candidate_evidence_separates_facts_hypotheses_checks_and_sources():
+    card = {
+        "technology": "raw title",
+        "label": "watchlist",
+        "confidence": 0.475,
+        "scope": 2,
+        "scope_why": "масштаб прямо назван в тексте",
+        "case_quote": {"text": "Эксперимент работал 30 суток.", "fragment": 1},
+        "evidence_fragments": [
+            {"text": "Независимый источник подтвердил механизм.", "fragment": 2, "url": "https://example.test/two"}
+        ],
+        "reach": {
+            "plain": "Понятное имя",
+            "sphere": "энергетика",
+            "moves": "архитектуру сети",
+            "plus": "меньше потерь",
+            "minus": "неясная цена",
+            "open": "нужна независимая репликация",
+        },
+        "checklist": {"version": "checklist-v13", "status": "scored"},
+        "sources": [{
+            "name": "Paper",
+            "url": "https://example.test/paper",
+            "date": "2026-09-26",
+            "type": "paper",
+            "language": "en",
+            "trust": "primary",
+        }],
+    }
+
+    sections = candidate_evidence(card)
+
+    assert any("30 суток" in line for line in sections["facts"])
+    assert any("Независимый источник" in line for line in sections["facts"])
+    assert any("масштаб" in line.lower() for line in sections["checks"])
+    assert any("Понятное имя" in line for line in sections["hypotheses"])
+    assert any("независимая репликация" in line for line in sections["checks"])
+    assert any("https://example.test/paper" in line for line in sections["sources"])
+    assert all("Понятное имя" not in line for line in sections["facts"])
     try:
         compose_query("а" * 401, "", "", "")
         raise AssertionError("overlong query must fail")
@@ -105,7 +220,8 @@ def test_score_story_is_not_a_startup_probability():
     assert "0.0" not in story_bare["top"][0]
     from ts.ui_text import shown_label
     assert shown_label({"signal_label": "noise", "top": [{"confidence": 0}]}) == "признаки не оценивались"
-    assert "Дополнительно прочитать тексты" not in open("ui/app.py", encoding="utf-8").read()
+    from pathlib import Path
+    assert "Дополнительно прочитать тексты" not in Path("ui/app.py").read_text(encoding="utf-8")
     assert bare[0]["case"].startswith("Кейс")
     assert "https://example.org/a" in bare[0]["sources"][0]
     banner = run_banner({"top": [{"confidence": 0}], "counters": {"admitted": 1, "sources": 2, "confident": 0}})
@@ -130,6 +246,23 @@ def test_empty_chain_says_so():
     chain = reasoning({"signal_label": "weak_signal"})
     assert chain["steps"] == ["Цепочка пуста: прогон не вернул причины."]
     assert chain["conclusion"] == "слабый сигнал"
+
+
+def test_empty_run_chain_and_banner_do_not_borrow_a_rejected_card_verdict():
+    chain = reasoning({
+        "decision_scope": "run_empty",
+        "policy_action": "HOLD",
+        "policy_reason": "no_admitted_cards",
+        "signal_label": None,
+        "counters": {"sources": 4, "admitted": 0, "excluded": 3, "confident": 0},
+    })
+    assert chain["conclusion"].startswith("список пуст")
+    assert "Ссылок в сохранённой выборке" in " ".join(chain["steps"])
+
+    from ts.desk import run_banner
+    banner = run_banner({"top": [], "counters": {"admitted": 0, "sources": 4}})
+    assert "Ссылок в сохранённой выборке: 4." in banner
+    assert all("Источников в прогоне" not in line for line in banner)
 
 
 def _scored(name: str, confidence, reason: str = "checklist_below_watchlist") -> dict:
@@ -190,25 +323,14 @@ def test_near_miss_board_falls_back_for_an_old_run_and_explains_reasons():
     assert near_miss_board({"near_miss": [], "exclusion_registry": [_scored("рядом", 0.3)]})["cards"] == []
 
 
-def test_screen_has_the_near_miss_block():
+def test_screen_exposes_potential_as_a_separate_module():
     from pathlib import Path
     text = Path("ui/app.py").read_text(encoding="utf-8")
-    assert "Близко к проходу" in text
-    assert "near_miss_board(payload)" in text
-    headings = [
-        'st.subheader("Поиск тонких сигналов")',
-        'st.subheader("Близко к проходу")',
-        'st.subheader("Новая жизнь старых технологий")',
-    ]
-    positions = [text.index(heading) for heading in headings]
-    assert positions == sorted(positions)
-    lines = text.splitlines()
-    row = next(i for i, line in enumerate(lines) if headings[1] in line)
-    assert lines[row] == "    " + headings[1]
-    assert lines[row - 1] == "with st.container(border=True):"
-    assert "Описание появится после поиска." in text
-    block = text[positions[1]:positions[2]]
-    assert "· сумма" not in block and "сумма {" not in block
+    assert '("Тонкие сигналы", "Потенциал", "Новая жизнь")' in text
+    assert "potential_board(payload)" in text
+    assert "potential_module()" in text
+    assert "old_tech_module()" in text
+    assert "не прогноз спроса" in (Path("ui/views.py").read_text(encoding="utf-8"))
 
 
 def test_public_report_carries_near_miss():
@@ -221,9 +343,17 @@ def test_public_report_carries_near_miss():
     }
     base = dict(id="x", query="q", idempotency_key="k", repeated=False, steps=[], sources=[], events=[],
                 card=card, top=[], shortfall=15, exclusion_registry=[])
-    assert public_report(RunReport(**base))["near_miss"] == []
+    empty = public_report(RunReport(**base))
+    assert empty["near_miss"] == []
+    assert empty["decision_scope"] == "run_empty"
+    assert empty["decision_card"] is None
     near = [{**_scored("рядом", 0.325), "reach": {"plain": "что это"}}]
     assert public_report(RunReport(**base, near_miss=near))["near_miss"] == near
+
+    selected = {**card, "technology": "первая карточка"}
+    with_top = public_report(RunReport(**{**base, "card": selected, "top": [selected], "shortfall": 14}))
+    assert with_top["decision_scope"] == "first_admitted_card"
+    assert with_top["decision_card"] == "первая карточка"
 
 
 def test_live_run_stores_near_miss_and_reads_reach_on_the_short_list_only(monkeypatch):
@@ -264,7 +394,7 @@ def test_old_tech_board_is_archive_only():
     expected = {
         row["path"]: row["sha256"]
         for row in manifest["files"]
-        if row["path"] in ("research/ranking.json", "research/candidates.json")
+        if row["path"] in ("research/ranking.json", "research/candidates.json", "research/sources.json")
     }
     assert snapshot["source_sha256"] == expected
     assert snapshot["fully_qualified_count"] == 0
@@ -280,11 +410,11 @@ def test_old_tech_board_is_archive_only():
     assert left == right
 
     board = old_tech_board(snapshot_path)
-    assert inspect.signature(old_tech_board).parameters.keys() == {"path"}
+    assert inspect.signature(old_tech_board).parameters.keys() == {"path", "query"}
     assert len(board["cards"]) == 15
     assert board["fully_qualified_count"] == 0
     assert "0" in board["note"]
-    assert "не входят в официальный ТОП-15" in board["note"]
+    assert "не входят в список текущего поиска" in board["note"]
     ranks = [card["rank"] for card in board["cards"]]
     assert ranks == sorted(ranks)
     for card in board["cards"]:
@@ -292,6 +422,8 @@ def test_old_tech_board_is_archive_only():
         assert 0 <= card["score_lower"] <= card["score_upper"] <= 100
         assert card["fully_qualified"] is False
         assert card["holds"]
+        assert card["sources"]
+        assert card["family"] and card["first_product"] and card["buyers"]
         assert "служебный код" not in " ".join(card["holds"])
         assert "приоритет инвестиций" not in card["decision"]
 
@@ -300,9 +432,10 @@ def test_old_tech_board_is_archive_only():
     assert missing["note"] == "Архив не загружен"
 
     screen = (root / "ui/app.py").read_text(encoding="utf-8")
-    assert "Новая жизнь старых технологий" in screen
+    assert "Новая жизнь" in screen
     call = next(line for line in screen.splitlines() if "old_tech_board()" in line)
-    assert call.strip() == "archive = old_tech_board()"
-    assert screen.index("Близко к проходу") < screen.index("old_tech_board()") < screen.index("with st.sidebar:")
+    assert call.strip() == "whole = old_tech_board()"
+    assert "old_tech_board(query=query)" in screen
+    assert screen.index("old_tech_board()") < screen.index("with st.sidebar:")
     assert "partner_review_ready" not in screen
     assert "Почему не квалифицирована" not in screen

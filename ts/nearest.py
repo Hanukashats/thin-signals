@@ -1,4 +1,4 @@
-"""Nearest finds when the official TOP-15 is short. Does not fill those slots.
+"""Nearest finds when the selected list is short. Does not fill those slots.
 
 The percent is how many checks passed. It is not confidence and not a market forecast.
 """
@@ -23,9 +23,9 @@ STAGES = (
 TRUST_RANK = {"primary": 3, "professional": 2, "indicator": 1}
 NEAREST_LIMIT = 15
 NOTE = (
-    "Это не официальный ТОП-15 и не вероятность, что тема станет стартапом, "
+    "Это не отобранный список и не вероятность, что тема станет стартапом, "
     "вырастет спрос или двинется акция. Процент — доля пройденных проверок. "
-    "Пустые места официального списка этим окном не заполняются."
+    "Пустые места основного списка этим окном не заполняются."
 )
 
 
@@ -35,7 +35,7 @@ def stuck_stage(payload: dict) -> dict:
         why = say(REASONS, reason)
         label = payload.get("signal_label")
         if label and label != "weak_signal":
-            why += ". В официальный список пускает только ранний сигнал"
+            why += ". В список слабых сигналов пускает только ранний сигнал"
         stage = {"title": "все ступени допуска", "why": why, "passed": len(STAGES), "percent": 100}
     else:
         found = next((i for i, item in enumerate(STAGES) if item[1] == reason), None)

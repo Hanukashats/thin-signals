@@ -1,58 +1,59 @@
 # STATUS.md — Thin Signals LivingSet
 
-Updated: **2026-09-30 00:19 MSK** · Plan revision: **7.3** (parent 7.2) · Deadline: **2026-09-29 23:59 MSK**
+Updated: **2026-10-01** · Plan revision: **7.6** (parent 7.5) · Original competition deadline: **2026-09-29 23:59 MSK**
 
-7.3 slice: W4a now has the approved AGI Space dusk treatment, official logo, responsive mobile layout and progressive disclosure in `ui/app.py`/`ui/theme.py`. The viewer refuses to auto-present the inconsistent persisted `mine-1g` result left by reverted commit `09e8888`; it explains that a fresh search is required instead of labelling stale rows as the current TOP-15. Scoring, data and API contracts are unchanged. W3 stays `in_progress` until an honest TOP-15. The public route remains `https://tsignal.aispaces.ru` through the shared home proxy. Account hashes live only in `.secrets/accounts.yaml`. GOAL queue ownership remains project `thin-signals`, agent `cursor-bk2`; this UI continuation did not claim or take its card.
-Host of record: Georg VM101 `/opt/thin-signals` (cursor-agent). Plan: `docs/plan/PLAN_7.2.md`, ADR-009.
+7.6 continuation: evidence and provider boundaries are hardened without changing `rules-0.1`, weights, thresholds or P01–P18. `checklist-v14` validates reader structure and rejects verified features/transitions or fired exclusion counters without an actual `[n]` fragment. Mandatory OpenRouter ZDR fields cannot be weakened; returned model and cached response provenance are checked. Three modules share the evidence-first shell: live signals, the separate below-gate potential queue, and search over the sealed 29.09 old-technology archive. Facts/hypotheses/checks/sources and run provenance stay separate. Figma v4 is node `41:178`; transparent logo/favicon are versioned. API/UI have persistent DynamicUser units ready for activation.
+
+The public route is `https://tsignal.aispaces.ru` through the home proxy to VM101. Account hashes and provider/database credentials remain only in host `.secrets/`. GOAL queue ownership remains `project=thin-signals`, `agent=cursor-bk2`; this Codex continuation did not create, claim or take its card.
 
 ## Current
 
 | Field | Value |
 |---|---|
-| Phase | **P1 Contract72** |
-| Wave | **W3-live** — in_progress |
-| Operator UI | **W4-ui implemented, independent acceptance pending** — dusk shell, green AGI Space brand band, logo favicon, mobile smoke, honest stale-run guard |
-| Done in W1 | LivingSet 7.2; ADR-009; METHODOLOGY; PLAN_7.2 persisted; donors/ + reference/ + lineage handoff with hashes; `ts/` skeleton (schemas, scoring/policy F03-fixed, 39 tests OK); compose pg (pgvector 0.8.6 on PG16 verified `CREATE EXTENSION vector`); venv `.venv` |
-| Left in W1 | — (2026-09-23: Alembic v1 `90f5cc54dd46` applied on VM230, 11 tables incl. pgvector; `ts seed import` → 100 `seed_unverified`, idempotent; `ts llm zdr-check`/`probe` OK: qwen3.6 via Venice 0.7 s, gpt-5.6-luna via Azure 1.5 s; 47 tests) → W1 closes after independent check |
-| Next wave | W2-scorer-eval: rules-0.1.yaml, negatives_v1.json, `ts eval`, P/R/F1 report |
-| Blockers (operator) | dataset: operator re-sent XLSX 2026-09-22 (`…_2.xlsx`, SHA256 `1349a208…`), byte-identical to `sources/` — treated as the official **visible** dataset (100 positives; hidden labels stay with organizers, so `ts eval` adapter must accept rows with only Технология/Область/Компании/Источники); presentation template not received; LLM provider keys (Yandex AI Studio / GigaChat / OpenAI direct) — fork `llm.provider` operator_gate |
+| Host of record | Georg VM101 `/opt/thin-signals` (`cursor-agent`) |
+| Phase | **P3 LivePath / P4 AnalystUI** |
+| W3-live | **in_progress** — live search exists; honest scored TOP-15 and durable per-step ledger remain incomplete |
+| W4-ui | **in_progress, tested candidate** — evidence-first shell and Figma complete; independent review and production smoke required before acceptance |
+| Rules | `rules-0.1`, unchanged |
+| Checklist | `checklist-v14`; old persisted rows may report v11 and are shown as drift, not relabelled |
+| Production baseline before 7.6 | SourceCraft `main` `66581d0`; public UI/API healthy on transient root-run services |
+| Canonical Git | private SourceCraft `shats123/thin-signals`; GitHub mirror required but not configured/verified on VM101 |
 
-## Decisions this INTEGRATE (7.2, 2026-09-22)
+## Verified in this increment
 
-| Fork | Choice | Class |
-|---|---|---|
-| `tz.classifier` | logical_scorer | BEST_FIT |
-| `backend.reuse` | extend_via_urls | BEST_FIT |
-| `graph.neo4j` | drop_pg_tables (closed) | MINIMAL |
-| `sources.epo_cordis` | stub_unavailable (closed) | MINIMAL |
-| `ui.stack` | streamlit_ru | MINIMAL |
-| `goal.controller` | three_invariants_in_domain | MINIMAL |
-| `runtime.adapter` | python_harness_hermes_optional | MINIMAL |
-| `hosting.sourcecraft` | sourcecraft_plus_github_mirror | BEST_FIT |
-| `llm.provider` | **open — operator gate** | — |
+- Evidence-link and LLM-policy RED/GREEN tests reproduce the defects then pass after the fix.
+- UI view-model tests prove a `watchlist` card is never grouped as a weak signal.
+- Run integrity warns about checklist drift, missing provider and missing independent evidence.
+- Transparent logo and compact favicon remove the baked-in dark rectangle; the supplied source is preserved exactly.
+- Versioned systemd units bind to loopback, use separate dynamic identities, `LoadCredential`, protected filesystem and `Restart=on-failure`.
+- Figma frame `41:178` defines the three-module Deep Space workbench.
+- 220 tests pass against `thin_signals_test_1790887573`; ruff, LivingSet links and diff checks pass.
+- Backup `/srv/thin-signals-backups/20261001-2230/database.dump` was restored into a disposable database; all 147 runs were present. Production data was not modified by the restore check.
 
-## Donor pack 2026-09-21
+## Open audit findings
 
-ZIP SHA256 `cfa98189…697646`; SHA256SUMS 150/150 OK. Radar 0.1.1, GoalOps 0.1, POL 1.2.1 (byte-identical to VM copy), reference policy (15/15 OK). Provenance: `donors/README.md`; gaps: `docs/lineage/handoff_2026-09-21/KNOWN_GAPS_AND_ACCEPTANCE.md`.
+1. **Rules change required:** score can be non-monotonic when adding a positive secondary feature because primary reassignment changes weights. Do not hotfix; create a new rules version, eval and independent acceptance.
+2. **Run contract:** all search connectors failing can still end as `succeeded`; define a versioned degraded/failed status contract before changing persisted/API semantics.
+3. **Persistence:** canonical step/evidence ledgers are not fully populated for existing live runs; JSON payloads are not a substitute for the intended durable ledger.
+4. **Release:** GitHub mirror identity/authentication is absent on VM101. SourceCraft remains canonical; do not claim dual push until the exact mirror and dedicated credential are verified.
+5. **Research scope:** New Life is a reproducible archive search, not new live web research. Its 15 hypotheses have no completed commercial/legal diligence.
 
-## Requirement snapshot
+## Requirements snapshot
 
-- implemented: LP-01…07, DN-01, RM-01, TZ-04, TZ-06, SC-12
-- planned W1: TZ-11, TZ-12, TS-INV-01…03
-- blocked: TZ-14 (template)
-- planned W1: LLM-01 (OpenRouter ZDR decided 2026-09-22, key in place)
-- removed to lineage: SC-01, SC-04, SC-05, SC-08, SC-10, TS-AG-01…16, TS-AG-18
+- tested: `TZ-04`, `TZ-06`, `LLM-01`, `SC-12`, `TS-INV-02`, `TS-INV-03`
+- implemented: `LP-01…07`, `DN-01`, `RM-01`, `TZ-03`, `TZ-07`, `SC-06`, `SC-07`
+- in progress: `TZ-14` (official template found; final deck and visual verification in progress)
+- release blocker: `TZ-15` (GitHub mirror not verified)
+- removed to lineage: `SC-01`, `SC-04`, `SC-05`, `SC-08`, `SC-10`, `TS-AG-01…16`, `TS-AG-18`
 
 ## Hosts
 
-- VM230 `agi-thin-signals` (home PVE, 192.168.5.230) provisioned 2026-09-23: Ubuntu 24.04, Docker 29.8, sing-box AMS1 egress, repo checkout `9d6f3f1`, 39 tests pass, pg+pgvector healthy. See `docs/ops/VM230.md`, `docs/ops/hosts.yaml`. Pending: NetBird setup-key.
-
-## SourceCraft
-
-Repo `https://sourcecraft.dev/shats123/thin-signals` (private). **Pushed 2026-09-22:** `main` @ `3c0fbcb` (LP-05 implemented). Push auth: HTTPS + `GIT_ASKPASS=.secrets/git-askpass.sh`. SSH key not registered (UI-only).
+- **VM101 is the current production host:** PostgreSQL at `127.0.0.1:55432`, API at `127.0.0.1:8095`, Streamlit at `127.0.0.1:8501`; public TLS terminates on the home proxy and reaches VM101 over the existing internal route.
+- VM230 remains a stale development/demo checkout and must not be treated as current production until it fast-forwards from SourceCraft and passes its own smoke tests.
 
 ## Next trigger
 
-1. GOAL v3 `g-2a54ff75ca41` on goal-kernel 0.3.0: C01 persist, C02 API, C04 ZDR OpenRouter PASS (2026-09-23). C03 Russian screen is UNKNOWN: stopped for operator Figma login. The Telegram session cannot open the Figma plugin auth card.
-2. W2: `ts/scoring/rules-0.1.yaml`, `data/negatives_v1.json`, `ts eval`, `reports/eval_<date>.md`.
-3. Operator: presentation template; optional dedicated OpenRouter key for thin-signals.
+1. Complete independent code/security/UI review, isolated-DB full tests and staging desktop/mobile smoke.
+2. Reconcile with current SourceCraft `main`, commit/push the reviewed SHA, fast-forward `/opt/thin-signals`, install persistent units and verify local/public health with a recorded rollback SHA.
+3. Locate or create the exact GitHub mirror with dedicated repository-scoped authentication; push the identical SHA and close `TZ-15` only after comparing both refs.
+4. Open separate versioned work for connector-total-failure status, durable ledger population and score monotonicity; none may be hidden inside this UI increment.

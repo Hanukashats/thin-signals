@@ -1,10 +1,10 @@
-# plan.yaml — Thin Signals LivingSet v7.4
-# Machine-readable waves. Human narrative: docs/plan/PLAN_7.4.md, PLAN_7.3.md, CONCEPT, STATUS.
-# 7.4 keeps admission on rules-0.1 and adds order among cards that already passed.
+# plan.yaml — Thin Signals LivingSet v7.6
+# Machine-readable waves. Human narrative: docs/plan/PLAN_7.6.md and its parent plans.
+# 7.6 hardens evidence/provider integrity and the evidence-first operator UI; rules-0.1 is unchanged.
 
-plan_revision: "7.4"
-parent_revision: "7.3"
-date: "2026-09-27"
+plan_revision: "7.6"
+parent_revision: "7.5"
+date: "2026-10-01"
 deadline: "2026-09-29T23:59:00+03:00"
 operator_stop: "2026-09-28T11:00:00+03:00"
 status: active
@@ -50,6 +50,8 @@ execution:
   notes: >
     7.2 compresses the 11-step cycle to 4. INTEGRATE must update STATUS + touched IDs.
     7.3 adds screens, public name tsignal.aispaces.ru, and the empty-loop rules above.
+    7.6 adds fail-closed evidence references, non-overridable ZDR policy, honest per-card UI semantics,
+    Figma three-module v4 and persistent loopback-only services. Scoring weights and thresholds stay unchanged.
     The chief architect may close a card only after another hat re-runs the check.
     The implementer hat still cannot verify the increment it just wrote.
     Those rules live in this file. They are not a second controller inside the product.
@@ -130,7 +132,7 @@ phases:
     goal: Russian Streamlit UI per TZ «Пример UI»
     waves:
       - id: W4-ui
-        status: planned
+        status: in_progress
         owner: frontend
         deliverables: ["query page", "TOP-15 list with confidence + predictors", "report page", "source cards trust/translation", "relations list", "exclusion registry", "counters"]
         requirements: [TZ-04, TZ-06, TZ-08, TZ-09, TZ-18, SC-12]
@@ -144,14 +146,17 @@ phases:
           - "roles admin/hanuka/yana and user1/user2/user3, hashes only on the host"
         requirements: [TZ-04, TZ-18]
         forks: [ui.stack]
-        note: "Viewer runs without login. Admin, login and dashboard are not required for a live signal."
+        note: "Viewer is now closed by host accounts; hashes stay in .secrets/accounts.yaml. Search and saved runs use the same screen."
       - id: W4b-figma
-        status: planned
+        status: completed
         owner: codex
-        deliverables: ["visual polish of the working W4a screens in Figma"]
-        requirements: [TZ-04]
+        deliverables:
+          - "editable three-module desktop frame 41:178 in Figma file RbbhSTdppIVib4AUkGKvia"
+          - "transparent metallic lockup and compact transparent favicon"
+          - "facts/hypotheses/checks/sources and run-integrity strip"
+        requirements: [TZ-04, TZ-06, SC-12]
         forks: [ui.stack]
-        note: "Do not start until W4a is reachable and the field-split test passes. After the public name, not before the viewer."
+        note: "Implemented after the public W4a screen became reachable; no inactive history/check actions were shipped."
       - id: W4d-admin-optional
         status: planned
         owner: cursor
@@ -160,7 +165,7 @@ phases:
         forks: [ui.stack]
         note: "Last and optional. A live signal must work with this wave still planned."
       - id: W4c-ingress
-        status: in_progress
+        status: completed
         owner: infra
         deliverables:
           - "DNS A for tsignal.aispaces.ru on the home MikroTik white IP 109.195.243.128; apex aispaces.ru stays"
@@ -170,6 +175,18 @@ phases:
         requirements: [TZ-13]
         forks: [hosting.sourcecraft]
         note: "Public URL is https://tsignal.aispaces.ru. The home hub proxy chooses by name: the mesh name stays on the mesh, this name returns only the signals screen. Both certificates renew there. Port 80 is the certificate check. Port 18443 is the inner hop to this server. Office address 5.167.79.32 is not this door. Zone agispace.ru is not used."
+      - id: W4e-integrity-ui
+        status: in_progress
+        owner: codex
+        deliverables:
+          - "checklist-v14 structural and evidence-reference validator"
+          - "non-overridable ZDR/data-collection policy and returned-model allowlist"
+          - "model/provider provenance from the same checklist card"
+          - "honest evidence-first Streamlit result shell"
+          - "versioned systemd API/UI units"
+        requirements: [LLM-01, TS-INV-02, TS-INV-03, TZ-04, TZ-06, SC-12, UI-POT-01, UI-OLD-01]
+        forks: [llm.provider, ui.stack]
+        note: "No scoring weight, threshold, registry, schema or historic eval snapshot changes. Completion requires independent review and production smoke."
 
   - id: P5
     name: Release

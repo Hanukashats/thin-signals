@@ -9,7 +9,6 @@ from ts.scale import apply_reader
 from ts.scoring.scorer import load_rules
 from ts.sources.connectors import Hit
 
-
 MISSION = "2026 scientific discoveries and technological changes that reshape production chains and markets"
 RUSSIAN = "новые научные механизмы и технологические сдвиги в энергетике материалах вычислениях и производстве"
 
@@ -46,6 +45,44 @@ def test_themes_take_turns_and_a_read_wide_shift_goes_first():
     assert merged["overflow"][0]["technology"] == "beta two"
     assert merged["overflow"][0]["policy_reason"] == "theme_quota"
     assert [note["taken"] for note in merged["themes"]] == [2, 1]
+
+
+def test_checklist_route_keeps_model_and_provider_from_the_same_card():
+    from ts.live import _checklist_route
+
+    checked = {
+        "top": [{"checklist": {"model_id": "model-a", "provider": "ProviderA"}}],
+        "excluded": [{"checklist": {"model_id": "model-b", "provider": "ProviderB"}}],
+        "unread": [],
+    }
+
+    assert _checklist_route(checked) == ("model-a", "ProviderA")
+    assert _checklist_route({"top": [], "excluded": checked["excluded"], "unread": []}) == (
+        "model-b",
+        "ProviderB",
+    )
+    assert _checklist_route({"top": [], "excluded": [], "unread": []}) == (None, None)
+
+
+def test_empty_run_has_its_own_verdict_and_summarizes_exclusions():
+    from ts.live import _empty_card
+
+    card = _empty_card(
+        "rules-0.1",
+        [
+            {"policy_reason": "checklist_below_watchlist"},
+            {"policy_reason": "checklist_below_watchlist"},
+            {"policy_reason": "other_mechanism_after_read"},
+        ],
+        [{"technology": "без текста"}],
+    )
+
+    assert card["policy_action"] == "HOLD"
+    assert card["policy_reason"] == "no_admitted_cards"
+    assert card["label"] is None and card["confidence"] is None
+    assert "никто не допущен" in card["chain_link"]["sentence"]
+    assert "— 2" in card["chain_link"]["sentence"]
+    assert "нет доступного текста" in card["chain_link"]["sentence"]
 
 
 class _Echo:

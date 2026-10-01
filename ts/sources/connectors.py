@@ -10,6 +10,7 @@ import re
 import xml.etree.ElementTree as ET
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import UTC
 from urllib.parse import quote
 
 Get = Callable[[str], str]
@@ -544,8 +545,8 @@ def _value(field) -> str:
 def _ms_date(value) -> str | None:
     if not isinstance(value, (int, float)):
         return None
-    from datetime import datetime, timezone
-    return datetime.fromtimestamp(value / 1000, tz=timezone.utc).date().isoformat()
+    from datetime import datetime
+    return datetime.fromtimestamp(value / 1000, tz=UTC).date().isoformat()
 
 
 def _us_date(value: str | None) -> str | None:

@@ -19,6 +19,8 @@ import httpx
 from ts.settings import Settings, load
 
 ZDR_CACHE_TTL_S = 6 * 3600
+CACHE_POLICY_VERSION = "zdr-deny-v1"
+MANDATORY_PROVIDER_POLICY = {"zdr": True, "data_collection": "deny"}
 
 
 class LLMError(RuntimeError):
@@ -44,6 +46,35 @@ class LLMResponse:
 
     def json(self) -> Any:
         return json.loads(self.content)
+
+
+def cache_attestation(response: LLMResponse) -> dict:
+    """Metadata required before an LLM result may be reused without a new request."""
+    return {
+        "model_id": response.model_id,
+        "provider": response.provider,
+        "policy_version": CACHE_POLICY_VERSION,
+        "provider_policy": dict(MANDATORY_PROVIDER_POLICY),
+    }
+
+
+def cached_response_is_current(client, meta: object, requested_model: str) -> bool:
+    """Fail closed unless a cache proves the mandatory policy and its route is still allowed."""
+    if not isinstance(meta, dict):
+        return False
+    if meta.get("policy_version") != CACHE_POLICY_VERSION:
+        return False
+    if meta.get("provider_policy") != MANDATORY_PROVIDER_POLICY:
+        return False
+    model_id = str(meta.get("model_id") or "")
+    provider = str(meta.get("provider") or "")
+    if not model_id or not provider or model_id != requested_model:
+        return False
+    try:
+        client.validate_response_route(model_id, provider)
+    except (LLMError, httpx.HTTPError, KeyError, TypeError, ValueError):
+        return False
+    return True
 
 
 class OpenRouterClient:
@@ -82,6 +113,14 @@ class OpenRouterClient:
         if model not in self.zdr_providers():
             raise ZDRViolation(f"{model} has no ZDR-capable endpoints on OpenRouter right now")
 
+    def validate_response_route(self, model_id: str, provider: str) -> None:
+        """Apply the same allowlist and live ZDR route check to network and cached responses."""
+        if model_id not in self.s.allowed_models:
+            raise ModelNotAllowed(f"response model {model_id!r} is not in the TZ allowlist {self.s.allowed_models}")
+        allowed = self.zdr_providers().get(model_id, set())
+        if provider not in allowed:
+            raise ZDRViolation(f"response from provider {provider!r} for {model_id} is not in ZDR list {sorted(allowed)}")
+
     # -- chat -----------------------------------------------------------------------------------
     def chat(
         self,
@@ -100,7 +139,11 @@ class OpenRouterClient:
             "model": model,
             "messages": messages,
             "max_tokens": max_tokens,
-            "provider": {**self.s.llm_provider_policy, "require_parameters": require_parameters},
+            "provider": {
+                **self.s.llm_provider_policy,
+                **MANDATORY_PROVIDER_POLICY,
+                "require_parameters": require_parameters,
+            },
         }
         if temperature is not None and not model.startswith("openai/gpt-5"):
             body["temperature"] = temperature
@@ -118,9 +161,7 @@ class OpenRouterClient:
             raise LLMError(f"OpenRouter {r.status_code}: {json.dumps(data.get('error', data), ensure_ascii=False)[:400]}")
         provider = data.get("provider", "")
         model_id = data.get("model", model)
-        allowed = self.zdr_providers().get(model_id, set())
-        if provider not in allowed:
-            raise ZDRViolation(f"response from provider {provider!r} for {model_id} is not in ZDR list {sorted(allowed)}")
+        self.validate_response_route(model_id, provider)
         content = (data["choices"][0]["message"].get("content") or "").strip()
         return LLMResponse(
             model_id=model_id,

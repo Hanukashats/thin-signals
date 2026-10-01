@@ -1,10 +1,10 @@
-# requirements.yaml — Thin Signals LivingSet v7.2
+# requirements.yaml — Thin Signals LivingSet v7.6
 # Each requirement: state, owner, acceptance, wave, evidence[].
 # States: proposed | planned | implemented | tested | accepted | blocked | removed
 # TS-AG-01..18 (7.1 goal_control) moved to docs/lineage/baseline_v6_1/integration/acceptance.json; only TS-AG-17 kept.
 
-plan_revision: "7.2"
-date: "2026-09-22"
+plan_revision: "7.6"
+date: "2026-10-01"
 
 requirements:
   # --- Living plan meta ---
@@ -122,7 +122,7 @@ requirements:
     title: TOP-15 cards with description, advantage, case, sources, confidence, explanation
     priority: P1
     owner: frontend/AI
-    state: implemented
+    state: tested
     wave: W4-ui
     forks: [ui.stack]
     acceptance: Cards + report page; shortfall visible, no invented fillers
@@ -130,6 +130,7 @@ requirements:
       - ui/app.py
       - ts/desk.py candidate_views, score_story, saved_run_state
       - ts/tests/test_ui_shell.py
+      - docs/ui/EVIDENCE_FIRST_V3.md and Figma node 41:178
 
   - id: TZ-05
     title: Exclude mature/hype/noise with evidence registry
@@ -144,7 +145,7 @@ requirements:
     title: Russian UI and analytics output
     priority: P1
     owner: frontend
-    state: implemented
+    state: tested
     wave: W4-ui
     forks: [ui.stack]
     acceptance: Localized fields/statuses; original source titles preserved
@@ -153,6 +154,8 @@ requirements:
       - ui/theme.py
       - ui/assets/agi-space-logo-official.jpg
       - ui/assets/agi-space-mark.png
+      - ui/assets/agi-space-logo-metallic-2026-10-01.jpg
+      - ui/assets/agi-space-logo-transparent.png
       - ts/tests/test_ui_shell.py
 
   - id: TZ-07
@@ -192,7 +195,7 @@ requirements:
     state: planned
     wave: W3-live
     forks: [llm.provider]
-    acceptance: Product answers via ts-llm-allowlisted only; model_id stored per extraction; no OpenRouter in product mode
+    acceptance: Only TZ-listed models through OpenRouter ZDR per organizer decision 22.09; model/provider provenance retained; see LLM-01
     evidence: []
 
   - id: TZ-11
@@ -228,10 +231,12 @@ requirements:
     title: Presentation <=15 slides; slides 7-11 per template
     priority: P1
     owner: release
-    state: blocked
+    state: implemented
     wave: W5-release
-    acceptance: Template obtained from operator; slides 7-11 unchanged design
-    evidence: []
+    acceptance: Official template slides 7-11 preserved as the first five slides; total no more than 15, 16:9, Montserrat, factual team fields
+    evidence:
+      - docs/presentation/2026-09-29-audit.md
+      - "Official template recovered from outbox/1305367840_1790712701/source; final 2026-10-01 deck in progress"
 
   - id: TZ-15
     title: Public repo (GitHub mirror) with README Docker + dependencies
@@ -319,7 +324,7 @@ requirements:
     title: LLM access = OpenRouter ZDR, TZ-listed models only, provider+model_id logged
     priority: P1
     owner: infra
-    state: implemented
+    state: tested
     wave: W1-contract
     forks: [llm.provider]
     acceptance: >
@@ -329,7 +334,8 @@ requirements:
       ARCHITECTURE.md states the ZDR policy (organizer condition)
     evidence:
       - reports/llm-provider-zdr-2026-09-22.md
-      - ts/llm.py + ts/tests/test_llm.py (5 tests: policy on every request, allowlist, provider check, strict json_schema)
+      - ts/llm.py + ts/tests/test_llm.py (policy cannot weaken ZDR; requested and returned model allowlists; provider check; strict json_schema)
+      - ts/checklist.py + ts/live.py (model/provider pair preserved from checklist to run)
       - "2026-09-23 VM230: ts llm zdr-check exit 0; probe qwen3.6 Venice, gpt-5.6-luna Azure"
 
   # --- Replacement matrix ---
@@ -406,13 +412,14 @@ requirements:
     title: Honest shortfall below 15
     priority: P1
     owner: frontend
-    state: implemented
+    state: tested
     wave: W4-ui
     acceptance: Show count + watchlist separately
     evidence:
-      - ui/app.py result metrics and TOP/watchlist tabs
+      - ui/app.py per-card verdict groups and evidence-first tabs
       - ts/desk.py saved_run_state
       - ts/tests/test_ui_shell.py::test_inconsistent_saved_run_is_not_auto_loaded
+      - ts/tests/test_desk.py::test_candidate_groups_never_promote_watchlist_to_weak_signal
 
   # --- Process invariants (replace TS-AG-01..18) ---
   - id: TS-INV-01
@@ -429,21 +436,26 @@ requirements:
     title: Claim requires fragment of read snapshot; PASS requires evidence
     priority: P1
     owner: backend
-    state: planned
+    state: tested
     wave: W1-contract
     forks: [goal.controller]
     acceptance: semantic validator rejects claim without fragment_id; structural rc=0 of donor validators is not a gate
-    evidence: []
+    evidence:
+      - ts/checklist.py checklist-v14 structure, _uncited_verified and exclusion-counter references
+      - ts/tests/test_checklist.py invalid/missing/out-of-range fragment references fail closed
 
   - id: TS-INV-03
     title: Run status separated from signal decision
     priority: P1
     owner: backend/frontend
-    state: planned
+    state: tested
     wave: W1-contract
     forks: [goal.controller]
     acceptance: succeeded run may yield mature/noise/watchlist; UI shows both fields
-    evidence: []
+    evidence:
+      - ts/persist.py public_report keeps run_status and signal_label separate
+      - ts/desk.py run_integrity and candidate_groups
+      - ts/tests/test_desk.py::test_document_keeps_run_status_and_label_apart
 
   - id: TS-AG-17
     title: Preserve all scientific gates P01-P18
@@ -453,3 +465,21 @@ requirements:
     wave: W2-scorer-eval
     acceptance: Patterns and mapping preserved in registry; scorer covers all 18 features
     evidence: []
+
+  - id: UI-POT-01
+    title: Separate potential queue with gate proximity OR evidenced technical/demand/development potential
+    priority: P1
+    owner: frontend/backend
+    state: tested
+    wave: W4e-integrity-ui
+    acceptance: Below-gate scored cards have transparent deterministic triage indices, axis evidence and reasons; missing axes remain unknown; no admission/ranking mutation
+    evidence: [ts/potential.py, ts/tests/test_potential.py, ts/desk.py, ui/views.py]
+
+  - id: UI-OLD-01
+    title: Searchable old-technology research archive with historical barriers and changed constraints
+    priority: P1
+    owner: frontend/backend
+    state: tested
+    wave: W4e-integrity-ui
+    acceptance: Integrity-checked 29.09 archive is searchable by name, barrier, product and buyers; sources and diligence holds visible; archive search never claimed as fresh web discovery
+    evidence: [ts/old_tech.py, ts/tests/test_old_tech.py, ts/desk.py, ui/views.py]

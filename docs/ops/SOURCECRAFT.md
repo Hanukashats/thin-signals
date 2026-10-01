@@ -1,6 +1,6 @@
 # SourceCraft access (no secrets)
 
-LivingSet **7.1**. Hosting: [SourceCraft](https://sourcecraft.dev) (Yandex). SSH auth verified for user **shats123** (2026-09-18).
+LivingSet **7.6**. Hosting: [SourceCraft](https://sourcecraft.dev) (Yandex). SourceCraft is canonical; the required GitHub mirror is not configured on VM101 as of 2026-10-01 and must not be claimed until its exact repository and dedicated credential are verified.
 
 ## Credentials (SEC canon)
 

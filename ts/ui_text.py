@@ -51,7 +51,7 @@ def screen(payload: dict) -> dict:
         f"Метка сигнала: {shown_label(payload)}",
         decision_line(payload.get("policy_action"), payload.get("policy_reason")),
         f"Уверенность: {_confidence_line(payload)}",
-        f"В ТОП-15: {len(payload.get('top') or [])}, недобор: {payload.get('shortfall', '—')}",
+        f"Отобрано карточек: {len(payload.get('top') or [])}, недобор до 15: {payload.get('shortfall', '—')}",
         f"Модель: {payload.get('model_id') or 'извлечение не запускалось'}",
     ]
     fanout = payload.get("fanout") or {}

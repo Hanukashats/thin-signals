@@ -16,6 +16,7 @@ ACTIONS = {
 }
 
 REASONS = {
+    "no_admitted_cards": "ни одна карточка не прошла проверку допуска",
     "unresolved_availability": "нет источника с датой, который можно открыть",
     "verified_fatal_claim": "есть проверенное опровержение",
     "weak_negative_not_terminal": "отрицание слабое, его ещё надо проверить",
