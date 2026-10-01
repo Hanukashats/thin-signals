@@ -161,17 +161,120 @@ def test_same_theme_card_with_text_takes_the_empty_seat():
 
 def test_reader_exception_stays_unevaluated_not_noise():
     rules = _rules()
+    calls = []
+    head = _card("head", theme="a", url="https://arxiv.org/abs/head")
+    head["label"] = "watchlist"
+
+    def reader(card):
+        calls.append(card["technology"])
+        if card["technology"] == "head":
+            raise RuntimeError("down")
+        return _read(_out(verified={"P01"}, transition="supported"))
+
+    later = _card("pass-later", theme="a", url="https://arxiv.org/abs/pass")
+    result = apply_checklist([head], [later], reader, rules)
+    assert calls == ["head", "pass-later"]
+    assert [row["technology"] for row in result["top"]] == ["pass-later"]
+    failed = result["unread"][0]
+    assert failed["technology"] == "head"
+    assert failed["checklist"]["status"] == "reader_failed"
+    assert failed["checklist"]["error"] == "RuntimeError"
+    assert failed["label"] is None
+    assert failed["confidence"] is None
+    assert failed["predictors"] == []
+    assert failed["seat_replaced"] is True
+    assert failed["policy_reason"] == "reader_failed_replaced"
+    assert all(row["technology"] != "head" for row in result["excluded"])
+
+
+def test_reader_without_output_on_the_first_card_leaves_the_seat_empty_when_theme_has_nothing():
+    rules = _rules()
+    result = apply_checklist([_card("head", theme="a")], [], lambda _c: None, rules)
+    assert result["top"] == []
+    failed = result["unread"][0]
+    assert failed["checklist"]["status"] == "reader_failed"
+    assert failed["policy_reason"] == "reader_failed"
+    assert failed["label"] is None and failed["confidence"] is None
+    assert failed.get("seat_replaced") is not True
+    assert result["stats"]["unevaluated"] == 1
+
+
+def test_cut_snippet_is_read_from_the_fuller_record(monkeypatch):
+    from ts import checklist
+
+    checklist._FULL.clear()
+    asked = []
+    full = "Start of the abstract. " + "x" * 900 + " the rest of the abstract"
+
+    def fake(card):
+        asked.append(card["sources"][0]["url"])
+        return full
+
+    monkeypatch.setattr(checklist, "fetch_abstract", fake)
+    cut = _card(url="https://arxiv.org/abs/cut", snippet="y" * checklist.SNIPPET_CAP)
+    fragments, _ = checklist._fragments(cut)
+    checklist._fragments(cut)
+    assert fragments == [f"Paper. {full}"]
+    assert asked == ["https://arxiv.org/abs/cut"]
+
+    whole = _card(url="https://arxiv.org/abs/whole", snippet="z" * (checklist.SNIPPET_CAP - 1))
+    assert checklist._fragments(whole)[0] == ["Paper. " + "z" * (checklist.SNIPPET_CAP - 1)]
+    assert asked == ["https://arxiv.org/abs/cut"]
+    checklist._FULL.clear()
+
+
+def test_cut_snippet_stays_when_the_record_is_shorter_or_closed(monkeypatch):
+    from ts import checklist
+
+    checklist._FULL.clear()
+    monkeypatch.setattr(checklist, "fetch_abstract", lambda _card: "")
+    cut = _card(url="https://arxiv.org/abs/closed", snippet="y" * checklist.SNIPPET_CAP)
+    assert checklist._fragments(cut)[0] == ["Paper. " + "y" * checklist.SNIPPET_CAP]
+    title_only = _card(url="https://example.test/title", snippet="")
+
+    def never(_c):
+        raise AssertionError("reader")
+
+    judged = score_card(title_only, never, _rules())
+    assert judged["unread"] is True
+    assert judged["card"]["checklist"]["status"] == "no_fragment"
+    assert judged["card"]["confidence"] is None
+    checklist._FULL.clear()
+
+
+def _capture_reader(monkeypatch, query):
+    import ts.extract
+    import ts.llm
+    from ts.checklist import make_reader
+
+    sent = []
+
+    class FakeExtractor:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def extract(self, row):
+            sent.append(row)
+            return _out(verified={"P01"}), {"model_id": "fake"}
+
+    class Settings:
+        rules_version = "rules-0.1"
+        llm_judge = "fake"
+
+    monkeypatch.setattr(ts.extract, "Extractor", FakeExtractor)
+    monkeypatch.setattr(ts.llm, "OpenRouterClient", lambda _settings: None)
     card = _card()
-    card["label"] = "watchlist"
+    card["theme_query"] = "sodium ion battery cathode"
+    make_reader(Settings(), query)(card)
+    return sent[0]
 
-    def reader(_c):
-        raise RuntimeError("down")
 
-    result = apply_checklist([card], [], reader, rules)
-    assert result["top"][0]["checklist"]["status"] == "reader_failed"
-    assert result["top"][0]["label"] is None
-    assert result["top"][0]["confidence"] is None
-    assert result["top"][0]["predictors"] == []
+def test_wide_reader_does_not_send_the_theme_query(monkeypatch):
+    assert "query" not in _capture_reader(monkeypatch, None)
+
+
+def test_narrow_reader_keeps_the_typed_query(monkeypatch):
+    assert _capture_reader(monkeypatch, "натриевая ячейка")["query"] == "натриевая ячейка"
 
 
 def test_backfill_same_theme_in_order():
@@ -195,7 +298,7 @@ def test_backfill_same_theme_in_order():
     assert result["overflow"][0]["technology"] == "beta"
 
 
-def test_backfill_cap_5():
+def test_backfill_cap_stops():
     rules = _rules()
     calls = []
 
@@ -205,11 +308,84 @@ def test_backfill_cap_5():
 
     top = [_card(f"top-{index}", theme=f"t{index}", url=f"https://arxiv.org/abs/t{index}") for index in range(15)]
     overflow = [_card(f"over-{index}", theme=f"t{index}", url=f"https://arxiv.org/abs/o{index}") for index in range(7)]
-    result = apply_checklist(top, overflow, reader, rules)
+    result = apply_checklist(top, overflow, reader, rules, backfill_cap=5)
     assert len(calls) == 20
     assert result["stats"]["backfill"] == 5
     assert result["top"] == []
     assert len(result["overflow"]) == 2
+
+
+def test_failed_replacement_keeps_walking_the_same_theme():
+    rules = _rules()
+    calls = []
+
+    def reader(card):
+        calls.append(card["technology"])
+        if card["technology"] in {"head", "fail-next"}:
+            return _read(_out(counters={"M01": "лидеры"}))
+        return _read(_out(verified={"P01"}, transition="supported"))
+
+    top = [_card("head", theme="a", url="https://arxiv.org/abs/head")]
+    overflow = [
+        _card("fail-next", theme="a", url="https://arxiv.org/abs/fail"),
+        _card("pass-later", theme="a", url="https://arxiv.org/abs/pass"),
+        _card("other", theme="b", url="https://arxiv.org/abs/other"),
+    ]
+    result = apply_checklist(top, overflow, reader, rules)
+    assert calls == ["head", "fail-next", "pass-later"]
+    assert [row["technology"] for row in result["top"]] == ["pass-later"]
+    assert [row["technology"] for row in result["overflow"]] == ["other"]
+
+
+def test_reader_failure_does_not_take_the_seat():
+    rules = _rules()
+    calls = []
+
+    def reader(card):
+        calls.append(card["technology"])
+        if card["technology"] == "head":
+            return _read(_out(counters={"M01": "лидеры"}))
+        if card["technology"] == "blank":
+            return None
+        return _read(_out(verified={"P01"}, transition="supported"))
+
+    top = [_card("head", theme="a", url="https://arxiv.org/abs/head")]
+    later = _card("pass-later", theme="a", url="https://arxiv.org/abs/pass")
+    later["policy_reason"] = "theme_quota"
+    overflow = [
+        _card("blank", theme="a", url="https://arxiv.org/abs/blank"),
+        later,
+    ]
+    result = apply_checklist(top, overflow, reader, rules)
+    assert calls == ["head", "blank", "pass-later"]
+    assert [row["technology"] for row in result["top"]] == ["pass-later"]
+    assert result["top"][0]["policy_reason"] == "evidence_gates_passed"
+    assert result["excluded"][-1]["checklist"]["status"] == "reader_failed"
+
+
+def test_one_theme_stops_after_four_reads():
+    from ts.checklist import TEXT_HUNT
+
+    calls = []
+
+    def reader(card):
+        calls.append(card["technology"])
+        if card["technology"] == "keep-b":
+            return _read(_out(verified={"P01"}, transition="supported"))
+        if card["technology"].startswith("head"):
+            return _read(_out(counters={"M01": "лидеры"}))
+        return None
+
+    top = [
+        _card("head-a", theme="a", url="https://arxiv.org/abs/ha"),
+        _card("head-b", theme="b", url="https://arxiv.org/abs/hb"),
+    ]
+    overflow = [_card(f"blank-{index}", theme="a", url=f"https://arxiv.org/abs/a{index}") for index in range(6)]
+    overflow.append(_card("keep-b", theme="b", url="https://arxiv.org/abs/kb"))
+    result = apply_checklist(top, overflow, reader, _rules())
+    assert sum(name.startswith("blank-") for name in calls) == TEXT_HUNT
+    assert "keep-b" in calls
+    assert [row["technology"] for row in result["top"]] == ["keep-b"]
 
 
 def test_empty_seat_replacement_respects_cap_before_pop():

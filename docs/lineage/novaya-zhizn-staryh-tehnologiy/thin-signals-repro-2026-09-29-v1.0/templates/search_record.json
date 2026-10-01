@@ -1,0 +1,15 @@
+{
+  "query_id": "Q_NEW",
+  "candidate_id": "T_NEW",
+  "query": "",
+  "purpose": "history|science|negative_evidence|commercial|rights",
+  "provider": "",
+  "searched_at": null,
+  "cutoff": "2026-09-29",
+  "status": "not_run",
+  "result_urls": [],
+  "relevant_source_ids": [],
+  "summary": "",
+  "limitations": ""
+}
+

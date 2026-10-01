@@ -1,0 +1,4 @@
+# Python >= 3.8
+# No third-party Python packages required for offline verification and replay.
+# Network research additionally requires web access and optional provider credentials.
+

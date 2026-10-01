@@ -1,0 +1,406 @@
+{
+  "as_of": "2026-09-29",
+  "model_version": "0.1-research",
+  "source_package": "docs/lineage/novaya-zhizn-staryh-tehnologiy/thin-signals-repro-2026-09-29-v1.0",
+  "source_sha256": {
+    "research/ranking.json": "548943d7b68bad5e37ff18a852767f8af5bd5c5272f21234c6f7ef5a3a19366f",
+    "research/candidates.json": "52be98345eebca999d4c58ac468e194635b555f6b9cf2dbb0a96f99f042d4fad"
+  },
+  "fully_qualified_count": 0,
+  "cards": [
+    {
+      "id": "T02",
+      "name": "Программируемая пневматическая логика для мягких захватов",
+      "rank": 1,
+      "score_lower": 66.0,
+      "score_upper": 76.0,
+      "decision": "priority_diligence",
+      "fully_qualified": false,
+      "holds": [
+        "commercial_diligence",
+        "rights_diligence",
+        "source_integrity_screen",
+        "incomplete_scores",
+        "system_comparison",
+        "test_protocol"
+      ],
+      "missing_dimensions": [
+        "access",
+        "whitespace"
+      ],
+      "historical_year": 1965,
+      "history_class": "возврат старого подхода в другую нишу",
+      "barrier_then": "Размер, расход воздуха, сложность схем и низкая скорость относительно электронной логики.",
+      "change_now": "Мягкие бистабильные клапаны и модульные схемы позволяют встроить простое управление прямо в пневматический исполнительный механизм.",
+      "test": "Сравнить захват с решением на датчике, клапане и контроллере. Предлагаемый порог: одинаковое качество захвата на ≥100 000 циклов и ≥20% сокращение общей стоимости или отказов в выбранной среде."
+    },
+    {
+      "id": "T01",
+      "name": "Насосы Кнудсена для газоанализа на микрочипе",
+      "rank": 2,
+      "score_lower": 64.0,
+      "score_upper": 74.0,
+      "decision": "priority_diligence",
+      "fully_qualified": false,
+      "holds": [
+        "commercial_diligence",
+        "rights_diligence",
+        "source_integrity_screen",
+        "incomplete_scores",
+        "system_comparison",
+        "test_protocol"
+      ],
+      "missing_dimensions": [
+        "access",
+        "whitespace"
+      ],
+      "historical_year": 1909,
+      "history_class": "старый прибор, новая технология изготовления",
+      "barrier_then": "Малая производительность, теплопотери и сложность массового изготовления достаточно узких каналов.",
+      "change_now": "MEMS-процессы дают воспроизводимую микрогеометрию; в 2025 году насосы включены в единый газоаналитический чип.",
+      "test": "На одной газовой смеси сравнить полный модуль с мембранным микронасосом: шум, расход, давление, Вт·ч на анализ, повторяемость удерживания. Предлагаемый порог: не хуже аналитика, ≥30% выигрыш по габариту или обслуживанию, 500 часов без необратимого дрейфа."
+    },
+    {
+      "id": "T03",
+      "name": "Гелевые термогальванические элементы для датчиков",
+      "rank": 3,
+      "score_lower": 62.0,
+      "score_upper": 72.0,
+      "decision": "priority_diligence",
+      "fully_qualified": false,
+      "holds": [
+        "commercial_diligence",
+        "rights_diligence",
+        "source_integrity_screen",
+        "incomplete_scores",
+        "system_comparison",
+        "test_protocol"
+      ],
+      "missing_dimensions": [
+        "access",
+        "whitespace"
+      ],
+      "historical_year": 1890,
+      "history_class": "давно исследуемое, слабо освоенное направление",
+      "barrier_then": "Низкая удельная мощность, тепловые утечки, жидкий электролит и проблемы герметизации.",
+      "change_now": "Гелевые электролиты, разделение redox-пар и контроль ионных градиентов улучшают конструкцию; появилась отдельная измерительная ниша.",
+      "test": "Измерить полезную энергию при реальном перепаде 5–20 °C, включая преобразователь питания, и сравнить с промышленным термоэлектрическим модулем. Предлагаемый порог: достаточное питание выбранного режима датчика и ≥1000 часов без >10% падения."
+    },
+    {
+      "id": "T04",
+      "name": "Электросмачивание для локального охлаждения и конденсации",
+      "rank": 4,
+      "score_lower": 57.0,
+      "score_upper": 67.0,
+      "decision": "investigate",
+      "fully_qualified": false,
+      "holds": [
+        "commercial_diligence",
+        "rights_diligence",
+        "source_integrity_screen",
+        "incomplete_scores",
+        "system_comparison",
+        "test_protocol"
+      ],
+      "missing_dimensions": [
+        "access",
+        "whitespace"
+      ],
+      "historical_year": 2003,
+      "history_class": "старая прикладная концепция",
+      "barrier_then": "Надёжность диэлектрика и гидрофобного покрытия, транспорт жидкости, предел теплоотвода и интеграция в упаковку.",
+      "change_now": "Улучшились микроэлектроды и управление каплями. Новые опыты изучают низковольтное управление конденсацией.",
+      "test": "Сравнить одинаковые теплообменники с полем и без поля при фиксированных расходе и тепловой нагрузке. Предлагаемый порог: ≥20% уменьшение полного теплового сопротивления, энергия управления учтена, ≥1000 часов устойчивой работы."
+    },
+    {
+      "id": "T06",
+      "name": "Газогидратное опреснение сложных рассолов",
+      "rank": 5,
+      "score_lower": 57.0,
+      "score_upper": 67.0,
+      "decision": "investigate",
+      "fully_qualified": false,
+      "holds": [
+        "commercial_diligence",
+        "rights_diligence",
+        "source_integrity_screen",
+        "incomplete_scores",
+        "system_comparison",
+        "test_protocol"
+      ],
+      "missing_dimensions": [
+        "access",
+        "whitespace"
+      ],
+      "historical_year": 1960,
+      "history_class": "исторические пилоты без массового внедрения",
+      "barrier_then": "Медленное образование кристаллов, захват соли, разделение фаз, холодильная нагрузка и возврат гидратообразователя.",
+      "change_now": "Исследуются ускорение образования гидратов, рецикл, новые аппараты и использование внешнего низкопотенциального холода.",
+      "test": "Полный материальный и энергетический баланс на реальном рассоле за ≥100 циклов. Предлагаемый порог: заданные качество и выход воды при ≥20% снижении полной стоимости против лучшей применимой технологии."
+    },
+    {
+      "id": "T16",
+      "name": "Вращающиеся жидкие мраморы — капельные микрореакторы",
+      "rank": 6,
+      "score_lower": 57.0,
+      "score_upper": 67.0,
+      "decision": "investigate",
+      "fully_qualified": false,
+      "holds": [
+        "commercial_diligence",
+        "rights_diligence",
+        "source_integrity_screen",
+        "incomplete_scores",
+        "system_comparison",
+        "test_protocol"
+      ],
+      "missing_dimensions": [
+        "access",
+        "whitespace"
+      ],
+      "historical_year": 2001,
+      "history_class": "долгая недокоммерциализация старой архитектуры",
+      "barrier_then": "Испарение, хрупкость оболочки, дозирование и слабый массоперенос внутри неподвижной капли.",
+      "change_now": "Магнитное управление и новые оболочки позволяют двигать и вращать микрореактор, управляя перемешиванием.",
+      "test": "Сравнить 96 повторов одной реакции с микропланшетом: расход, время смешения, выход, вариабельность и потери при извлечении. Предлагаемый проход: ≥30% экономия реагента без ухудшения воспроизводимости."
+    },
+    {
+      "id": "T05",
+      "name": "Светоуправляемые полимерные микроприводы",
+      "rank": 7,
+      "score_lower": 54.0,
+      "score_upper": 64.0,
+      "decision": "investigate",
+      "fully_qualified": false,
+      "holds": [
+        "commercial_diligence",
+        "rights_diligence",
+        "source_integrity_screen",
+        "incomplete_scores",
+        "system_comparison",
+        "test_protocol"
+      ],
+      "missing_dimensions": [
+        "access",
+        "whitespace"
+      ],
+      "historical_year": 2003,
+      "history_class": "старая экспериментальная технология",
+      "barrier_then": "Малая полезная работа, сложная оптика, фотоусталость и слабая управляемость.",
+      "change_now": "Новые геометрии и модели позволяют управлять формой при широком освещении, облегчая постановку задачи привода.",
+      "test": "При одинаковом рабочем ходе сравнить силу, частоту, ресурс и всю энергию источника света с пьезоприводом. Предлагаемый порог: ≥100 000 циклов и преимущество по доступу или компоновке, которое покупатель считает существенным."
+    },
+    {
+      "id": "T13",
+      "name": "Биофотовольтаические элементы для сверхмалых нагрузок",
+      "rank": 8,
+      "score_lower": 54.0,
+      "score_upper": 64.0,
+      "decision": "investigate",
+      "fully_qualified": false,
+      "holds": [
+        "commercial_diligence",
+        "rights_diligence",
+        "source_integrity_screen",
+        "incomplete_scores",
+        "system_comparison",
+        "test_protocol"
+      ],
+      "missing_dimensions": [
+        "access",
+        "whitespace"
+      ],
+      "historical_year": 1964,
+      "history_class": "старая линия биоэлектрохимии, новая система",
+      "barrier_then": "Плохой перенос электронов к электроду, малая мощность, устойчивость биоплёнки и баланс расходных материалов.",
+      "change_now": "Появились сверхмалопотребляющие нагрузки, новые электроды и исследования объединения ячеек.",
+      "test": "Параллельный годовой прогноз по сезонным измерениям с контролями без живых клеток и без света, мониторинг массы/коррозии электрода. Предлагаемый порог: достаточный режим сенсора и преимущество по обслуживанию."
+    },
+    {
+      "id": "T09",
+      "name": "Магнонная логика на спиновых волнах",
+      "rank": 9,
+      "score_lower": 52.0,
+      "score_upper": 62.0,
+      "decision": "investigate",
+      "fully_qualified": false,
+      "holds": [
+        "commercial_diligence",
+        "rights_diligence",
+        "source_integrity_screen",
+        "incomplete_scores",
+        "system_comparison",
+        "test_protocol"
+      ],
+      "missing_dimensions": [
+        "access",
+        "whitespace"
+      ],
+      "historical_year": 2005,
+      "history_class": "долго развиваемая вычислительная архитектура",
+      "barrier_then": "Потери волн, возбуждение и считывание, внешние магнитные поля, каскадирование и управление.",
+      "change_now": "Продвинулись малопотерные волноводы и обратное проектирование логических элементов.",
+      "test": "Сравнить задачу целиком с CMOS/FPGA при одинаковой точности, задержке и полосе. Предлагаемый порог: ≥3× выигрыш по энергии на задачу с учётом возбуждения, считывания и настройки."
+    },
+    {
+      "id": "T10",
+      "name": "Сегнетоэлектрическая фотовольтаика для специальных оптоэлектронных элементов",
+      "rank": 10,
+      "score_lower": 52.0,
+      "score_upper": 62.0,
+      "decision": "investigate",
+      "fully_qualified": false,
+      "holds": [
+        "commercial_diligence",
+        "rights_diligence",
+        "source_integrity_screen",
+        "incomplete_scores",
+        "system_comparison",
+        "test_protocol"
+      ],
+      "missing_dimensions": [
+        "access",
+        "whitespace"
+      ],
+      "historical_year": 1974,
+      "history_class": "старый эффект с новыми материалами",
+      "barrier_then": "Низкие токи и КПД, широкая запрещённая зона, слабое поглощение полезного света.",
+      "change_now": "Двумерные сегнетоэлектрические полупроводники и управление поляризацией дают новые способы совместного улучшения тока и напряжения.",
+      "test": "Измерить полезную электрическую мощность, шум, скорость и стабильность на одинаковой освещённой площади. Предлагаемый порог: преимущество в конкретной функции перед обычным фотодиодом при ≥1000 часов стабильности."
+    },
+    {
+      "id": "T11",
+      "name": "Фотоферментация органических стоков с получением водорода",
+      "rank": 11,
+      "score_lower": 52.0,
+      "score_upper": 62.0,
+      "decision": "investigate",
+      "fully_qualified": false,
+      "holds": [
+        "commercial_diligence",
+        "rights_diligence",
+        "source_integrity_screen",
+        "bottleneck_not_yet_removed",
+        "incomplete_scores",
+        "system_comparison",
+        "test_protocol"
+      ],
+      "missing_dimensions": [
+        "access",
+        "whitespace"
+      ],
+      "historical_year": 1949,
+      "history_class": "старая экспериментальная технология",
+      "barrier_then": "Дорогие фотобиореакторы, плохой перенос света, чувствительность культур и низкая производительность.",
+      "change_now": "Исследуются непрерывные связки с тёмной ферментацией, управление смешанными культурами и совместная переработка органики.",
+      "test": "Месячный непрерывный прогон на реальном стоке. Предлагаемый порог: ≥20% улучшение общей экономики очистки и утилизации относительно биогаза с учётом капитала, света и газоочистки."
+    },
+    {
+      "id": "T18",
+      "name": "Лазеры с прямой солнечной накачкой",
+      "rank": 12,
+      "score_lower": 52.0,
+      "score_upper": 62.0,
+      "decision": "investigate",
+      "fully_qualified": false,
+      "holds": [
+        "commercial_diligence",
+        "rights_diligence",
+        "source_integrity_screen",
+        "incomplete_scores",
+        "system_comparison",
+        "test_protocol"
+      ],
+      "missing_dimensions": [
+        "access",
+        "whitespace"
+      ],
+      "historical_year": 1963,
+      "history_class": "долгая недокоммерциализация старого прибора",
+      "barrier_then": "Плохое соответствие солнечного спектра поглощению, потери концентратора, перегрев и сложность удержания луча.",
+      "change_now": "Новые активные материалы, геометрия резонатора и слежение за Солнцем повышают выход и устойчивость.",
+      "test": "Сопоставить две системы при одинаковом солнечном ресурсе и качестве луча: прямую накачку и PV+лазер; учесть трекер, охлаждение, оптику и сезонную выработку."
+    },
+    {
+      "id": "T19",
+      "name": "Волновая механическая логика и фононные переключатели",
+      "rank": 13,
+      "score_lower": 49.0,
+      "score_upper": 59.0,
+      "decision": "watch",
+      "fully_qualified": false,
+      "holds": [
+        "commercial_diligence",
+        "rights_diligence",
+        "source_integrity_screen",
+        "historical_fit",
+        "incomplete_scores",
+        "system_comparison",
+        "test_protocol"
+      ],
+      "missing_dimensions": [
+        "access",
+        "whitespace"
+      ],
+      "historical_year": 2008,
+      "history_class": "старое семейство, современная топологическая архитектура",
+      "barrier_then": "Потери, трудность соединения логических элементов и недостаточная управляемость механических сигналов.",
+      "change_now": "Пьезоэлектрическое управление и перестраиваемые фононные структуры позволяют переключать путь акустического сигнала.",
+      "test": "Сравнить вставные потери, контраст переключения, полосу и полную энергию с пьезокоммутатором при дефектах и изменении температуры."
+    },
+    {
+      "id": "T20",
+      "name": "Ионная память в жидкостных наноканалах",
+      "rank": 14,
+      "score_lower": 48.0,
+      "score_upper": 58.0,
+      "decision": "watch",
+      "fully_qualified": false,
+      "holds": [
+        "commercial_diligence",
+        "rights_diligence",
+        "source_integrity_screen",
+        "historical_fit",
+        "incomplete_scores",
+        "system_comparison",
+        "test_protocol"
+      ],
+      "missing_dimensions": [
+        "access",
+        "whitespace"
+      ],
+      "historical_year": 2011,
+      "history_class": "старая модель, новая экспериментальная архитектура",
+      "barrier_then": "Плохо контролируемая геометрия и поверхность, дрейф концентрации и памяти, трудность сборки массива.",
+      "change_now": "Двумерные каналы и управление остаточными ионами позволяют создавать программируемые элементы и небольшие массивы.",
+      "test": "Повторяемость записи/считывания при изменении температуры и состава жидкости; сравнение точности и полной энергии с тем же датчиком и обычным микроконтроллером."
+    },
+    {
+      "id": "T17",
+      "name": "Гибридные химические вычислители на реакции Белоусова—Жаботинского",
+      "rank": 15,
+      "score_lower": 46.0,
+      "score_upper": 56.0,
+      "decision": "watch",
+      "fully_qualified": false,
+      "holds": [
+        "commercial_diligence",
+        "rights_diligence",
+        "source_integrity_screen",
+        "bottleneck_not_yet_removed",
+        "incomplete_scores",
+        "system_comparison",
+        "test_protocol"
+      ],
+      "missing_dimensions": [
+        "access",
+        "whitespace"
+      ],
+      "historical_year": 1992,
+      "history_class": "старое семейство вычислений, новая гибридная архитектура",
+      "barrier_then": "Дрейф колебаний, короткое время работы, сложность программирования и соединения химических ячеек.",
+      "change_now": "Автоматизация микрореакторов, машинное зрение и цифровая обратная связь позволяют программировать и корректировать химическую динамику.",
+      "test": "Слепой набор задач с цифровой базовой моделью и отключением химического слоя. Считать полную энергию, реагенты, время подготовки и число корректных решений."
+    }
+  ]
+}

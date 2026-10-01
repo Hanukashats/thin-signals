@@ -1,0 +1,18 @@
+{
+  "purpose": "Frozen replay only; do not force a new research run to reproduce this shortlist.",
+  "observed_baseline": {
+    "candidates": 15,
+    "sources": 83,
+    "audit_decisions": 14,
+    "commercial_queries": 20,
+    "fully_qualified": 0,
+    "top_three": [
+      "T02",
+      "T01",
+      "T03"
+    ],
+    "doi_records": 43,
+    "sensitivity_scenarios": 16
+  },
+  "expected_unit_tests": 11
+}

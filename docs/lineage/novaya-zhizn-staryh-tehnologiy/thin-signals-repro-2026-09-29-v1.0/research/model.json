@@ -1,0 +1,33 @@
+{
+  "version": "0.1-research",
+  "as_of": "2026-09-29",
+  "profile": "academic_grants_allowed_commercial_ownership_excluded",
+  "weights": {
+    "bottleneck": 25,
+    "evidence": 20,
+    "need": 15,
+    "testability": 15,
+    "history": 10,
+    "manufacturability": 5,
+    "access": 5,
+    "whitespace": 5
+  },
+  "thresholds": {
+    "minimum_age": 10,
+    "research_priority_lower": 60,
+    "investigate_lower": 50,
+    "partner_review_lower": 70
+  },
+  "scale": {
+    "min": 0,
+    "max": 5
+  },
+  "exclude_commercial_states": [
+    "commercial",
+    "scaled",
+    "licensed_exclusive",
+    "funded_business"
+  ],
+  "note": "Экспертные исходные веса, не обученная модель. Диапазон баллов отражает неизвестные access/whitespace, а не статистический доверительный интервал. Прохождение коммерческих и правовых ворот обязательно независимо от балла.",
+  "stream": "resurrection"
+}

@@ -1,0 +1,14 @@
+{
+  "package_version": "1.0",
+  "research_model_version": "0.1-research",
+  "research_cutoff": "2026-09-29",
+  "created_at_utc": "2026-09-29T13:57:33.002281+00:00",
+  "baseline_files": 22,
+  "baseline_copy_byte_identical": true,
+  "runtime_requirement": "Python >= 3.8; standard library",
+  "packaging_python": "3.8.10",
+  "agent_environment": "Codex; exact model revision and generation parameters not recorded",
+  "subagents_used": false,
+  "content_scope": "All saved research files plus handoff workflow, templates, replay and integrity tools",
+  "limitations_file": "PROVENANCE.md"
+}

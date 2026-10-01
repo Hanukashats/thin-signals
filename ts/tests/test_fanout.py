@@ -108,10 +108,11 @@ def test_wide_query_searches_themes_and_a_repeat_does_not(monkeypatch):
         ],
     }
     order = []
+    asked = []
     monkeypatch.setattr("ts.live.load_theme_plan", lambda: plan)
     monkeypatch.setattr(
         "ts.live.annotate_checklist",
-        lambda top, overflow, settings, query=None: order.append("checklist") or {
+        lambda top, overflow, settings, query=None: order.append("checklist") or asked.append(query) or {
             "top": top, "excluded": [], "overflow": overflow, "unread": [], "stats": {"read": 0},
         },
     )
@@ -148,6 +149,7 @@ def test_wide_query_searches_themes_and_a_repeat_does_not(monkeypatch):
         assert second["repeated"] is True
         assert echo.queries == searched
         assert order == ["checklist", "scope", "reach"]
+        assert asked == [None]
         assert seen and all(item is None for item in seen)
         assert "Альфа" in "\n".join(__import__("ts.ui_text", fromlist=["screen"]).screen(first)["lines"])
         with factory() as session:
@@ -168,3 +170,133 @@ def test_wide_query_searches_themes_and_a_repeat_does_not(monkeypatch):
                 session.execute(delete(Run).where(Run.id.in_(ids)))
                 session.execute(delete(Candidate).where(Candidate.id.in_([f"live-{item}" for item in ids])))
                 session.commit()
+
+
+class _DatedEcho(_Echo):
+    takes_since = True
+
+    def __init__(self):
+        super().__init__()
+        self.calls: list[tuple[str, str | None]] = []
+
+    def search(self, query: str, *, limit: int = 5, since: str | None = None):
+        self.calls.append((query, since))
+        return super().search(query, limit=limit)
+
+
+def test_wide_run_is_fresh_each_utc_day_and_themes_ask_for_the_last_year(monkeypatch):
+    from ts.db import session_factory
+    from ts.live import run_query
+
+    themes = ["zzfresh alpha battery cell", "zzfresh beta turbine blade"]
+    plan = {
+        "version": "themes-test",
+        "frame": ["scientific", "discoveries", "technological", "changes", "reshape", "production", "chains", "markets"],
+        "themes": [
+            {"id": "a", "title": "Альфа", "query": themes[0]},
+            {"id": "b", "title": "Бета", "query": themes[1]},
+        ],
+    }
+    monkeypatch.setattr("ts.live.load_theme_plan", lambda: plan)
+    monkeypatch.setattr(
+        "ts.live.annotate_checklist",
+        lambda top, overflow, settings, query=None: {
+            "top": top, "excluded": [], "overflow": overflow, "unread": [], "stats": {"read": 0},
+        },
+    )
+    monkeypatch.setattr("ts.live.annotate_scopes", lambda cards, settings: cards)
+    monkeypatch.setattr("ts.live.annotate_reach", lambda cards, settings: cards)
+    echo = _DatedEcho()
+    factory = session_factory()
+    mission = "scientific discoveries technological changes reshape production chains markets zzfresh"
+    try:
+        monkeypatch.setattr("ts.live._today", lambda: "2026-10-01")
+        first = run_query(mission, limit=2, connectors=[echo], session_factory=factory)
+        day_one = list(echo.calls)
+        again = run_query(mission, limit=2, connectors=[echo], session_factory=factory)
+        assert first.get("repeated") is not True
+        assert again["repeated"] is True
+        assert echo.calls == day_one
+        searched = [since for query, since in day_one if query in themes]
+        assert searched and all(since == "2025-10-01" for since in searched)
+        assert all(since is None for query, since in day_one if "mass adoption" in query)
+
+        monkeypatch.setattr("ts.live._today", lambda: "2026-10-02")
+        next_day = run_query(mission, limit=2, connectors=[echo], session_factory=factory)
+        assert next_day.get("repeated") is not True
+        fresh = echo.calls[len(day_one):]
+        assert {query for query, _ in fresh} >= set(themes)
+        assert all(since == "2025-10-02" for query, since in fresh if query in themes)
+    finally:
+        with factory() as session:
+            rows = session.scalars(select(Run).where(Run.query.in_([mission, *themes]))).all()
+            ids = [row.id for row in rows]
+            if ids:
+                session.execute(delete(Decision).where(Decision.run_id.in_(ids)))
+                session.execute(delete(Run).where(Run.id.in_(ids)))
+                session.execute(delete(Candidate).where(Candidate.id.in_([f"live-{item}" for item in ids])))
+                session.commit()
+
+
+def test_a_connector_without_a_date_filter_is_called_as_before():
+    from ts.harness import Harness
+
+    echo = _Echo()
+    Harness(since="2025-10-01").run("zzplain cell", [echo], limit=2)
+    assert "zzplain cell" in echo.queries
+
+
+def test_dated_connectors_put_the_date_in_their_native_filter():
+    from urllib.parse import unquote
+
+    from ts.sources.connectors import (
+        ArxivConnector,
+        CrossrefConnector,
+        EuropePmcConnector,
+        HalConnector,
+        OpenAlexConnector,
+    )
+
+    empty = {
+        "arxiv": '<feed xmlns="http://www.w3.org/2005/Atom"></feed>',
+        "openalex": '{"results": []}',
+        "crossref": '{"message": {"items": []}}',
+        "europepmc": '{"resultList": {"result": []}}',
+        "hal": '{"response": {"docs": []}}',
+    }
+    expected = {
+        "arxiv": "(all:sodium cell) AND submittedDate:[202510010000 TO 209912312359]",
+        "openalex": "filter=from_publication_date:2025-10-01",
+        "crossref": "filter=from-pub-date:2025-10-01",
+        "europepmc": "query=(sodium cell) AND FIRST_PDATE:[2025-10-01 TO 2099-12-31]",
+        "hal": "fq=producedDate_tdate:[2025-10-01T00:00:00Z TO *]",
+    }
+    for cls in (ArxivConnector, OpenAlexConnector, CrossrefConnector, EuropePmcConnector, HalConnector):
+        urls = []
+
+        def get(url, name=cls.name, urls=urls):
+            urls.append(url)
+            return empty[name]
+
+        connector = cls(get)
+        assert connector.takes_since is True
+        assert connector.search("sodium cell", limit=3, since="2025-10-01") == []
+        assert connector.search("sodium cell", limit=3) == []
+        assert connector.search("sodium cell", limit=3, since="2025-10-01&x=1") == []
+        dated, plain, bad = (unquote(url.replace("+", " ")) for url in urls)
+        assert expected[cls.name] in dated, (cls.name, dated)
+        assert "2025-10-01" not in plain and "20251001" not in plain
+        assert bad == plain
+
+
+def test_theme_queue_prefers_the_newer_card_among_those_with_the_query_words():
+    theme = {"id": "a", "title": "Альфа", "query": "alpha cell"}
+    cards = [
+        {"technology": "old match", "subject_hits": 2, "sources": [{"url": "https://a/old", "date": "2021-05-01"}]},
+        {"technology": "no date", "subject_hits": 2, "sources": [{"url": "https://a/nodate", "date": None}]},
+        {"technology": "new match", "subject_hits": 1, "sources": [{"url": "https://a/new", "date": "2026-06-01"}]},
+        {"technology": "off words", "subject_hits": 0, "sources": [{"url": "https://a/off", "date": "2026-09-01"}]},
+    ]
+    merged = merge_theme_reports([(theme, cards)], limit=1)
+    assert [row["technology"] for row in merged["top"]] == ["new match"]
+    assert [row["technology"] for row in merged["overflow"]] == ["old match", "no date", "off words"]

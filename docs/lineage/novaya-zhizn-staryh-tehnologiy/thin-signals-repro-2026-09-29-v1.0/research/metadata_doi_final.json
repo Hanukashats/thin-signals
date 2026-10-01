@@ -1,0 +1,3735 @@
+{
+  "retrieved_at": "2026-09-29T13:19:52.682791+00:00",
+  "cutoff": "2026-09-29",
+  "limitations": "Read-only metadata. Not a complete retraction, ownership, funding or patent search.",
+  "crossref_dois": [
+    {
+      "source_id": "S03",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1126/sciadv.adr2433",
+        "title": [
+          "Pneumatic coding blocks enable programmability of electronics-free fluidic soft robots"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2024,
+              12,
+              20
+            ]
+          ]
+        },
+        "published_online": null,
+        "type": "journal-article",
+        "url": "https://doi.org/10.1126/sciadv.adr2433",
+        "publisher": "American Association for the Advancement of Science (AAAS)",
+        "update_to": [],
+        "relation": {},
+        "funders": [],
+        "license": []
+      }
+    },
+    {
+      "source_id": "S05",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1038/s41378-025-01091-2",
+        "title": [
+          "Monolithic integration of Knudsen pumps to form a complete, self-sufficient fluidic system for microscale gas chromatography"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2025,
+              12,
+              9
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              2025,
+              12,
+              9
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.1038/s41378-025-01091-2",
+        "publisher": "Springer Science and Business Media LLC",
+        "update_to": [],
+        "relation": {},
+        "funders": [],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  12,
+                  9
+                ]
+              ],
+              "date-time": "2025-12-09T00:00:00Z",
+              "timestamp": 1765238400000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "https://creativecommons.org/licenses/by/4.0"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  12,
+                  9
+                ]
+              ],
+              "date-time": "2025-12-09T00:00:00Z",
+              "timestamp": 1765238400000
+            },
+            "content-version": "vor",
+            "delay-in-days": 0,
+            "URL": "https://creativecommons.org/licenses/by/4.0"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S06",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1016/j.sna.2023.114825",
+        "title": [
+          "Monolithic SOI through-wafer Knudsen pumps with mechanically robust Si channels"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2024,
+              1
+            ]
+          ]
+        },
+        "published_online": null,
+        "type": "journal-article",
+        "url": "https://doi.org/10.1016/j.sna.2023.114825",
+        "publisher": "Elsevier BV",
+        "update_to": [],
+        "relation": {},
+        "funders": [
+          {
+            "DOI": "10.13039/100007270",
+            "name": "University of Michigan",
+            "doi-asserted-by": "publisher",
+            "id": [
+              {
+                "id": "10.13039/100007270",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          }
+        ],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2024,
+                  1,
+                  1
+                ]
+              ],
+              "date-time": "2024-01-01T00:00:00Z",
+              "timestamp": 1704067200000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "https://www.elsevier.com/tdm/userlicense/1.0/"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2024,
+                  1,
+                  1
+                ]
+              ],
+              "date-time": "2024-01-01T00:00:00Z",
+              "timestamp": 1704067200000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "https://www.elsevier.com/legal/tdmrep-license"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2024,
+                  1,
+                  1
+                ]
+              ],
+              "date-time": "2024-01-01T00:00:00Z",
+              "timestamp": 1704067200000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-017"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2024,
+                  1,
+                  1
+                ]
+              ],
+              "date-time": "2024-01-01T00:00:00Z",
+              "timestamp": 1704067200000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-037"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2024,
+                  1,
+                  1
+                ]
+              ],
+              "date-time": "2024-01-01T00:00:00Z",
+              "timestamp": 1704067200000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-012"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2024,
+                  1,
+                  1
+                ]
+              ],
+              "date-time": "2024-01-01T00:00:00Z",
+              "timestamp": 1704067200000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-029"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2024,
+                  1,
+                  1
+                ]
+              ],
+              "date-time": "2024-01-01T00:00:00Z",
+              "timestamp": 1704067200000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-004"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S07",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1007/s10008-025-06294-1",
+        "title": [
+          "A review of gelled electrolyte thermoelectrochemical cells: valorising low-grade heat to electricity via continuous and capacitive conversion mechanisms"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2025,
+              4,
+              3
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              2025,
+              4,
+              3
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.1007/s10008-025-06294-1",
+        "publisher": "Springer Science and Business Media LLC",
+        "update_to": [],
+        "relation": {},
+        "funders": [],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  4,
+                  3
+                ]
+              ],
+              "date-time": "2025-04-03T00:00:00Z",
+              "timestamp": 1743638400000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "https://creativecommons.org/licenses/by/4.0"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  4,
+                  3
+                ]
+              ],
+              "date-time": "2025-04-03T00:00:00Z",
+              "timestamp": 1743638400000
+            },
+            "content-version": "vor",
+            "delay-in-days": 0,
+            "URL": "https://creativecommons.org/licenses/by/4.0"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S08",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1016/j.nanoen.2025.111189",
+        "title": [
+          "Bioinspired double-layer thermogalvanic cells with engineered ionic gradients for high-efficiency waste heat recovery"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2025,
+              9
+            ]
+          ]
+        },
+        "published_online": null,
+        "type": "journal-article",
+        "url": "https://doi.org/10.1016/j.nanoen.2025.111189",
+        "publisher": "Elsevier BV",
+        "update_to": [],
+        "relation": {},
+        "funders": [
+          {
+            "DOI": "10.13039/100018694",
+            "name": "European Commission Marie Sklodowska-Curie Actions",
+            "doi-asserted-by": "publisher",
+            "award": [
+              "101208677"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "101208677"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/100018694",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          },
+          {
+            "DOI": "10.13039/501100011309",
+            "name": "State Key Laboratory of Clean Energy Utilization",
+            "doi-asserted-by": "publisher",
+            "award": [
+              "ZJUCEU2023011"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "ZJUCEU2023011"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/501100011309",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          },
+          {
+            "DOI": "10.13039/100010665",
+            "name": "H2020 Marie Skłodowska-Curie Actions",
+            "doi-asserted-by": "publisher",
+            "id": [
+              {
+                "id": "10.13039/100010665",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          },
+          {
+            "DOI": "10.13039/100018693",
+            "name": "HORIZON EUROPE Framework Programme",
+            "doi-asserted-by": "publisher",
+            "id": [
+              {
+                "id": "10.13039/100018693",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          },
+          {
+            "DOI": "10.13039/501100001809",
+            "name": "National Natural Science Foundation of China",
+            "doi-asserted-by": "publisher",
+            "award": [
+              "52476070"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "52476070"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/501100001809",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          }
+        ],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  9,
+                  1
+                ]
+              ],
+              "date-time": "2025-09-01T00:00:00Z",
+              "timestamp": 1756684800000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "https://www.elsevier.com/tdm/userlicense/1.0/"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  9,
+                  1
+                ]
+              ],
+              "date-time": "2025-09-01T00:00:00Z",
+              "timestamp": 1756684800000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "https://www.elsevier.com/legal/tdmrep-license"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  9,
+                  1
+                ]
+              ],
+              "date-time": "2025-09-01T00:00:00Z",
+              "timestamp": 1756684800000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-017"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  9,
+                  1
+                ]
+              ],
+              "date-time": "2025-09-01T00:00:00Z",
+              "timestamp": 1756684800000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-037"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  9,
+                  1
+                ]
+              ],
+              "date-time": "2025-09-01T00:00:00Z",
+              "timestamp": 1756684800000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-012"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  9,
+                  1
+                ]
+              ],
+              "date-time": "2025-09-01T00:00:00Z",
+              "timestamp": 1756684800000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-029"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  9,
+                  1
+                ]
+              ],
+              "date-time": "2025-09-01T00:00:00Z",
+              "timestamp": 1756684800000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-004"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S09",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1021/acsaem.6c01130",
+        "title": [
+          "Thermogalvanic Sensor Array for Heat Flux Mapping and Radiative Sensing"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2026,
+              6,
+              12
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              2026,
+              6,
+              12
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.1021/acsaem.6c01130",
+        "publisher": "American Chemical Society (ACS)",
+        "update_to": [],
+        "relation": {},
+        "funders": [
+          {
+            "DOI": "10.13039/501100003725",
+            "name": "National Research Foundation of Korea",
+            "doi-asserted-by": "publisher",
+            "award": [
+              "NRF-2022M3C1A3091988"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "NRF-2022M3C1A3091988"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/501100003725",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          },
+          {
+            "DOI": "10.13039/501100003725",
+            "name": "National Research Foundation of Korea",
+            "doi-asserted-by": "publisher",
+            "award": [
+              "NRF-2023R1A2C1005936"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "NRF-2023R1A2C1005936"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/501100003725",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          }
+        ],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2026,
+                  6,
+                  12
+                ]
+              ],
+              "date-time": "2026-06-12T00:00:00Z",
+              "timestamp": 1781222400000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-029"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2026,
+                  6,
+                  12
+                ]
+              ],
+              "date-time": "2026-06-12T00:00:00Z",
+              "timestamp": 1781222400000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-037"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2026,
+                  6,
+                  12
+                ]
+              ],
+              "date-time": "2026-06-12T00:00:00Z",
+              "timestamp": 1781222400000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-045"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S10",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1145/764808.764831",
+        "title": [
+          "Cooling of integrated circuits using droplet-based microfluidics"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2003,
+              4,
+              28
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              2003,
+              4,
+              28
+            ]
+          ]
+        },
+        "type": "proceedings-article",
+        "url": "https://doi.org/10.1145/764808.764831",
+        "publisher": "ACM",
+        "update_to": [],
+        "relation": {},
+        "funders": [],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2003,
+                  4,
+                  28
+                ]
+              ],
+              "date-time": "2003-04-28T00:00:00Z",
+              "timestamp": 1051488000000
+            },
+            "content-version": "vor",
+            "delay-in-days": 0,
+            "URL": "https://www.acm.org/publications/policies/copyright_policy#Background"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S11",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1016/j.expthermflusci.2021.110372",
+        "title": [
+          "Electrowetting induced microdroplet oscillation over interdigitated electrodes for hotspot cooling applications"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2021,
+              7
+            ]
+          ]
+        },
+        "published_online": null,
+        "type": "journal-article",
+        "url": "https://doi.org/10.1016/j.expthermflusci.2021.110372",
+        "publisher": "Elsevier BV",
+        "update_to": [],
+        "relation": {},
+        "funders": [
+          {
+            "DOI": "10.13039/501100008628",
+            "name": "Ministry of Electronics and Information technology",
+            "doi-asserted-by": "publisher",
+            "id": [
+              {
+                "id": "10.13039/501100008628",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          }
+        ],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2021,
+                  7,
+                  1
+                ]
+              ],
+              "date-time": "2021-07-01T00:00:00Z",
+              "timestamp": 1625097600000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "https://www.elsevier.com/tdm/userlicense/1.0/"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2021,
+                  7,
+                  1
+                ]
+              ],
+              "date-time": "2021-07-01T00:00:00Z",
+              "timestamp": 1625097600000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "https://www.elsevier.com/legal/tdmrep-license"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2021,
+                  7,
+                  1
+                ]
+              ],
+              "date-time": "2021-07-01T00:00:00Z",
+              "timestamp": 1625097600000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-017"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2021,
+                  7,
+                  1
+                ]
+              ],
+              "date-time": "2021-07-01T00:00:00Z",
+              "timestamp": 1625097600000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-037"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2021,
+                  7,
+                  1
+                ]
+              ],
+              "date-time": "2021-07-01T00:00:00Z",
+              "timestamp": 1625097600000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-012"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2021,
+                  7,
+                  1
+                ]
+              ],
+              "date-time": "2021-07-01T00:00:00Z",
+              "timestamp": 1625097600000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-029"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2021,
+                  7,
+                  1
+                ]
+              ],
+              "date-time": "2021-07-01T00:00:00Z",
+              "timestamp": 1625097600000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-004"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S12",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1016/j.ijheatmasstransfer.2025.127986",
+        "title": [
+          "Accelerating droplet coalescence to enhance condensation by electrowetting-on-dielectric"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2026,
+              3
+            ]
+          ]
+        },
+        "published_online": null,
+        "type": "journal-article",
+        "url": "https://doi.org/10.1016/j.ijheatmasstransfer.2025.127986",
+        "publisher": "Elsevier BV",
+        "update_to": [],
+        "relation": {},
+        "funders": [
+          {
+            "DOI": "10.13039/501100008081",
+            "name": "Southeast University",
+            "doi-asserted-by": "publisher",
+            "award": [
+              "2242023R40004"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "2242023R40004"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/501100008081",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          },
+          {
+            "DOI": "10.13039/501100001809",
+            "name": "National Natural Science Foundation of China",
+            "doi-asserted-by": "publisher",
+            "award": [
+              "52306076"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "52306076"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/501100001809",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          },
+          {
+            "DOI": "10.13039/501100001809",
+            "name": "National Natural Science Foundation of China",
+            "doi-asserted-by": "publisher",
+            "award": [
+              "92373118"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "92373118"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/501100001809",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          }
+        ],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2026,
+                  3,
+                  1
+                ]
+              ],
+              "date-time": "2026-03-01T00:00:00Z",
+              "timestamp": 1772323200000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "https://www.elsevier.com/tdm/userlicense/1.0/"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2026,
+                  3,
+                  1
+                ]
+              ],
+              "date-time": "2026-03-01T00:00:00Z",
+              "timestamp": 1772323200000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "https://www.elsevier.com/legal/tdmrep-license"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2026,
+                  3,
+                  1
+                ]
+              ],
+              "date-time": "2026-03-01T00:00:00Z",
+              "timestamp": 1772323200000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-017"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2026,
+                  3,
+                  1
+                ]
+              ],
+              "date-time": "2026-03-01T00:00:00Z",
+              "timestamp": 1772323200000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-037"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2026,
+                  3,
+                  1
+                ]
+              ],
+              "date-time": "2026-03-01T00:00:00Z",
+              "timestamp": 1772323200000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-012"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2026,
+                  3,
+                  1
+                ]
+              ],
+              "date-time": "2026-03-01T00:00:00Z",
+              "timestamp": 1772323200000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-029"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2026,
+                  3,
+                  1
+                ]
+              ],
+              "date-time": "2026-03-01T00:00:00Z",
+              "timestamp": 1772323200000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-004"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S13",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1038/425145a",
+        "title": [
+          "Directed bending of a polymer film by light"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2003,
+              9,
+              11
+            ]
+          ]
+        },
+        "published_online": null,
+        "type": "journal-article",
+        "url": "https://doi.org/10.1038/425145a",
+        "publisher": "Springer Science and Business Media LLC",
+        "update_to": [],
+        "relation": {},
+        "funders": [],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2003,
+                  9,
+                  11
+                ]
+              ],
+              "date-time": "2003-09-11T00:00:00Z",
+              "timestamp": 1063238400000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "https://www.springernature.com/gp/researchers/text-and-data-mining"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2003,
+                  9,
+                  11
+                ]
+              ],
+              "date-time": "2003-09-11T00:00:00Z",
+              "timestamp": 1063238400000
+            },
+            "content-version": "vor",
+            "delay-in-days": 0,
+            "URL": "https://www.springernature.com/gp/researchers/text-and-data-mining"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S14",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1038/s44182-025-00024-5",
+        "title": [
+          "Unlocking holistic control of a phototropic liquid crystal polymer by global illumination"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2025,
+              4,
+              4
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              2025,
+              4,
+              4
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.1038/s44182-025-00024-5",
+        "publisher": "Springer Science and Business Media LLC",
+        "update_to": [],
+        "relation": {},
+        "funders": [
+          {
+            "name": "NUS start-up grant"
+          }
+        ],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  4,
+                  4
+                ]
+              ],
+              "date-time": "2025-04-04T00:00:00Z",
+              "timestamp": 1743724800000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "https://creativecommons.org/licenses/by-nc-nd/4.0"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  4,
+                  4
+                ]
+              ],
+              "date-time": "2025-04-04T00:00:00Z",
+              "timestamp": 1743724800000
+            },
+            "content-version": "vor",
+            "delay-in-days": 0,
+            "URL": "https://creativecommons.org/licenses/by-nc-nd/4.0"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S15",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1038/s41545-025-00484-0",
+        "title": [
+          "A review of fundamentals, challenges, prospects, and emerging trends in hydrate-based desalination"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2025,
+              6,
+              12
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              2025,
+              6,
+              12
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.1038/s41545-025-00484-0",
+        "publisher": "Springer Science and Business Media LLC",
+        "update_to": [],
+        "relation": {},
+        "funders": [
+          {
+            "DOI": "10.13039/501100000038",
+            "name": "Natural Sciences and Engineering Research Council of Canada",
+            "doi-asserted-by": "publisher",
+            "id": [
+              {
+                "id": "10.13039/501100000038",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          },
+          {
+            "DOI": "10.13039/501100003151",
+            "name": "Fonds de recherche du Québec – Nature et technologies",
+            "doi-asserted-by": "publisher",
+            "id": [
+              {
+                "id": "10.13039/501100003151",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          }
+        ],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  6,
+                  12
+                ]
+              ],
+              "date-time": "2025-06-12T00:00:00Z",
+              "timestamp": 1749686400000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "https://creativecommons.org/licenses/by/4.0"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  6,
+                  12
+                ]
+              ],
+              "date-time": "2025-06-12T00:00:00Z",
+              "timestamp": 1749686400000
+            },
+            "content-version": "vor",
+            "delay-in-days": 0,
+            "URL": "https://creativecommons.org/licenses/by/4.0"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S16",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1021/acs.iecr.5c01283",
+        "title": [
+          "Phase Behavior, Kinetics, and Energy Efficiency with Recycling of HFC-152a-Based Clathrate Hydrate Desalination for Synthetic Produced Water"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2025,
+              6,
+              4
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              2025,
+              6,
+              4
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.1021/acs.iecr.5c01283",
+        "publisher": "American Chemical Society (ACS)",
+        "update_to": [],
+        "relation": {},
+        "funders": [
+          {
+            "name": "U.S. Department of Energy???s Office of Energy Efficiency and Renewable Energy (EERE)",
+            "award": [
+              "DE-EE0010797"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "DE-EE0010797"
+                ]
+              }
+            ]
+          }
+        ],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  6,
+                  4
+                ]
+              ],
+              "date-time": "2025-06-04T00:00:00Z",
+              "timestamp": 1748995200000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-029"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  6,
+                  4
+                ]
+              ],
+              "date-time": "2025-06-04T00:00:00Z",
+              "timestamp": 1748995200000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-037"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  6,
+                  4
+                ]
+              ],
+              "date-time": "2025-06-04T00:00:00Z",
+              "timestamp": 1748995200000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-045"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S17",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1038/s41586-022-05069-2",
+        "title": [
+          "Large harvested energy with non-linear pyroelectric modules"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2022,
+              9,
+              12
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              2022,
+              9,
+              12
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.1038/s41586-022-05069-2",
+        "publisher": "Springer Science and Business Media LLC",
+        "update_to": [],
+        "relation": {},
+        "funders": [],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2022,
+                  9,
+                  12
+                ]
+              ],
+              "date-time": "2022-09-12T00:00:00Z",
+              "timestamp": 1662940800000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "https://creativecommons.org/licenses/by/4.0"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2022,
+                  9,
+                  12
+                ]
+              ],
+              "date-time": "2022-09-12T00:00:00Z",
+              "timestamp": 1662940800000
+            },
+            "content-version": "vor",
+            "delay-in-days": 0,
+            "URL": "https://creativecommons.org/licenses/by/4.0"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S18",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1038/s41467-024-51147-6",
+        "title": [
+          "Electronic cooling and energy harvesting using ferroelectric polymer composites"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2024,
+              8,
+              6
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              2024,
+              8,
+              6
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.1038/s41467-024-51147-6",
+        "publisher": "Springer Science and Business Media LLC",
+        "update_to": [],
+        "relation": {},
+        "funders": [],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2024,
+                  8,
+                  6
+                ]
+              ],
+              "date-time": "2024-08-06T00:00:00Z",
+              "timestamp": 1722902400000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "https://creativecommons.org/licenses/by-nc-nd/4.0"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2024,
+                  8,
+                  6
+                ]
+              ],
+              "date-time": "2024-08-06T00:00:00Z",
+              "timestamp": 1722902400000
+            },
+            "content-version": "vor",
+            "delay-in-days": 0,
+            "URL": "https://creativecommons.org/licenses/by-nc-nd/4.0"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S20",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1063/1.1656810",
+        "title": [
+          "A Thin-Film Field-Emission Cathode"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              1968,
+              6,
+              1
+            ]
+          ]
+        },
+        "published_online": null,
+        "type": "journal-article",
+        "url": "https://doi.org/10.1063/1.1656810",
+        "publisher": "AIP Publishing",
+        "update_to": [],
+        "relation": {},
+        "funders": [],
+        "license": []
+      }
+    },
+    {
+      "source_id": "S23",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1016/j.spmi.2005.07.001",
+        "title": [
+          "Nano scale computational architectures with Spin Wave Bus"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2005,
+              9
+            ]
+          ]
+        },
+        "published_online": null,
+        "type": "journal-article",
+        "url": "https://doi.org/10.1016/j.spmi.2005.07.001",
+        "publisher": "Elsevier BV",
+        "update_to": [],
+        "relation": {},
+        "funders": [],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2005,
+                  9,
+                  1
+                ]
+              ],
+              "date-time": "2005-09-01T00:00:00Z",
+              "timestamp": 1125532800000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "https://www.elsevier.com/tdm/userlicense/1.0/"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S24",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1126/sciadv.adu9032",
+        "title": [
+          "Realization of inverse-design magnonic logic gates"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2025,
+              5,
+              23
+            ]
+          ]
+        },
+        "published_online": null,
+        "type": "journal-article",
+        "url": "https://doi.org/10.1126/sciadv.adu9032",
+        "publisher": "American Association for the Advancement of Science (AAAS)",
+        "update_to": [],
+        "relation": {},
+        "funders": [],
+        "license": []
+      }
+    },
+    {
+      "source_id": "S25",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1038/s41563-025-02282-y",
+        "title": [
+          "Dispersion-tunable low-loss implanted spin-wave waveguides for large magnonic networks"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2025,
+              7,
+              9
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              2025,
+              7,
+              9
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.1038/s41563-025-02282-y",
+        "publisher": "Springer Science and Business Media LLC",
+        "update_to": [],
+        "relation": {},
+        "funders": [
+          {
+            "DOI": "10.13039/501100001659",
+            "name": "Deutsche Forschungsgemeinschaft",
+            "doi-asserted-by": "publisher",
+            "award": [
+              "Project-ID 433682494"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "Project-ID 433682494"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/501100001659",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          }
+        ],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  7,
+                  9
+                ]
+              ],
+              "date-time": "2025-07-09T00:00:00Z",
+              "timestamp": 1752019200000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "https://creativecommons.org/licenses/by/4.0"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  7,
+                  9
+                ]
+              ],
+              "date-time": "2025-07-09T00:00:00Z",
+              "timestamp": 1752019200000
+            },
+            "content-version": "vor",
+            "delay-in-days": 0,
+            "URL": "https://creativecommons.org/licenses/by/4.0"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S26",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1038/s41467-017-00250-y",
+        "title": [
+          "Shift current photovoltaic effect in a ferroelectric charge-transfer complex"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2017,
+              8,
+              17
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              2017,
+              8,
+              17
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.1038/s41467-017-00250-y",
+        "publisher": "Springer Science and Business Media LLC",
+        "update_to": [],
+        "relation": {},
+        "funders": [],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2017,
+                  8,
+                  17
+                ]
+              ],
+              "date-time": "2017-08-17T00:00:00Z",
+              "timestamp": 1502928000000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "https://creativecommons.org/licenses/by/4.0"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2017,
+                  8,
+                  17
+                ]
+              ],
+              "date-time": "2017-08-17T00:00:00Z",
+              "timestamp": 1502928000000
+            },
+            "content-version": "vor",
+            "delay-in-days": 0,
+            "URL": "https://creativecommons.org/licenses/by/4.0"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S27",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1038/s41467-025-64807-y",
+        "title": [
+          "High-efficiency bulk photovoltaic effect with ferroelectric-increased shift current"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2025,
+              11,
+              7
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              2025,
+              11,
+              7
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.1038/s41467-025-64807-y",
+        "publisher": "Springer Science and Business Media LLC",
+        "update_to": [],
+        "relation": {},
+        "funders": [
+          {
+            "DOI": "10.13039/501100001809",
+            "name": "National Natural Science Foundation of China",
+            "doi-asserted-by": "publisher",
+            "award": [
+              "62304202"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "62304202"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/501100001809",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          },
+          {
+            "DOI": "10.13039/501100001809",
+            "name": "National Natural Science Foundation of China",
+            "doi-asserted-by": "publisher",
+            "award": [
+              "62404197"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "62404197"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/501100001809",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          }
+        ],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  11,
+                  7
+                ]
+              ],
+              "date-time": "2025-11-07T00:00:00Z",
+              "timestamp": 1762473600000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "https://creativecommons.org/licenses/by-nc-nd/4.0"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  11,
+                  7
+                ]
+              ],
+              "date-time": "2025-11-07T00:00:00Z",
+              "timestamp": 1762473600000
+            },
+            "content-version": "vor",
+            "delay-in-days": 0,
+            "URL": "https://creativecommons.org/licenses/by-nc-nd/4.0"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S30",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1085/jgp.26.2.219",
+        "title": [
+          "FERMENTATIVE AND PHOTOCHEMICAL PRODUCTION OF HYDROGEN IN ALGAE"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              1942,
+              11,
+              20
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              1942,
+              11,
+              20
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.1085/jgp.26.2.219",
+        "publisher": "Rockefeller University Press",
+        "update_to": [],
+        "relation": {},
+        "funders": [],
+        "license": []
+      }
+    },
+    {
+      "source_id": "S31",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1038/s41467-026-70988-x",
+        "title": [
+          "Engineered microbial hydrogels with confined architecture and binary microbes for efficient hydrogen production"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2026,
+              3,
+              23
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              2026,
+              3,
+              23
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.1038/s41467-026-70988-x",
+        "publisher": "Springer Science and Business Media LLC",
+        "update_to": [],
+        "relation": {},
+        "funders": [],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2026,
+                  3,
+                  23
+                ]
+              ],
+              "date-time": "2026-03-23T00:00:00Z",
+              "timestamp": 1774224000000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "https://creativecommons.org/licenses/by-nc-nd/4.0"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2026,
+                  5,
+                  13
+                ]
+              ],
+              "date-time": "2026-05-13T00:00:00Z",
+              "timestamp": 1778630400000
+            },
+            "content-version": "vor",
+            "delay-in-days": 51,
+            "URL": "https://creativecommons.org/licenses/by-nc-nd/4.0"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S32",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1039/c4ee03875d",
+        "title": [
+          "Biophotovoltaics: oxygenic photosynthetic organisms in the world of bioelectrochemical systems"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2015
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              2015
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.1039/c4ee03875d",
+        "publisher": "Royal Society of Chemistry (RSC)",
+        "update_to": [],
+        "relation": {},
+        "funders": [],
+        "license": []
+      }
+    },
+    {
+      "source_id": "S36",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1002/adma.202303416",
+        "title": [
+          "Roll‐to‐Roll Printing of Anomalous Nernst Thermopile for Direct Sensing of Perpendicular Heat Flux"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2023,
+              7,
+              24
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              2023,
+              7,
+              24
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.1002/adma.202303416",
+        "publisher": "Wiley",
+        "update_to": [],
+        "relation": {},
+        "funders": [],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2023,
+                  7,
+                  24
+                ]
+              ],
+              "date-time": "2023-07-24T00:00:00Z",
+              "timestamp": 1690156800000
+            },
+            "content-version": "vor",
+            "delay-in-days": 0,
+            "URL": "http://creativecommons.org/licenses/by/4.0/"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S38",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1063/1.4907392",
+        "title": [
+          "Theoretical efficiency limits for thermoradiative energy conversion"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2015,
+              2,
+              4
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              2015,
+              2,
+              4
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.1063/1.4907392",
+        "publisher": "AIP Publishing",
+        "update_to": [],
+        "relation": {},
+        "funders": [],
+        "license": []
+      }
+    },
+    {
+      "source_id": "S39",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1063/5.0265431",
+        "title": [
+          "Temperature-dependent power generation from HgCdTe and III–V thermoradiative diodes"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2025,
+              4,
+              28
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              2025,
+              4,
+              30
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.1063/5.0265431",
+        "publisher": "AIP Publishing",
+        "update_to": [],
+        "relation": {},
+        "funders": [
+          {
+            "DOI": "10.13039/501100000923",
+            "name": "Australian Research Council",
+            "doi-asserted-by": "crossref",
+            "award": [
+              "DE230100382"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "DE230100382"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/501100000923",
+                "id-type": "DOI",
+                "asserted-by": "crossref"
+              }
+            ]
+          },
+          {
+            "DOI": "10.13039/100000181",
+            "name": "US Air Force Office of Scientific Research",
+            "doi-asserted-by": "crossref",
+            "award": [
+              "FA23862314096"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "FA23862314096"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/100000181",
+                "id-type": "DOI",
+                "asserted-by": "crossref"
+              }
+            ]
+          },
+          {
+            "name": "UNSW Sharp Program"
+          },
+          {
+            "name": "UNSW Scientia Program"
+          }
+        ],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2026,
+                  4,
+                  29
+                ]
+              ],
+              "date-time": "2026-04-29T00:00:00Z",
+              "timestamp": 1777420800000
+            },
+            "content-version": "vor",
+            "delay-in-days": 366,
+            "URL": "https://creativecommons.org/licenses/by/4.0/"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S57",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1016/j.applthermaleng.2025.125555",
+        "title": [
+          "High heat-flux sensitivity of the planar coil device based on the anomalous Nernst effect"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2025,
+              4
+            ]
+          ]
+        },
+        "published_online": null,
+        "type": "journal-article",
+        "url": "https://doi.org/10.1016/j.applthermaleng.2025.125555",
+        "publisher": "Elsevier BV",
+        "update_to": [],
+        "relation": {},
+        "funders": [
+          {
+            "DOI": "10.13039/501100014188",
+            "name": "Korea Ministry of Science and ICT",
+            "doi-asserted-by": "publisher",
+            "award": [
+              "RS-2024-00345022"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "RS-2024-00345022"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/501100014188",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          },
+          {
+            "DOI": "10.13039/501100014188",
+            "name": "Korea Ministry of Science and ICT",
+            "doi-asserted-by": "publisher",
+            "award": [
+              "RS-2024-00449743"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "RS-2024-00449743"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/501100014188",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          },
+          {
+            "DOI": "10.13039/501100003725",
+            "name": "National Research Foundation of Korea",
+            "doi-asserted-by": "publisher",
+            "id": [
+              {
+                "id": "10.13039/501100003725",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          }
+        ],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  4,
+                  1
+                ]
+              ],
+              "date-time": "2025-04-01T00:00:00Z",
+              "timestamp": 1743465600000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "https://www.elsevier.com/tdm/userlicense/1.0/"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  4,
+                  1
+                ]
+              ],
+              "date-time": "2025-04-01T00:00:00Z",
+              "timestamp": 1743465600000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "https://www.elsevier.com/legal/tdmrep-license"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  4,
+                  1
+                ]
+              ],
+              "date-time": "2025-04-01T00:00:00Z",
+              "timestamp": 1743465600000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-017"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  4,
+                  1
+                ]
+              ],
+              "date-time": "2025-04-01T00:00:00Z",
+              "timestamp": 1743465600000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-037"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  4,
+                  1
+                ]
+              ],
+              "date-time": "2025-04-01T00:00:00Z",
+              "timestamp": 1743465600000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-012"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  4,
+                  1
+                ]
+              ],
+              "date-time": "2025-04-01T00:00:00Z",
+              "timestamp": 1743465600000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-029"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  4,
+                  1
+                ]
+              ],
+              "date-time": "2025-04-01T00:00:00Z",
+              "timestamp": 1743465600000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-004"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S65",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1038/35082026",
+        "title": [
+          "Liquid marbles"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2001,
+              6
+            ]
+          ]
+        },
+        "published_online": null,
+        "type": "journal-article",
+        "url": "https://doi.org/10.1038/35082026",
+        "publisher": "Springer Science and Business Media LLC",
+        "update_to": [],
+        "relation": {},
+        "funders": [],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2001,
+                  6,
+                  1
+                ]
+              ],
+              "date-time": "2001-06-01T00:00:00Z",
+              "timestamp": 991353600000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "http://www.springer.com/tdm"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S66",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1002/adfm.202504193",
+        "title": [
+          "Rotating Liquid Marble Microreactors for Enhanced Enzymatic Reactions"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2025,
+              4,
+              24
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              2025,
+              4,
+              24
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.1002/adfm.202504193",
+        "publisher": "Wiley",
+        "update_to": [],
+        "relation": {},
+        "funders": [
+          {
+            "DOI": "10.13039/501100005145",
+            "name": "Basic Research Program of Jiangsu Province",
+            "doi-asserted-by": "publisher",
+            "award": [
+              "BK20221059"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "BK20221059"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/501100005145",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          },
+          {
+            "DOI": "10.13039/501100001809",
+            "name": "National Natural Science Foundation of China",
+            "doi-asserted-by": "publisher",
+            "award": [
+              "22202084"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "22202084"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/501100001809",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          },
+          {
+            "DOI": "10.13039/501100001809",
+            "name": "National Natural Science Foundation of China",
+            "doi-asserted-by": "publisher",
+            "award": [
+              "22272064"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "22272064"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/501100001809",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          },
+          {
+            "DOI": "10.13039/501100012226",
+            "name": "Fundamental Research Funds for the Central Universities",
+            "doi-asserted-by": "publisher",
+            "award": [
+              "JUSRP122017"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "JUSRP122017"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/501100012226",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          }
+        ],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  4,
+                  24
+                ]
+              ],
+              "date-time": "2025-04-24T00:00:00Z",
+              "timestamp": 1745452800000
+            },
+            "content-version": "vor",
+            "delay-in-days": 0,
+            "URL": "http://creativecommons.org/licenses/by/4.0/"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S67",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1002/smll.202505439",
+        "title": [
+          "Flow‐Active Liquid Marbles as Microreactors for Photocatalytic Micromotors"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2025,
+              9,
+              12
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              2025,
+              9,
+              12
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.1002/smll.202505439",
+        "publisher": "Wiley",
+        "update_to": [],
+        "relation": {},
+        "funders": [],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  9,
+                  12
+                ]
+              ],
+              "date-time": "2025-09-12T00:00:00Z",
+              "timestamp": 1757635200000
+            },
+            "content-version": "vor",
+            "delay-in-days": 0,
+            "URL": "http://creativecommons.org/licenses/by/4.0/"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  9,
+                  12
+                ]
+              ],
+              "date-time": "2025-09-12T00:00:00Z",
+              "timestamp": 1757635200000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "http://doi.wiley.com/10.1002/tdm_license_1.1"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S68",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1103/physreve.83.031916",
+        "title": [
+          "Memristive model of electro-osmosis in skin"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2011,
+              3,
+              24
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              2011,
+              3,
+              24
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.1103/physreve.83.031916",
+        "publisher": "American Physical Society (APS)",
+        "update_to": [],
+        "relation": {},
+        "funders": [],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2011,
+                  3,
+                  24
+                ]
+              ],
+              "date-time": "2011-03-24T00:00:00Z",
+              "timestamp": 1300924800000
+            },
+            "content-version": "vor",
+            "delay-in-days": 0,
+            "URL": "http://link.aps.org/licenses/aps-default-license"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S69",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1038/s41467-025-61649-6",
+        "title": [
+          "Programmable memristors with two-dimensional nanofluidic channels"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2025,
+              7,
+              30
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              2025,
+              7,
+              30
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.1038/s41467-025-61649-6",
+        "publisher": "Springer Science and Business Media LLC",
+        "update_to": [],
+        "relation": {},
+        "funders": [
+          {
+            "DOI": "10.13039/501100000288",
+            "name": "Royal Society",
+            "doi-asserted-by": "publisher",
+            "award": [
+              "URF\\R1\\180127, URF\\R\\231008"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "URF\\R1\\180127, URF\\R\\231008"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/501100000288",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          },
+          {
+            "DOI": "10.13039/501100000780",
+            "name": "European Commission",
+            "doi-asserted-by": "publisher",
+            "award": [
+              "ERC Starting Grant 852674 - AngstroCAP"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "ERC Starting Grant 852674 - AngstroCAP"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/501100000780",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          },
+          {
+            "DOI": "10.13039/501100000266",
+            "name": "RCUK | Engineering and Physical Sciences Research Council",
+            "doi-asserted-by": "publisher",
+            "award": [
+              "EP/W006502/1"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "EP/W006502/1"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/501100000266",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          },
+          {
+            "DOI": "10.13039/501100000266",
+            "name": "RCUK | Engineering and Physical Sciences Research Council",
+            "doi-asserted-by": "publisher",
+            "award": [
+              "EP/V048112/1"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "EP/V048112/1"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/501100000266",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          },
+          {
+            "DOI": "10.13039/501100000275",
+            "name": "Leverhulme Trust",
+            "doi-asserted-by": "publisher",
+            "award": [
+              "PLP-2021-262"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "PLP-2021-262"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/501100000275",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          }
+        ],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  7,
+                  30
+                ]
+              ],
+              "date-time": "2025-07-30T00:00:00Z",
+              "timestamp": 1753833600000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "https://creativecommons.org/licenses/by/4.0"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  7,
+                  30
+                ]
+              ],
+              "date-time": "2025-07-30T00:00:00Z",
+              "timestamp": 1753833600000
+            },
+            "content-version": "vor",
+            "delay-in-days": 0,
+            "URL": "https://creativecommons.org/licenses/by/4.0"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S70",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1021/acs.nanolett.5c00315",
+        "title": [
+          "Resistance-Restorable Nanofluidic Memristor and Neuromorphic Chip"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2025,
+              4,
+              12
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              2025,
+              4,
+              12
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.1021/acs.nanolett.5c00315",
+        "publisher": "American Chemical Society (ACS)",
+        "update_to": [],
+        "relation": {},
+        "funders": [
+          {
+            "DOI": "10.13039/501100001809",
+            "name": "National Natural Science Foundation of China",
+            "doi-asserted-by": "publisher",
+            "award": [
+              "12241201"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "12241201"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/501100001809",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          },
+          {
+            "DOI": "10.13039/501100001809",
+            "name": "National Natural Science Foundation of China",
+            "doi-asserted-by": "publisher",
+            "award": [
+              "12388101"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "12388101"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/501100001809",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          },
+          {
+            "name": "Innovation Capability Support Program of Shaanxi",
+            "award": [
+              "2024RS-CXTD-15"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "2024RS-CXTD-15"
+                ]
+              }
+            ]
+          }
+        ],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  4,
+                  12
+                ]
+              ],
+              "date-time": "2025-04-12T00:00:00Z",
+              "timestamp": 1744416000000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-029"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  4,
+                  12
+                ]
+              ],
+              "date-time": "2025-04-12T00:00:00Z",
+              "timestamp": 1744416000000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-037"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  4,
+                  12
+                ]
+              ],
+              "date-time": "2025-04-12T00:00:00Z",
+              "timestamp": 1744416000000
+            },
+            "content-version": "stm-asf",
+            "delay-in-days": 0,
+            "URL": "https://doi.org/10.15223/policy-045"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S71",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1073/pnas.89.1.383",
+        "title": [
+          "Chemical implementation of finite-state machines."
+        ],
+        "published": {
+          "date-parts": [
+            [
+              1992,
+              1
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              1992,
+              1
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.1073/pnas.89.1.383",
+        "publisher": "National Academy of Sciences",
+        "update_to": [],
+        "relation": {},
+        "funders": [],
+        "license": []
+      }
+    },
+    {
+      "source_id": "S72",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1038/s41467-024-45896-7",
+        "title": [
+          "A programmable hybrid digital chemical information processor based on the Belousov-Zhabotinsky reaction"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2024,
+              3,
+              5
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              2024,
+              3,
+              5
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.1038/s41467-024-45896-7",
+        "publisher": "Springer Science and Business Media LLC",
+        "update_to": [],
+        "relation": {},
+        "funders": [
+          {
+            "DOI": "10.13039/501100000266",
+            "name": "RCUK | Engineering and Physical Sciences Research Council",
+            "doi-asserted-by": "publisher",
+            "award": [
+              "EP/H024107/1"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "EP/H024107/1"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/501100000266",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          }
+        ],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2024,
+                  3,
+                  5
+                ]
+              ],
+              "date-time": "2024-03-05T00:00:00Z",
+              "timestamp": 1709596800000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "https://creativecommons.org/licenses/by/4.0"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2024,
+                  3,
+                  5
+                ]
+              ],
+              "date-time": "2024-03-05T00:00:00Z",
+              "timestamp": 1709596800000
+            },
+            "content-version": "vor",
+            "delay-in-days": 0,
+            "URL": "https://creativecommons.org/licenses/by/4.0"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S73",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1038/s41467-024-46859-8",
+        "title": [
+          "Publisher Correction: A programmable hybrid digital chemical information processor based on the Belousov-Zhabotinsky reaction"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2024,
+              3,
+              18
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              2024,
+              3,
+              18
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.1038/s41467-024-46859-8",
+        "publisher": "Springer Science and Business Media LLC",
+        "update_to": [
+          {
+            "DOI": "10.1038/s41467-024-45896-7",
+            "type": "correction",
+            "label": "Correction",
+            "source": "publisher",
+            "updated": {
+              "date-parts": [
+                [
+                  2024,
+                  3,
+                  18
+                ]
+              ],
+              "date-time": "2024-03-18T00:00:00Z",
+              "timestamp": 1710720000000
+            }
+          }
+        ],
+        "relation": {},
+        "funders": [],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2024,
+                  3,
+                  18
+                ]
+              ],
+              "date-time": "2024-03-18T00:00:00Z",
+              "timestamp": 1710720000000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "https://creativecommons.org/licenses/by/4.0"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2024,
+                  3,
+                  18
+                ]
+              ],
+              "date-time": "2024-03-18T00:00:00Z",
+              "timestamp": 1710720000000
+            },
+            "content-version": "vor",
+            "delay-in-days": 0,
+            "URL": "https://creativecommons.org/licenses/by/4.0"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S75",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1063/5.0209355",
+        "title": [
+          "Solar lasers: Why not?"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2024,
+              5,
+              1
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              2024,
+              5,
+              28
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.1063/5.0209355",
+        "publisher": "AIP Publishing",
+        "update_to": [],
+        "relation": {},
+        "funders": [],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2024,
+                  5,
+                  28
+                ]
+              ],
+              "date-time": "2024-05-28T00:00:00Z",
+              "timestamp": 1716854400000
+            },
+            "content-version": "vor",
+            "delay-in-days": 27,
+            "URL": "https://creativecommons.org/licenses/by/4.0/"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2024,
+                  5,
+                  28
+                ]
+              ],
+              "date-time": "2024-05-28T00:00:00Z",
+              "timestamp": 1716854400000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 27,
+            "URL": "https://creativecommons.org/licenses/by/4.0/"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S76",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.20965/jaciii.2025.p1131",
+        "title": [
+          "Ten W Class of Stable Solar-Pumped Laser Using a Cone-Shaped Solar Cavity and 0.7 m<sup>2</sup>-Fresnel Lens"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2025,
+              9,
+              20
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              2025,
+              9,
+              20
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.20965/jaciii.2025.p1131",
+        "publisher": "Fuji Technology Press Ltd.",
+        "update_to": [],
+        "relation": {},
+        "funders": [
+          {
+            "DOI": "10.13039/501100001691",
+            "name": "Japan Society for the Promotion of Science",
+            "doi-asserted-by": "publisher",
+            "award": [
+              "22K04973"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "22K04973"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/501100001691",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          }
+        ],
+        "license": []
+      }
+    },
+    {
+      "source_id": "S78",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1038/nnano.2008.84",
+        "title": [
+          "Bit storage and bit flip operations in an electromechanical oscillator"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2008,
+              4,
+              13
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              2008,
+              4,
+              13
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.1038/nnano.2008.84",
+        "publisher": "Springer Science and Business Media LLC",
+        "update_to": [],
+        "relation": {
+          "erratum": [
+            {
+              "id-type": "doi",
+              "id": "10.1038/nnano.2008.155",
+              "asserted-by": "object"
+            }
+          ]
+        },
+        "funders": [],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2008,
+                  4,
+                  13
+                ]
+              ],
+              "date-time": "2008-04-13T00:00:00Z",
+              "timestamp": 1208044800000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "http://www.springer.com/tdm"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2008,
+                  4,
+                  13
+                ]
+              ],
+              "date-time": "2008-04-13T00:00:00Z",
+              "timestamp": 1208044800000
+            },
+            "content-version": "vor",
+            "delay-in-days": 0,
+            "URL": "http://www.springer.com/tdm"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S79",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1063/5.0203260",
+        "title": [
+          "Experimental demonstration of an electroacoustic transistor"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2024,
+              6,
+              10
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              2024,
+              6,
+              13
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.1063/5.0203260",
+        "publisher": "AIP Publishing",
+        "update_to": [],
+        "relation": {},
+        "funders": [
+          {
+            "DOI": "10.13039/100000001",
+            "name": "National Science Foundation",
+            "doi-asserted-by": "publisher",
+            "award": [
+              "2242925"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "2242925"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/100000001",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          }
+        ],
+        "license": []
+      }
+    },
+    {
+      "source_id": "S80",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1038/s41598-025-90351-2",
+        "title": [
+          "Topological phononic switch based on reconfigurable symmetry-broken crystals with rotatable scatterers"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2025,
+              2,
+              23
+            ]
+          ]
+        },
+        "published_online": {
+          "date-parts": [
+            [
+              2025,
+              2,
+              23
+            ]
+          ]
+        },
+        "type": "journal-article",
+        "url": "https://doi.org/10.1038/s41598-025-90351-2",
+        "publisher": "Springer Science and Business Media LLC",
+        "update_to": [],
+        "relation": {},
+        "funders": [],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  2,
+                  23
+                ]
+              ],
+              "date-time": "2025-02-23T00:00:00Z",
+              "timestamp": 1740268800000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "https://creativecommons.org/licenses/by-nc-nd/4.0"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2025,
+                  2,
+                  23
+                ]
+              ],
+              "date-time": "2025-02-23T00:00:00Z",
+              "timestamp": 1740268800000
+            },
+            "content-version": "vor",
+            "delay-in-days": 0,
+            "URL": "https://creativecommons.org/licenses/by-nc-nd/4.0"
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "S81",
+      "status": "retrieved",
+      "record": {
+        "doi": "10.1016/j.xcrp.2021.100510",
+        "title": [
+          "Thermogalvanic cells demonstrate inherent physiochemical limitations in redox-active electrolytes at water-in-salt concentrations"
+        ],
+        "published": {
+          "date-parts": [
+            [
+              2021,
+              8
+            ]
+          ]
+        },
+        "published_online": null,
+        "type": "journal-article",
+        "url": "https://doi.org/10.1016/j.xcrp.2021.100510",
+        "publisher": "Elsevier BV",
+        "update_to": [],
+        "relation": {},
+        "funders": [
+          {
+            "DOI": "10.13039/501100000266",
+            "name": "Engineering and Physical Sciences Research Council",
+            "doi-asserted-by": "publisher",
+            "award": [
+              "EP/N509498/1"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "EP/N509498/1"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/501100000266",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          },
+          {
+            "DOI": "10.13039/501100000867",
+            "name": "Commonwealth Scholarship Commission",
+            "doi-asserted-by": "publisher",
+            "award": [
+              "201806130204"
+            ],
+            "award-info": [
+              {
+                "award-number": [
+                  "201806130204"
+                ]
+              }
+            ],
+            "id": [
+              {
+                "id": "10.13039/501100000867",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          },
+          {
+            "DOI": "10.13039/501100004543",
+            "name": "China Scholarship Council",
+            "doi-asserted-by": "publisher",
+            "id": [
+              {
+                "id": "10.13039/501100004543",
+                "id-type": "DOI",
+                "asserted-by": "publisher"
+              }
+            ]
+          }
+        ],
+        "license": [
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2021,
+                  8,
+                  1
+                ]
+              ],
+              "date-time": "2021-08-01T00:00:00Z",
+              "timestamp": 1627776000000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "https://www.elsevier.com/tdm/userlicense/1.0/"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2021,
+                  8,
+                  1
+                ]
+              ],
+              "date-time": "2021-08-01T00:00:00Z",
+              "timestamp": 1627776000000
+            },
+            "content-version": "tdm",
+            "delay-in-days": 0,
+            "URL": "https://www.elsevier.com/legal/tdmrep-license"
+          },
+          {
+            "start": {
+              "date-parts": [
+                [
+                  2021,
+                  6,
+                  29
+                ]
+              ],
+              "date-time": "2021-06-29T00:00:00Z",
+              "timestamp": 1624924800000
+            },
+            "content-version": "vor",
+            "delay-in-days": 0,
+            "URL": "http://creativecommons.org/licenses/by/4.0/"
+          }
+        ]
+      }
+    }
+  ],
+  "queries": []
+}

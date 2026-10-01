@@ -3,10 +3,12 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import replace
+from datetime import UTC, datetime, timedelta
 
 import httpx
 
 from ts.checklist import CHECKLIST_VERSION, annotate_checklist
+from ts.desk import near_miss_cards
 from ts.fanout import is_wide, load_theme_plan, merge_theme_reports
 from ts.harness import TOP_N, Harness, RunReport
 from ts.persist import load_report, public_report, save_report
@@ -35,10 +37,27 @@ from ts.sources.connectors import (
 
 
 CORPUS = "live-w18"
+THEME_LOOKBACK_DAYS = 365
 
 
-def _key(query: str, rules_version: str, corpus: str = CORPUS) -> str:
-    return hashlib.sha256(f"{query}|{corpus}|{rules_version}".encode()).hexdigest()
+def _today() -> str:
+    return datetime.now(UTC).date().isoformat()
+
+
+def _since(day: str) -> str:
+    return (datetime.fromisoformat(day).date() - timedelta(days=THEME_LOOKBACK_DAYS)).isoformat()
+
+
+def _key(query: str, rules_version: str, corpus: str = CORPUS, day: str | None = None) -> str:
+    """A repeat on the same UTC day returns the stored run. The next day searches again."""
+    window = day or _today()
+    return hashlib.sha256(f"{query}|{corpus}+{window}|{rules_version}".encode()).hexdigest()
+
+
+def _near_miss(registry: list[dict], settings: Settings) -> list[dict]:
+    """Reach is read for the short list only, never for the whole registry."""
+    cards = near_miss_cards({"exclusion_registry": registry})
+    return annotate_reach(cards, settings) if cards else []
 
 
 def _maker(session_factory):
@@ -50,25 +69,29 @@ def _maker(session_factory):
 
 
 def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Settings | None = None,
-              connectors=None, session_factory=None, _theme: bool = False) -> dict:
+              connectors=None, session_factory=None, _theme: bool = False, _day: str | None = None) -> dict:
     # The extractor argument is ignored. Passing it into Harness.run collapses every find into one card.
     _ = extract
     s = settings or load()
+    day = _day or _today()
     plan = load_theme_plan()
     if is_wide(query, plan):
         return _run_wide(
             query, plan, limit=limit, extract=extract, settings=s,
-            connectors=connectors, session_factory=session_factory,
+            connectors=connectors, session_factory=session_factory, day=day,
         )
     corpus = CORPUS if _theme else f"{CORPUS}+{CHECKLIST_VERSION}"
-    key = _key(query, s.rules_version, corpus=corpus)
+    key = _key(query, s.rules_version, corpus=corpus, day=day)
     factory = _maker(session_factory)
     with factory() as session:
         stored = load_report(session, key)
     if stored is not None:
         stored["repeated"] = True
         return stored
-    report = Harness(rules_version=s.rules_version, snapshot_dir=s.snapshot_dir, corpus_version=CORPUS).run(
+    report = Harness(
+        rules_version=s.rules_version, snapshot_dir=s.snapshot_dir, corpus_version=CORPUS,
+        since=_since(day) if _theme else None,
+    ).run(
         query, connectors if connectors is not None else default_connectors(s),
         limit=limit, extractor=None,
     )
@@ -81,6 +104,7 @@ def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Se
         report.unread = list(checked.get("unread") or [])
         report.exclusion_registry = held + list(checked["excluded"]) + list(checked["overflow"])
         report.shortfall = TOP_N - len(report.top)
+        report.near_miss = _near_miss(report.exclusion_registry, s)
         if report.top:
             report.card = dict(report.top[0])
             report.card.setdefault("rules_version", s.rules_version)
@@ -95,11 +119,11 @@ def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Se
     return public_report(report)
 
 
-def _run_wide(query, plan, *, limit, extract, settings, connectors, session_factory) -> dict:
+def _run_wide(query, plan, *, limit, extract, settings, connectors, session_factory, day) -> dict:
     """One stored run for the mission sentence. Theme queries stay their own runs."""
     rules = load_rules(settings.rules_version)
     corpus = f"{CORPUS}+{plan['version']}+{CHECKLIST_VERSION}"
-    key = _key(query, rules["version"], corpus=corpus)
+    key = _key(query, rules["version"], corpus=corpus, day=day)
     factory = _maker(session_factory)
     with factory() as session:
         stored = load_report(session, key)
@@ -110,11 +134,12 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
     for theme in plan["themes"]:
         report = run_query(
             theme["query"], limit=limit, extract=extract, settings=settings,
-            connectors=connectors, session_factory=session_factory, _theme=True,
+            connectors=connectors, session_factory=session_factory, _theme=True, _day=day,
         )
         parts.append((theme, list(report.get("top") or [])))
     merged = merge_theme_reports(parts, limit=TOP_N)
-    checked = annotate_checklist(merged["top"], merged["overflow"], settings, query=query)
+    # A theme query is not the operator's question. As one, it marks cross-theme papers ДРУГОЙ_МЕХАНИЗМ.
+    checked = annotate_checklist(merged["top"], merged["overflow"], settings, query=None)
     top = sorted(annotate_scopes(checked["top"], settings), key=scope_rank, reverse=True)
     top = annotate_reach(top, settings)
     card = dict(top[0]) if top else {
@@ -128,6 +153,7 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
         "chain_link": {},
     }
     card.setdefault("rules_version", rules["version"])
+    registry = list(checked["excluded"]) + list(checked["overflow"])
     sources = []
     seen = set()
     for item in top:
@@ -150,8 +176,9 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
         card=card,
         top=top,
         shortfall=TOP_N - len(top),
-        exclusion_registry=list(checked["excluded"]) + list(checked["overflow"]),
+        exclusion_registry=registry,
         unread=list(checked.get("unread") or []),
+        near_miss=_near_miss(registry, settings),
         model_id=next((
             (item.get("checklist") or {}).get("model_id")
             for item in top

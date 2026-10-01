@@ -1,13 +1,27 @@
 """Viewer document and admin help. The desk does not score and does not replace rules-0.1."""
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import yaml
 
 from ts.extract import PROMPT_VERSION
 from ts.nearest import nearest_lines
-from ts.plain import LANG, TRUST, TYPES, VALUES, code_words, decision_line, say, scope_sentence, stopper_line
+from ts.plain import (
+    LANG,
+    OLD_TECH_DECISIONS,
+    OLD_TECH_HOLDS,
+    REASONS,
+    TRUST,
+    TYPES,
+    VALUES,
+    code_words,
+    decision_line,
+    say,
+    scope_sentence,
+    stopper_line,
+)
 from ts.scoring.scorer import load_rules
 from ts.ui_text import LABELS, panels
 
@@ -185,6 +199,131 @@ def _checklist_filled(item: dict) -> bool:
         if isinstance(row, dict) and str(row.get("code") or "").startswith("P"):
             return True
     return False
+
+
+NEAR_MISS_FLOOR = 0.25
+NEAR_MISS_CEILING = 0.35
+NEAR_MISS_CAP = 8
+_NEAR_MISS_DROP = frozenset({
+    "checklist_counter", "reader_failed", "reader_failed_replaced", "no_source_text", "no_source_text_replaced",
+})
+
+
+def _number(value) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def near_miss_cards(payload) -> list[dict]:
+    """Scored cards just under the watchlist. They never fill the official TOP-15."""
+    registry = (payload or {}).get("exclusion_registry") if isinstance(payload, dict) else None
+    picked = []
+    for card in registry or []:
+        if not isinstance(card, dict):
+            continue
+        if (card.get("checklist") or {}).get("status") != "scored":
+            continue
+        if card.get("policy_reason") in _NEAR_MISS_DROP:
+            continue
+        confidence = card.get("confidence")
+        if not _number(confidence) or not NEAR_MISS_FLOOR <= confidence < NEAR_MISS_CEILING:
+            continue
+        picked.append(dict(card))
+    picked.sort(key=lambda card: (-card["confidence"], str(card.get("technology") or "")))
+    return picked[:NEAR_MISS_CAP]
+
+
+def _predictor_brief(predictors) -> str:
+    parts = []
+    for row in predictors or []:
+        if not isinstance(row, dict) or not _number(row.get("contribution")) or not row["contribution"]:
+            continue
+        parts.append(f"{code_words(row.get('code'))}: {row['contribution']:+g}")
+        if len(parts) >= 3:
+            break
+    return "; ".join(parts)
+
+
+def near_miss_board(payload: dict) -> dict:
+    """Cards for «Близко к проходу». An old run without near_miss gets the same selection, without reach."""
+    stored = payload.get("near_miss") if isinstance(payload, dict) else None
+    saved = isinstance(stored, list)
+    rows = [card for card in stored if isinstance(card, dict)] if saved else near_miss_cards(payload)
+    cards = []
+    for row in rows:
+        reach = row.get("reach") if isinstance(row.get("reach"), dict) else {}
+        plain = str(reach.get("plain") or "").strip()
+        cards.append({
+            "title": plain or row.get("technology") or "карточка",
+            "technology": row.get("technology") or "",
+            "confidence": row.get("confidence"),
+            "why": say(REASONS, row.get("policy_reason"), "причина не названа"),
+            "predictors": _predictor_brief(row.get("predictors")),
+            "plain": plain,
+            "sphere": str(reach.get("sphere") or "").strip(),
+            "moves": str(reach.get("moves") or "").strip(),
+            "plus": str(reach.get("plus") or "").strip(),
+            "minus": str(reach.get("minus") or "").strip(),
+        })
+    pending = not saved and any(not card["plain"] or not card["sphere"] for card in cards)
+    return {
+        "cards": cards,
+        "note": "Описание и сфера появятся после нового поиска." if pending else "",
+    }
+
+
+OLD_TECH_SNAPSHOT = Path(__file__).resolve().parents[1] / "data" / "old_tech" / "snapshot_2026-09-29.json"
+
+
+def _archive_date(as_of: str) -> str:
+    parts = str(as_of).split("-")
+    if len(parts) == 3 and all(part.isdigit() for part in parts):
+        year, month, day = parts
+        return f"{day}.{month}.{year}"
+    return str(as_of)
+
+
+def old_tech_board(path: Path | None = None) -> dict:
+    """Saved research list. It does not read a search payload and does not fill TOP-15."""
+    target = OLD_TECH_SNAPSHOT if path is None else Path(path)
+    empty = {"cards": [], "note": "Архив не загружен", "as_of": "", "fully_qualified_count": None}
+    try:
+        raw = json.loads(target.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return empty
+    if not isinstance(raw, dict) or not isinstance(raw.get("cards"), list):
+        return empty
+    cards = []
+    for row in raw["cards"]:
+        if not isinstance(row, dict):
+            continue
+        holds = [say(OLD_TECH_HOLDS, code) for code in row.get("holds") or [] if str(code).strip()]
+        lower = row.get("score_lower")
+        upper = row.get("score_upper")
+        cards.append({
+            "id": row.get("id") or "",
+            "name": row.get("name") or "карточка",
+            "rank": row.get("rank"),
+            "score_lower": lower,
+            "score_upper": upper,
+            "historical_year": row.get("historical_year"),
+            "history_class": str(row.get("history_class") or "").strip(),
+            "barrier_then": str(row.get("barrier_then") or "").strip(),
+            "change_now": str(row.get("change_now") or "").strip(),
+            "test": str(row.get("test") or "").strip(),
+            "holds": holds,
+            "decision": say(OLD_TECH_DECISIONS, row.get("decision")),
+            "fully_qualified": bool(row.get("fully_qualified")),
+        })
+    cards.sort(key=lambda card: card["rank"] if isinstance(card["rank"], int) else 10**9)
+    count = raw.get("fully_qualified_count")
+    as_of = str(raw.get("as_of") or "")
+    note = (
+        f"Исследовательский список из архива от {_archive_date(as_of)}. "
+        f"Полностью прошедших коммерческую и правовую проверку карточек: {count}. "
+        "Они не входят в официальный ТОП-15 и пустые места не заполняют. "
+        "Шкала 0–100 не сравнима с оценкой основного списка."
+    )
+    return {"cards": cards, "note": note, "as_of": as_of, "fully_qualified_count": count}
 
 
 def _source_line(source: dict) -> str:

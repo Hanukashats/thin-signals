@@ -1,0 +1,1546 @@
+[
+  {
+    "id": "S01",
+    "title": "Corning: история Chemcor и Gorilla Glass",
+    "url": "https://www.corning.com/emea/en/innovation/materials-science/glass/history-strengthening-glass.html",
+    "published": null,
+    "source_type": "company_history",
+    "supports": "Chemcor 1960-х не стал массовой линейкой; Gorilla Glass имело другой состав и процесс.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "page_text",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно."
+  },
+  {
+    "id": "S02",
+    "title": "NASA Contributions to Fluidic Systems, SP-5112",
+    "url": "https://ntrs.nasa.gov/api/citations/19730002533/downloads/19730002533.pdf",
+    "published": "1972",
+    "source_type": "historical_report",
+    "supports": "Флюидная логика и системы 1960-х; существовали отдельные применения.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно."
+  },
+  {
+    "id": "S03",
+    "title": "Pneumatic coding blocks enable programmability of electronics-free fluidic soft robots",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11661450/",
+    "published": "2024-12-20",
+    "source_type": "primary_experiment",
+    "supports": "Пневматические программные блоки и адаптивный мягкий захват.",
+    "doi": "10.1126/sciadv.adr2433",
+    "accessed": "2026-09-29",
+    "access_level": "page_text",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2024,
+          12,
+          20
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Pneumatic coding blocks enable programmability of electronics-free fluidic soft robots"
+    ]
+  },
+  {
+    "id": "S04",
+    "title": "Si-Micromachined Knudsen Pumps, University of Michigan dissertation",
+    "url": "https://deepblue.lib.umich.edu/bitstream/2027.42/102498/1/sdan_1.pdf",
+    "published": null,
+    "source_type": "historical_thesis",
+    "supports": "Насос Кнудсена 1909 года; ограничение изготовления узких каналов при атмосферном давлении.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно."
+  },
+  {
+    "id": "S05",
+    "title": "Monolithic integration of Knudsen pumps ... microscale gas chromatography",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12686500/",
+    "published": "2025-12-09",
+    "source_type": "primary_experiment",
+    "supports": "Три насоса, концентратор, колонка и детектор интегрированы в чип 15 × 15 мм.",
+    "doi": "10.1038/s41378-025-01091-2",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2025,
+          12,
+          9
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Monolithic integration of Knudsen pumps to form a complete, self-sufficient fluidic system for microscale gas chromatography"
+    ]
+  },
+  {
+    "id": "S06",
+    "title": "Monolithic SOI through-wafer Knudsen pumps with mechanically robust Si channels",
+    "url": "https://www.sciencedirect.com/science/article/pii/S092442472300674X",
+    "published": "2024-01-01",
+    "source_type": "primary_experiment",
+    "supports": "Механически устойчивые каналы без подвешенных мембран.",
+    "doi": "10.1016/j.sna.2023.114825",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2024,
+          1
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Monolithic SOI through-wafer Knudsen pumps with mechanically robust Si channels"
+    ]
+  },
+  {
+    "id": "S07",
+    "title": "A review of gelled electrolyte thermoelectrochemical cells",
+    "url": "https://link.springer.com/article/10.1007/s10008-025-06294-1",
+    "published": "2025-04-03",
+    "source_type": "review",
+    "supports": "Термогальванические элементы известны с конца XIX века; разделены непрерывные redox и ёмкостные механизмы.",
+    "doi": "10.1007/s10008-025-06294-1",
+    "accessed": "2026-09-29",
+    "access_level": "page_text",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2025,
+          4,
+          3
+        ]
+      ]
+    },
+    "canonical_title": [
+      "A review of gelled electrolyte thermoelectrochemical cells: valorising low-grade heat to electricity via continuous and capacitive conversion mechanisms"
+    ]
+  },
+  {
+    "id": "S08",
+    "title": "Bioinspired double-layer thermogalvanic cells with engineered ionic gradients",
+    "url": "https://www.sciencedirect.com/science/article/pii/S2211285525005488",
+    "published": "2025-09",
+    "source_type": "primary_experiment",
+    "supports": "Двухслойная гелевая архитектура и управление концентрациями.",
+    "doi": "10.1016/j.nanoen.2025.111189",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2025,
+          9
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Bioinspired double-layer thermogalvanic cells with engineered ionic gradients for high-efficiency waste heat recovery"
+    ]
+  },
+  {
+    "id": "S09",
+    "title": "Thermogalvanic Sensor Array for Heat Flux Mapping and Radiative Sensing",
+    "url": "https://pubs.acs.org/doi/10.1021/acsaem.6c01130",
+    "published": "2026-06-12",
+    "source_type": "primary_experiment",
+    "supports": "Массив датчиков теплового потока; подтверждены научные гранты.",
+    "doi": "10.1021/acsaem.6c01130",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2026,
+          6,
+          12
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Thermogalvanic Sensor Array for Heat Flux Mapping and Radiative Sensing"
+    ]
+  },
+  {
+    "id": "S10",
+    "title": "Cooling of integrated circuits using droplet-based microfluidics",
+    "url": "https://doi.org/10.1145/764808.764831",
+    "published": "2003",
+    "source_type": "primary_experiment",
+    "supports": "Историческая публикация о капельном электросмачиваемом охлаждении.",
+    "doi": "10.1145/764808.764831",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2003,
+          4,
+          28
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Cooling of integrated circuits using droplet-based microfluidics"
+    ]
+  },
+  {
+    "id": "S11",
+    "title": "Electrowetting induced microdroplet oscillation ... hotspot cooling",
+    "url": "https://www.sciencedirect.com/science/article/abs/pii/S089417772100025X",
+    "published": "2021-07-01",
+    "source_type": "primary_experiment",
+    "supports": "Испытана электродная структура для осцилляций капель и локального охлаждения.",
+    "doi": "10.1016/j.expthermflusci.2021.110372",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2021,
+          7
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Electrowetting induced microdroplet oscillation over interdigitated electrodes for hotspot cooling applications"
+    ]
+  },
+  {
+    "id": "S12",
+    "title": "Accelerating droplet coalescence to enhance condensation by electrowetting-on-dielectric",
+    "url": "https://www.sciencedirect.com/science/article/pii/S0017931025013213",
+    "published": "2026-03",
+    "source_type": "primary_experiment",
+    "supports": "Низковольтная EWOD-структура; локальное усиление конденсационного теплообмена, не испытание серверного охлаждения.",
+    "doi": "10.1016/j.ijheatmasstransfer.2025.127986",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2026,
+          3
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Accelerating droplet coalescence to enhance condensation by electrowetting-on-dielectric"
+    ]
+  },
+  {
+    "id": "S13",
+    "title": "Directed bending of a polymer film by light",
+    "url": "https://www.nature.com/articles/425145a",
+    "published": "2003-09-11",
+    "source_type": "primary_experiment",
+    "supports": "Управляемый светом изгиб жидкокристаллической полимерной плёнки.",
+    "doi": "10.1038/425145a",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2003,
+          9,
+          11
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Directed bending of a polymer film by light"
+    ]
+  },
+  {
+    "id": "S14",
+    "title": "Unlocking holistic control of a phototropic liquid crystal polymer by global illumination",
+    "url": "https://www.nature.com/articles/s44182-025-00024-5.pdf",
+    "published": "2025",
+    "source_type": "primary_experiment",
+    "supports": "Управление формой при широком поле освещения и модель деформации.",
+    "doi": "10.1038/s44182-025-00024-5",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2025,
+          4,
+          4
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Unlocking holistic control of a phototropic liquid crystal polymer by global illumination"
+    ]
+  },
+  {
+    "id": "S15",
+    "title": "A review of fundamentals, challenges, prospects, and emerging trends in hydrate-based desalination",
+    "url": "https://www.nature.com/articles/s41545-025-00484-0",
+    "published": "2025-06-12",
+    "source_type": "review",
+    "supports": "Проекты 1940–1970-х, старые пилоты, сохраняющиеся барьеры разделения и кинетики.",
+    "doi": "10.1038/s41545-025-00484-0",
+    "accessed": "2026-09-29",
+    "access_level": "page_text",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2025,
+          6,
+          12
+        ]
+      ]
+    },
+    "canonical_title": [
+      "A review of fundamentals, challenges, prospects, and emerging trends in hydrate-based desalination"
+    ]
+  },
+  {
+    "id": "S16",
+    "title": "Phase Behavior, Kinetics, and Energy Efficiency with Recycling of HFC-152a-Based Clathrate Hydrate Desalination",
+    "url": "https://doi.org/10.1021/acs.iecr.5c01283",
+    "published": "2025",
+    "source_type": "primary_experiment",
+    "supports": "Эксперимент с модельной попутной водой и рециклом гидратообразователя; не готовая безопасная технология.",
+    "doi": "10.1021/acs.iecr.5c01283",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2025,
+          6,
+          4
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Phase Behavior, Kinetics, and Energy Efficiency with Recycling of HFC-152a-Based Clathrate Hydrate Desalination for Synthetic Produced Water"
+    ]
+  },
+  {
+    "id": "S17",
+    "title": "Large harvested energy with non-linear pyroelectric modules",
+    "url": "https://www.nature.com/articles/s41586-022-05069-2",
+    "published": "2022",
+    "source_type": "primary_experiment",
+    "supports": "История цикла Олсена 1980-х и измерения многослойных пироэлектрических модулей.",
+    "doi": "10.1038/s41586-022-05069-2",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2022,
+          9,
+          12
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Large harvested energy with non-linear pyroelectric modules"
+    ]
+  },
+  {
+    "id": "S18",
+    "title": "Electronic cooling and energy harvesting using ferroelectric polymer composites",
+    "url": "https://www.nature.com/articles/s41467-024-51147-6",
+    "published": "2024",
+    "source_type": "primary_experiment",
+    "supports": "Измерен пироэлектрический цикл в полимерных композитах; энергия за цикл не равна средней мощности.",
+    "doi": "10.1038/s41467-024-51147-6",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2024,
+          8,
+          6
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Electronic cooling and energy harvesting using ferroelectric polymer composites"
+    ]
+  },
+  {
+    "id": "S19",
+    "title": "CORDIS: CUBE_SAT_PYRO",
+    "url": "https://cordis.europa.eu/project/id/101247425",
+    "published": "2025-09-01",
+    "source_type": "grant_registry",
+    "supports": "Начат исследовательский проект; 1 Вт/кг и 200 Дж/кг — цели, не подтверждённые результаты.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно."
+  },
+  {
+    "id": "S20",
+    "title": "A Thin-Film Field-Emission Cathode, C. A. Spindt",
+    "url": "https://doi.org/10.1063/1.1656810",
+    "published": "1968-06-01",
+    "source_type": "primary_experiment",
+    "supports": "Историческая линия микроизготовленных холодных катодов.",
+    "doi": "10.1063/1.1656810",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          1968,
+          6,
+          1
+        ]
+      ]
+    },
+    "canonical_title": [
+      "A Thin-Film Field-Emission Cathode"
+    ]
+  },
+  {
+    "id": "S21",
+    "title": "NASA: Nanoscale Vacuum Electronics: Back to the Future?",
+    "url": "https://science.nasa.gov/science-research/science-enabling-technology/nanoscale-vacuum-electronics-back-to-the-future/",
+    "published": "2020-02-03",
+    "source_type": "institution_report",
+    "supports": "Нанозазорные устройства сочетают вакуумный транспорт и полупроводниковое производство; это не массовые вакуумные лампы.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно."
+  },
+  {
+    "id": "S22",
+    "title": "Research on unit circuits based on cathode modulated vacuum/air channel electron tube",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13092629/",
+    "published": "2026",
+    "source_type": "primary_experiment",
+    "supports": "Экспериментальные усилительные и логические схемы; остаётся необходимость оптимизации.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно."
+  },
+  {
+    "id": "S23",
+    "title": "Nano scale computational architectures with Spin Wave Bus",
+    "url": "https://researchoutput.ncku.edu.tw/en/publications/nano-scale-computational-architectures-with-spin-wave-bus/",
+    "published": "2005",
+    "source_type": "primary_theory",
+    "supports": "Конкретная вычислительная архитектура предложена в 2005 году.",
+    "doi": "10.1016/j.spmi.2005.07.001",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2005,
+          9
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Nano scale computational architectures with Spin Wave Bus"
+    ]
+  },
+  {
+    "id": "S24",
+    "title": "Realization of inverse-design magnonic logic gates",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12094216/",
+    "published": "2025-05-21",
+    "source_type": "primary_experiment",
+    "supports": "Экспериментальные логические операции; установка использует внешнее поле и токовые контуры.",
+    "doi": "10.1126/sciadv.adu9032",
+    "accessed": "2026-09-29",
+    "access_level": "page_text",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2025,
+          5,
+          23
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Realization of inverse-design magnonic logic gates"
+    ]
+  },
+  {
+    "id": "S25",
+    "title": "Dispersion-tunable low-loss implanted spin-wave waveguides for large magnonic networks",
+    "url": "https://www.nature.com/articles/s41563-025-02282-y",
+    "published": "2025-07-09",
+    "source_type": "primary_experiment",
+    "supports": "Новый способ создания малопотерных спин-волновых волноводов.",
+    "doi": "10.1038/s41563-025-02282-y",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2025,
+          7,
+          9
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Dispersion-tunable low-loss implanted spin-wave waveguides for large magnonic networks"
+    ]
+  },
+  {
+    "id": "S26",
+    "title": "Shift current photovoltaic effect in a ferroelectric charge-transfer complex",
+    "url": "https://www.nature.com/articles/s41467-017-00250-y",
+    "published": "2017",
+    "source_type": "primary_experiment",
+    "supports": "Библиография содержит экспериментальную линию 1956, 1974–1976 годов.",
+    "doi": "10.1038/s41467-017-00250-y",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2017,
+          8,
+          17
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Shift current photovoltaic effect in a ferroelectric charge-transfer complex"
+    ]
+  },
+  {
+    "id": "S27",
+    "title": "High-efficiency bulk photovoltaic effect with ferroelectric-increased shift current",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12594984/",
+    "published": "2025-11-07",
+    "source_type": "primary_experiment",
+    "supports": "Эксперимент в NbOBr2; требуется различать микроскопическую геометрию и КПД солнечного модуля.",
+    "doi": "10.1038/s41467-025-64807-y",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2025,
+          11,
+          7
+        ]
+      ]
+    },
+    "canonical_title": [
+      "High-efficiency bulk photovoltaic effect with ferroelectric-increased shift current"
+    ]
+  },
+  {
+    "id": "S28",
+    "title": "Photochemical Production of Molecular Hydrogen by Growing Cultures of Photosynthetic Bacteria",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC385615/",
+    "published": "1949-08",
+    "source_type": "primary_experiment",
+    "supports": "Исторический эксперимент Gest и Kamen с фотосинтезирующими бактериями.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно."
+  },
+  {
+    "id": "S29",
+    "title": "Performance of a Continuous Dark–Photo Fermentation System ...",
+    "url": "https://www.mdpi.com/2311-5637/12/8/384",
+    "published": "2026-08",
+    "source_type": "primary_experiment",
+    "supports": "Непрерывная связка тёмной и фотоферментации; модельная органическая сточная вода, не подтверждённая экономика промышленного водорода.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно."
+  },
+  {
+    "id": "S30",
+    "title": "Fermentative and photochemical production of hydrogen in algae",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC2142062/",
+    "published": "1942-11-20",
+    "source_type": "primary_experiment",
+    "supports": "Историческая публикация Gaffron и Rubin о выделении водорода водорослями.",
+    "doi": "10.1085/jgp.26.2.219",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          1942,
+          11,
+          20
+        ]
+      ]
+    },
+    "canonical_title": [
+      "FERMENTATIVE AND PHOTOCHEMICAL PRODUCTION OF HYDROGEN IN ALGAE"
+    ]
+  },
+  {
+    "id": "S31",
+    "title": "Engineered microbial hydrogels with confined architecture and binary microbes for efficient hydrogen production",
+    "url": "https://www.nature.com/articles/s41467-026-70988-x",
+    "published": "2026-03-23",
+    "source_type": "primary_experiment",
+    "supports": "Гидрогели и сочетание водорослей с бактериями для локального управления кислородом.",
+    "doi": "10.1038/s41467-026-70988-x",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2026,
+          3,
+          23
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Engineered microbial hydrogels with confined architecture and binary microbes for efficient hydrogen production"
+    ]
+  },
+  {
+    "id": "S32",
+    "title": "Biophotovoltaics: oxygenic photosynthetic organisms in the world of bioelectrochemical systems",
+    "url": "https://pubs.rsc.org/en/content/getauthorversionpdf/C4EE03875D",
+    "published": "2015",
+    "source_type": "review",
+    "supports": "Исторические светозависимые микробно-электродные системы; ранние photo-MFC нельзя отождествлять с современными цианобактериальными BPV.",
+    "doi": "10.1039/C4EE03875D",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2015
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Biophotovoltaics: oxygenic photosynthetic organisms in the world of bioelectrochemical systems"
+    ]
+  },
+  {
+    "id": "S33",
+    "title": "Cambridge: Algae-powered computing",
+    "url": "https://www.cam.ac.uk/research/news/scientists-create-reliable-biological-photovoltaic-cell-using-algae",
+    "published": "2022-05-12",
+    "source_type": "institution_report",
+    "supports": "Длительное питание маломощного микропроцессора; применение существенно уже электростанции.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно."
+  },
+  {
+    "id": "S34",
+    "title": "Parallel Electrical Integration of Photo Bio Electrochemical Systems: Performance Gains and Load Dependency",
+    "url": "https://api.repository.cam.ac.uk/server/api/core/bitstreams/46a8693b-1432-4133-9225-be8874045594/content",
+    "published": "2026",
+    "source_type": "primary_experiment",
+    "supports": "Связывание ячеек и зависимость отдачи от нагрузки; принято 1 апреля 2026 года.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно."
+  },
+  {
+    "id": "S35",
+    "title": "University of Tokyo: large anomalous Nernst effect in an antiferromagnet",
+    "url": "https://www.issp.u-tokyo.ac.jp/maincontents/news2_en.html?pid=1781",
+    "published": "2017",
+    "source_type": "institution_report",
+    "supports": "Старый эффект и новое поведение Mn3Sn; доказывает возраст физического механизма, не существование старого гибкого датчика.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно."
+  },
+  {
+    "id": "S36",
+    "title": "Roll-to-Roll Printing of Anomalous Nernst Thermopile for Direct Sensing of Perpendicular Heat Flux",
+    "url": "https://advanced.onlinelibrary.wiley.com/doi/10.1002/adma.202303416",
+    "published": "2023",
+    "source_type": "primary_experiment",
+    "supports": "Печать прототипа термобатареи; слово roll-to-roll не подтверждает коммерческий завод.",
+    "doi": "10.1002/adma.202303416",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2023,
+          7,
+          24
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Roll‐to‐Roll Printing of Anomalous Nernst Thermopile for Direct Sensing of Perpendicular Heat Flux"
+    ]
+  },
+  {
+    "id": "S37",
+    "title": "Sign-reversed anomalous Nernst effect with matched Seebeck coefficient in lanthanide-iron alloys",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12409908/",
+    "published": "2025",
+    "source_type": "primary_experiment",
+    "supports": "Материальная пара для подавления паразитного продольного термоэлектрического сигнала.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно."
+  },
+  {
+    "id": "S38",
+    "title": "Theoretical efficiency limits for thermoradiative energy conversion",
+    "url": "https://doi.org/10.1063/1.4907392",
+    "published": "2015-02-04",
+    "source_type": "primary_theory",
+    "supports": "Сформулирован терморадиационный преобразователь; заявленные предельные КПД — теория.",
+    "doi": "10.1063/1.4907392",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2015,
+          2,
+          4
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Theoretical efficiency limits for thermoradiative energy conversion"
+    ]
+  },
+  {
+    "id": "S39",
+    "title": "Temperature-dependent power generation from HgCdTe and III–V thermoradiative diodes",
+    "url": "https://doi.org/10.1063/5.0265431",
+    "published": "2025-04",
+    "source_type": "primary_experiment",
+    "supports": "Измерение зависимости выработки от температуры и безызлучательных потерь.",
+    "doi": "10.1063/5.0265431",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2025,
+          4,
+          30
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Temperature-dependent power generation from HgCdTe and III–V thermoradiative diodes"
+    ]
+  },
+  {
+    "id": "S40",
+    "title": "AOS UNSW: Emissive Energy Harvesting",
+    "url": "https://www.aos-nielsen-group.com/home-1/emissive-energy-harvesting",
+    "published": null,
+    "source_type": "laboratory_page",
+    "supports": "Публикации 2024–2026, программа измерений. Теоретический предел 54,8 Вт/м² не достигнутая мощность.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно."
+  },
+  {
+    "id": "S41",
+    "title": "Texas Pacific Land: Midland investor presentation",
+    "url": "https://www.texaspacific.com/investors/sec-filings/all-sec-filings/content/0001811074-26-000040/a991-tplmidlanddayinvest.htm",
+    "published": "2026",
+    "source_type": "company_filing",
+    "supports": "Freeze desalination: пилот и этап с capex $31 млн; не тонкий сигнал.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно."
+  },
+  {
+    "id": "S42",
+    "title": "Ames Laboratory: CMI Invention Disclosures",
+    "url": "https://www.ameslab.gov/cmi/cmi-invention-disclosures",
+    "published": null,
+    "source_type": "licensing_registry",
+    "supports": "Membrane Solvent Extraction for Rare Earth Separations отмечено Licensed.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно."
+  },
+  {
+    "id": "S43",
+    "title": "SBIR: Spark Thermionics portfolio",
+    "url": "https://www.sbir.gov/portfolio/1222449",
+    "published": null,
+    "source_type": "grant_registry",
+    "supports": "Действующий коммерческий разработчик; в реестре свыше $8 млн совокупных SBIR/STTR awards.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно."
+  },
+  {
+    "id": "S44",
+    "title": "Manchester: Scaling sustainable carbon fibre production",
+    "url": "https://www.manchester.ac.uk/about/news/scaling-sustainable-carbon-fibre-production/",
+    "published": "2025-03-24",
+    "source_type": "institution_report",
+    "supports": "Патентованная технология, промышленный партнёр Lixea и пилотное прядение.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "page_text",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно."
+  },
+  {
+    "id": "S45",
+    "title": "CU Boulder: optical rectennas and RedWave",
+    "url": "https://www.colorado.edu/research/report/2020-21/new-devices-turn-waste-heat-electricity",
+    "published": "2020/2021",
+    "source_type": "institution_report",
+    "supports": "Присутствует корпоративное участие RedWave Energy.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно."
+  },
+  {
+    "id": "S46",
+    "title": "Aestus company profile on Empower Innovation",
+    "url": "https://www.empowerinnovation.net/en/custom/organization/view/29727",
+    "published": null,
+    "source_type": "company_profile",
+    "supports": "Компания заявляет разработку термомагнитных генераторов; финансирование полностью не проверено.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно."
+  },
+  {
+    "id": "S47",
+    "title": "V-Memory profile, Dealroom — lead only",
+    "url": "https://app.dealroom.co/companies/v_memory",
+    "published": null,
+    "source_type": "secondary_company_lead",
+    "supports": "Сигнал о компании и раундах; точное совпадение с выбранной физикой не подтверждено, нужна первичная проверка.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно."
+  },
+  {
+    "id": "S48",
+    "title": "OpenAlex: Authentication",
+    "url": "https://help.openalex.org/api/authentication/",
+    "published": null,
+    "source_type": "official_documentation",
+    "supports": "Текущая справка допускает базовые запросы без ключа; для масштаба рекомендует ключ и учёт бюджета.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно."
+  },
+  {
+    "id": "S49",
+    "title": "Crossref: REST API filters",
+    "url": "https://www.crossref.org/documentation/retrieve-metadata/rest-api/rest-api-filters/",
+    "published": null,
+    "source_type": "official_documentation",
+    "supports": "Фильтры DOI, дат, обновлений и исправлений.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно."
+  },
+  {
+    "id": "S50",
+    "title": "Europe PMC: RESTful Web Service",
+    "url": "https://europepmc.org/RestfulWebService",
+    "published": null,
+    "source_type": "official_documentation",
+    "supports": "REST поиск публикаций и доступных полных текстов.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно."
+  },
+  {
+    "id": "S51",
+    "title": "EPO: Open Patent Services",
+    "url": "https://www.epo.org/en/searching-for-patents/data/web-services/ops",
+    "published": null,
+    "source_type": "official_documentation",
+    "supports": "Патентные метаданные и правовые события; требуется регистрация приложения.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно."
+  },
+  {
+    "id": "S52",
+    "title": "Lens API: Getting Started",
+    "url": "https://docs.api.lens.org/getting-started.html",
+    "published": null,
+    "source_type": "official_documentation",
+    "supports": "Для API требуется предоставленный доступ и токен.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно."
+  },
+  {
+    "id": "S53",
+    "title": "NASA Technology Transfer: Licensing",
+    "url": "https://technology.nasa.gov/license",
+    "published": null,
+    "source_type": "official_documentation",
+    "supports": "Портфель технологий и маршрут лицензирования; конкретные условия зависят от технологии.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно."
+  },
+  {
+    "id": "S54",
+    "title": "Attention Is All You Need",
+    "url": "https://arxiv.org/abs/1706.03762",
+    "published": "2017",
+    "source_type": "primary_paper",
+    "supports": "Современная архитектура Transformer — работа 2017 года; старые основы не тождественны готовой современной LLM.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно."
+  },
+  {
+    "id": "S55",
+    "title": "CORDIS: MANNGA",
+    "url": "https://cordis.europa.eu/project/id/101070347",
+    "published": null,
+    "source_type": "grant_registry",
+    "supports": "У магнонных вычислений есть исследовательское финансирование.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно."
+  },
+  {
+    "id": "S56",
+    "title": "Research.fi: Photo-e-Mat",
+    "url": "https://research.fi/en/results/funding/78084",
+    "published": null,
+    "source_type": "grant_registry",
+    "supports": "Биофотовольтаика имеет исследовательские гранты.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно."
+  },
+  {
+    "id": "S57",
+    "title": "High heat-flux sensitivity of the planar coil device based on the anomalous Nernst effect",
+    "url": "https://www.sciencedirect.com/science/article/pii/S1359431125001462",
+    "published": "2025",
+    "source_type": "primary_experiment",
+    "supports": "У исследованного ANE-датчика чувствительность ниже приведённого коммерческого Seebeck-эталона; это ограничивает тезис о превосходстве.",
+    "doi": "10.1016/j.applthermaleng.2025.125555",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Источник подтверждает только указанное утверждение; лицензии, инвестиции и независимое воспроизведение проверяются отдельно.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2025,
+          4
+        ]
+      ]
+    },
+    "canonical_title": [
+      "High heat-flux sensitivity of the planar coil device based on the anomalous Nernst effect"
+    ]
+  },
+  {
+    "id": "S58",
+    "title": "SBIR: PYRO-E — Pyroelectric Thermal Energy Harvester",
+    "url": "https://www.sbir.gov/awards/144357",
+    "published": "2013",
+    "source_type": "official_business_award",
+    "supports": "Финансировался коммерческий разработчик пироэлектрического сбора тепла; не доказывает сегодняшние продажи.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Подтверждает указанное утверждение; научный обзор не доказывает коммерческую доступность. Права, лицензии и независимое воспроизведение требуют отдельной проверки."
+  },
+  {
+    "id": "S59",
+    "title": "SBIR: Radiation Monitoring Devices — Rad-Hard by Design",
+    "url": "https://www.sbir.gov/awards/190454",
+    "published": "2021",
+    "source_type": "official_business_award",
+    "supports": "Компания получила финансирование разработки нановакуумных транзисторов.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Подтверждает указанное утверждение; научный обзор не доказывает коммерческую доступность. Права, лицензии и независимое воспроизведение требуют отдельной проверки."
+  },
+  {
+    "id": "S60",
+    "title": "Technoalpha / TopoLogic: TL-Sensor",
+    "url": "https://www.technoalpha.co.jp/english/products/lcd/topologic.html",
+    "published": null,
+    "source_type": "company_product",
+    "supports": "Коммерческое предложение датчиков теплового потока на аномальном эффекте Нернста.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "page_text",
+    "limitations": "Подтверждает указанное утверждение; научный обзор не доказывает коммерческую доступность. Права, лицензии и независимое воспроизведение требуют отдельной проверки."
+  },
+  {
+    "id": "S61",
+    "title": "SBIR Phase II: BHO Technology, microalgae hydrogen",
+    "url": "https://www.sbir.gov/awards/147992",
+    "published": "2014",
+    "source_type": "official_business_award",
+    "supports": "Коммерческая разработка проприетарных штаммов микроводорослей для водорода.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "page_text",
+    "limitations": "Подтверждает указанное утверждение; научный обзор не доказывает коммерческую доступность. Права, лицензии и независимое воспроизведение требуют отдельной проверки."
+  },
+  {
+    "id": "S62",
+    "title": "Alg4Hyd: partners, patent and pilot objectives",
+    "url": "https://alg4hyd.eu/about-the-project/",
+    "published": null,
+    "source_type": "project_primary",
+    "supports": "Есть программа пилота с промышленным участником и патентным заделом; цели не равны результатам.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Подтверждает указанное утверждение; научный обзор не доказывает коммерческую доступность. Права, лицензии и независимое воспроизведение требуют отдельной проверки."
+  },
+  {
+    "id": "S63",
+    "title": "SBIR: Thermoradiative Solar Power Scavenging for Satellites",
+    "url": "https://www.sbir.gov/awards/216082",
+    "published": "2025",
+    "source_type": "official_business_award",
+    "supports": "WECOSO / West Coast Solutions, Georgia Tech, Teledyne Judson: Phase II, $1,249,384.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Подтверждает указанное утверждение; научный обзор не доказывает коммерческую доступность. Права, лицензии и независимое воспроизведение требуют отдельной проверки."
+  },
+  {
+    "id": "S64",
+    "title": "Artic Technologies: company and shipping products",
+    "url": "https://artic.technology/company/",
+    "published": null,
+    "source_type": "company_product",
+    "supports": "Магнитные искусственные реснички уже коммерциализируются в MACplate.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Подтверждает указанное утверждение; научный обзор не доказывает коммерческую доступность. Права, лицензии и независимое воспроизведение требуют отдельной проверки."
+  },
+  {
+    "id": "S65",
+    "title": "Liquid marbles",
+    "url": "https://www.nature.com/articles/35082026",
+    "published": "2001-06-21",
+    "source_type": "primary_paper",
+    "supports": "Капли в гидрофобной порошковой оболочке как старый физический задел.",
+    "doi": "10.1038/35082026",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Подтверждает указанное утверждение; научный обзор не доказывает коммерческую доступность. Права, лицензии и независимое воспроизведение требуют отдельной проверки.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2001,
+          6
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Liquid marbles"
+    ]
+  },
+  {
+    "id": "S66",
+    "title": "Rotating Liquid Marble Microreactors for Enhanced Enzymatic Reactions",
+    "url": "https://advanced.onlinelibrary.wiley.com/doi/10.1002/adfm.202504193",
+    "published": "2025-04-24",
+    "source_type": "primary_paper",
+    "supports": "Магнитное вращение и белковая оболочка улучшают массоперенос в ферментативных микрореакторах.",
+    "doi": "10.1002/adfm.202504193",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Подтверждает указанное утверждение; научный обзор не доказывает коммерческую доступность. Права, лицензии и независимое воспроизведение требуют отдельной проверки.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2025,
+          4,
+          24
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Rotating Liquid Marble Microreactors for Enhanced Enzymatic Reactions"
+    ]
+  },
+  {
+    "id": "S67",
+    "title": "Flow-Active Liquid Marbles as Microreactors for Photocatalytic Micromotors",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12571213/",
+    "published": "2025-09-12",
+    "source_type": "primary_paper",
+    "supports": "Эксперимент с внутренними потоками и фотокаталитическими микромоторами; не серийный реактор.",
+    "doi": "10.1002/smll.202505439",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Подтверждает указанное утверждение; научный обзор не доказывает коммерческую доступность. Права, лицензии и независимое воспроизведение требуют отдельной проверки.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2025,
+          9,
+          12
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Flow‐Active Liquid Marbles as Microreactors for Photocatalytic Micromotors"
+    ]
+  },
+  {
+    "id": "S68",
+    "title": "Memristive model of electro-osmosis in skin",
+    "url": "https://journals.aps.org/pre/abstract/10.1103/PhysRevE.83.031916",
+    "published": "2011-03-24",
+    "source_type": "primary_theory",
+    "supports": "Старая модель ионной памяти в капиллярах; не готовый нанофлюидный процессор.",
+    "doi": "10.1103/PhysRevE.83.031916",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Подтверждает указанное утверждение; научный обзор не доказывает коммерческую доступность. Права, лицензии и независимое воспроизведение требуют отдельной проверки.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2011,
+          3,
+          24
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Memristive model of electro-osmosis in skin"
+    ]
+  },
+  {
+    "id": "S69",
+    "title": "Programmable memristors with two-dimensional nanofluidic channels",
+    "url": "https://www.nature.com/articles/s41467-025-61649-6",
+    "published": "2025-07-30",
+    "source_type": "primary_paper",
+    "supports": "Экспериментально изучаются типы памяти в двумерных каналах.",
+    "doi": "10.1038/s41467-025-61649-6",
+    "accessed": "2026-09-29",
+    "access_level": "page_text",
+    "limitations": "Подтверждает указанное утверждение; научный обзор не доказывает коммерческую доступность. Права, лицензии и независимое воспроизведение требуют отдельной проверки.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2025,
+          7,
+          30
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Programmable memristors with two-dimensional nanofluidic channels"
+    ]
+  },
+  {
+    "id": "S70",
+    "title": "Resistance-Restorable Nanofluidic Memristor and Neuromorphic Chip",
+    "url": "https://pubs.acs.org/doi/10.1021/acs.nanolett.5c00315",
+    "published": "2025-04-12",
+    "source_type": "primary_paper",
+    "supports": "Авторы демонстрируют массив 4×4 и распознавание математических операторов.",
+    "doi": "10.1021/acs.nanolett.5c00315",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Подтверждает указанное утверждение; научный обзор не доказывает коммерческую доступность. Права, лицензии и независимое воспроизведение требуют отдельной проверки.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2025,
+          4,
+          12
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Resistance-Restorable Nanofluidic Memristor and Neuromorphic Chip"
+    ]
+  },
+  {
+    "id": "S71",
+    "title": "Chemical implementation of finite-state machines",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC48241/",
+    "published": "1992-01-01",
+    "source_type": "primary_theory",
+    "supports": "Теоретические химические автоматы, продолжение работ 1991 года; не промышленный компьютер.",
+    "doi": "10.1073/pnas.89.1.383",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Подтверждает указанное утверждение; научный обзор не доказывает коммерческую доступность. Права, лицензии и независимое воспроизведение требуют отдельной проверки.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          1992,
+          1
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Chemical implementation of finite-state machines."
+    ]
+  },
+  {
+    "id": "S72",
+    "title": "A programmable hybrid digital chemical information processor based on the Belousov-Zhabotinsky reaction",
+    "url": "https://www.nature.com/articles/s41467-024-45896-7",
+    "published": "2024-03-05",
+    "source_type": "primary_paper",
+    "supports": "Гибридный химический массив с цифровым управлением и задачами оптимизации; не доказательство преимущества над CPU.",
+    "doi": "10.1038/s41467-024-45896-7",
+    "accessed": "2026-09-29",
+    "access_level": "page_text",
+    "limitations": "Подтверждает указанное утверждение; научный обзор не доказывает коммерческую доступность. Права, лицензии и независимое воспроизведение требуют отдельной проверки.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2024,
+          3,
+          5
+        ]
+      ]
+    },
+    "canonical_title": [
+      "A programmable hybrid digital chemical information processor based on the Belousov-Zhabotinsky reaction"
+    ]
+  },
+  {
+    "id": "S73",
+    "title": "Publisher Correction to hybrid chemical processor",
+    "url": "https://www.nature.com/articles/s41467-024-46859-8",
+    "published": "2024-03-18",
+    "source_type": "publisher_correction",
+    "supports": "Исправлен файл рецензирования: удалены замечания к другой статье; это не отзыв результатов.",
+    "doi": "10.1038/s41467-024-46859-8",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Подтверждает указанное утверждение; научный обзор не доказывает коммерческую доступность. Права, лицензии и независимое воспроизведение требуют отдельной проверки.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2024,
+          3,
+          18
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Publisher Correction: A programmable hybrid digital chemical information processor based on the Belousov-Zhabotinsky reaction"
+    ]
+  },
+  {
+    "id": "S74",
+    "title": "EP3853783B1 — Chemical computer",
+    "url": "https://patents.google.com/patent/EP3853783B1/en",
+    "published": "2026-03",
+    "source_type": "patent_aggregator",
+    "supports": "Обнаружен патентный след Glasgow; коммерческая лицензия не установлена.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Подтверждает указанное утверждение; научный обзор не доказывает коммерческую доступность. Права, лицензии и независимое воспроизведение требуют отдельной проверки."
+  },
+  {
+    "id": "S75",
+    "title": "Solar lasers: Why not?",
+    "url": "https://doi.org/10.1063/5.0209355",
+    "published": "2024",
+    "source_type": "research_review",
+    "supports": "Демонстрации солнечной накачки в 1963/1966; причины потерь и новые материалы.",
+    "doi": "10.1063/5.0209355",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Подтверждает указанное утверждение; научный обзор не доказывает коммерческую доступность. Права, лицензии и независимое воспроизведение требуют отдельной проверки.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2024,
+          5,
+          28
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Solar lasers: Why not?"
+    ]
+  },
+  {
+    "id": "S76",
+    "title": "Ten W Class of Stable Solar-Pumped Laser Using a Cone-Shaped Solar Cavity and 0.7 m²-Fresnel Lens",
+    "url": "https://www.fujipress.jp/jaciii/jc/jacii002900051131/",
+    "published": "2025-09-20",
+    "source_type": "primary_paper",
+    "supports": "Экспериментальный солнечный лазер класса 10 Вт; не завод или орбитальная система.",
+    "doi": "10.20965/jaciii.2025.p1131",
+    "accessed": "2026-09-29",
+    "access_level": "page_text",
+    "limitations": "Подтверждает указанное утверждение; научный обзор не доказывает коммерческую доступность. Права, лицензии и независимое воспроизведение требуют отдельной проверки.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2025,
+          9,
+          20
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Ten W Class of Stable Solar-Pumped Laser Using a Cone-Shaped Solar Cavity and 0.7 m<sup>2</sup>-Fresnel Lens"
+    ]
+  },
+  {
+    "id": "S77",
+    "title": "SBIR 1983: solar-pumped alkali-vapor laser",
+    "url": "https://www.sbir.gov/awards/91467",
+    "published": "1983",
+    "source_type": "historical_business_award",
+    "supports": "У поля были коммерческие исследовательские гранты десятилетия назад. Это не свидетельство нынешнего свободного или занятого рынка.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Подтверждает указанное утверждение; научный обзор не доказывает коммерческую доступность. Права, лицензии и независимое воспроизведение требуют отдельной проверки."
+  },
+  {
+    "id": "S78",
+    "title": "Bit storage and bit flip operations in an electromechanical oscillator",
+    "url": "https://www.nature.com/articles/nnano.2008.84",
+    "published": "2008-04-13",
+    "source_type": "primary_paper",
+    "supports": "Экспериментальная механическая логика; связь с новой фононной архитектурой только на уровне семейства.",
+    "doi": "10.1038/nnano.2008.84",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Подтверждает указанное утверждение; научный обзор не доказывает коммерческую доступность. Права, лицензии и независимое воспроизведение требуют отдельной проверки.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2008,
+          4,
+          13
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Bit storage and bit flip operations in an electromechanical oscillator"
+    ]
+  },
+  {
+    "id": "S79",
+    "title": "Experimental demonstration of an electroacoustic transistor",
+    "url": "https://par.nsf.gov/servlets/purl/10520143",
+    "published": "2024-06-13",
+    "source_type": "primary_paper",
+    "supports": "Экспериментальное переключение волн с электрическим управлением; не полностью механический CPU.",
+    "doi": "10.1063/5.0203260",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Подтверждает указанное утверждение; научный обзор не доказывает коммерческую доступность. Права, лицензии и независимое воспроизведение требуют отдельной проверки.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2024,
+          6,
+          13
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Experimental demonstration of an electroacoustic transistor"
+    ]
+  },
+  {
+    "id": "S80",
+    "title": "Topological phononic switch based on reconfigurable symmetry-broken crystals with rotatable scatterers",
+    "url": "https://www.nature.com/articles/s41598-025-90351-2",
+    "published": "2025-02-23",
+    "source_type": "primary_paper",
+    "supports": "Эксперимент с переключением акустических путей; устойчивость к части дефектов моделируется.",
+    "doi": "10.1038/s41598-025-90351-2",
+    "accessed": "2026-09-29",
+    "access_level": "page_text",
+    "limitations": "Подтверждает указанное утверждение; научный обзор не доказывает коммерческую доступность. Права, лицензии и независимое воспроизведение требуют отдельной проверки.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2025,
+          2,
+          23
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Topological phononic switch based on reconfigurable symmetry-broken crystals with rotatable scatterers"
+    ]
+  },
+  {
+    "id": "S81",
+    "title": "Thermogalvanic cells demonstrate inherent physiochemical limitations in redox-active electrolytes at water-in-salt concentrations",
+    "url": "https://www.sciencedirect.com/science/article/pii/S2666386421002149",
+    "published": "2021",
+    "source_type": "primary_paper",
+    "supports": "Ограничения концентрированных редокс-электролитов — отрицательное свидетельство против простого масштабирования.",
+    "doi": "10.1016/j.xcrp.2021.100510",
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Подтверждает указанное утверждение; научный обзор не доказывает коммерческую доступность. Права, лицензии и независимое воспроизведение требуют отдельной проверки.",
+    "metadata_verified": true,
+    "crossref_published": {
+      "date-parts": [
+        [
+          2021,
+          8
+        ]
+      ]
+    },
+    "canonical_title": [
+      "Thermogalvanic cells demonstrate inherent physiochemical limitations in redox-active electrolytes at water-in-salt concentrations"
+    ]
+  },
+  {
+    "id": "S82",
+    "title": "US9243624B2 — Knudsen pump",
+    "url": "https://patents.google.com/patent/US9243624B2/en",
+    "published": "2016",
+    "source_type": "patent_aggregator",
+    "supports": "Патентный след; NSF confirmatory license нельзя автоматически назвать эксклюзивной коммерческой лицензией.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Подтверждает указанное утверждение; научный обзор не доказывает коммерческую доступность. Права, лицензии и независимое воспроизведение требуют отдельной проверки."
+  },
+  {
+    "id": "S83",
+    "title": "NASA TechPort: Electrowetting Enhanced Dropwise Condensation in Zero-g Environment",
+    "url": "https://techport.nasa.gov/projects/106686",
+    "published": null,
+    "source_type": "official_project",
+    "supports": "Исследовательское финансирование EWOD-конденсации; не подтверждение коммерческого продукта.",
+    "doi": null,
+    "accessed": "2026-09-29",
+    "access_level": "indexed_text_or_abstract",
+    "limitations": "Подтверждает указанное утверждение; научный обзор не доказывает коммерческую доступность. Права, лицензии и независимое воспроизведение требуют отдельной проверки."
+  }
+]

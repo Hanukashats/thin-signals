@@ -101,6 +101,7 @@ def public_report(report: RunReport) -> dict:
         "shortfall": report.shortfall,
         "exclusion_registry": report.exclusion_registry,
         "unread": list(getattr(report, "unread", None) or []),
+        "near_miss": list(getattr(report, "near_miss", None) or []),
         "model_id": report.model_id,
         "provider": report.provider,
         "rules_version": report.card["rules_version"],

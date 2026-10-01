@@ -1,0 +1,14 @@
+{
+  "decision_id": "D_NEW",
+  "candidate_id": "T_NEW",
+  "recorded_at": null,
+  "stage": "",
+  "previous_status": null,
+  "new_status": null,
+  "source_ids": [],
+  "reason_summary": "Краткое проверяемое основание решения",
+  "contradictions": [],
+  "reopen_condition": "",
+  "author_role": "research_agent"
+}
+

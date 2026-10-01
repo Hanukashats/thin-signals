@@ -1,0 +1,21 @@
+{
+  "run_id": "REPLACE_WITH_NEW_RUN_ID",
+  "mode": "independent_research",
+  "cutoff": "2026-09-29",
+  "stream": "resurrection",
+  "minimum_age": 10,
+  "academic_grants_allowed": true,
+  "exclude_commercially_occupied": true,
+  "target_research_candidates": 15,
+  "target_fully_qualified_candidates": null,
+  "geography": "global",
+  "languages": [
+    "en"
+  ],
+  "search_budget": null,
+  "source_access_limitations": [],
+  "assumptions": [],
+  "changes_from_baseline": [],
+  "model_version": "0.1-research"
+}
+

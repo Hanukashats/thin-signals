@@ -13,17 +13,34 @@ from ts.fanout import _identity
 from ts.scale import fetch_abstract
 from ts.scoring.scorer import load_rules, score
 
-CHECKLIST_VERSION = "checklist-v7"
+CHECKLIST_VERSION = "checklist-v12"
 TEXT_HUNT = 4
-BACKFILL_CAP = 5
+# Four extra reads for each standing theme. One noisy theme must not spend the rest.
+BACKFILL_CAP = TEXT_HUNT * 13
 DROP_COUNTERS = ("M01", "M02", "M03", "M05", "M06")
+# Connectors and the harness cut snippets here. A snippet this long was probably cut mid-text.
+SNIPPET_CAP = 500
+_FULL: dict[tuple[str, str], str] = {}
 
 
 def _host(url: str) -> str:
     return (urlparse(url).hostname or "").lower().removeprefix("www.")
 
 
-def _fragments(card: dict) -> tuple[list[str], list[str]]:
+def _fuller(source: dict, snippet: str) -> str:
+    """The official record text when the snippet was cut at the cap and the record says more."""
+    if len(snippet) < SNIPPET_CAP:
+        return snippet
+    key = (str(source.get("url") or ""), str(source.get("doi") or ""))
+    if key not in _FULL:
+        if len(_FULL) >= 2048:
+            _FULL.clear()
+        _FULL[key] = fetch_abstract({"sources": [source]})
+    text = _FULL[key].strip()
+    return text if len(text) > len(snippet) else snippet
+
+
+def _fragments(card: dict, full: bool = True) -> tuple[list[str], list[str]]:
     fragments: list[str] = []
     urls: list[str] = []
     for source in card.get("sources") or []:
@@ -32,6 +49,8 @@ def _fragments(card: dict) -> tuple[list[str], list[str]]:
         snippet = str(source.get("snippet") or "").strip()
         if not snippet:
             continue
+        if full:
+            snippet = _fuller(source, snippet)
         name = str(source.get("name") or "").strip()
         fragments.append(f"{name}. {snippet}".strip(". "))
         urls.append(str(source.get("url") or ""))
@@ -109,6 +128,18 @@ def _mark(row: dict, status: str, meta: dict | None = None) -> None:
     row["checklist"] = body
 
 
+def _reader_failed(row: dict, error: str | None = None) -> dict:
+    """Not read is not noise and not a zero. Like a card with no text, it leaves the seat."""
+    _mark(row, "reader_failed")
+    if error:
+        row["checklist"]["error"] = error
+    row["policy_reason"] = "reader_failed"
+    row["confidence"] = None
+    row["label"] = None
+    row["predictors"] = []
+    return {"keep": False, "unread": True, "card": row}
+
+
 def score_card(card: dict, reader, rules: dict) -> dict:
     row = dict(card)
     fragments, _urls = _fragments(row)
@@ -121,27 +152,14 @@ def score_card(card: dict, reader, rules: dict) -> dict:
     try:
         read = reader(row)
     except Exception as exc:
-        _mark(row, "reader_failed")
-        row["checklist"]["error"] = type(exc).__name__
-        row["confidence"] = None
-        row["label"] = None
-        row["predictors"] = []
-        return {"keep": True, "card": row}
+        return _reader_failed(row, type(exc).__name__)
     if not isinstance(read, dict) or not isinstance(read.get("output"), dict):
-        _mark(row, "reader_failed")
-        row["confidence"] = None
-        row["label"] = None
-        row["predictors"] = []
-        return {"keep": True, "card": row}
+        return _reader_failed(row)
     try:
         fv = vector_for(row, read["output"])
         result = score(fv, rules)
-    except Exception:
-        _mark(row, "reader_failed")
-        row["confidence"] = None
-        row["label"] = None
-        row["predictors"] = []
-        return {"keep": True, "card": row}
+    except Exception as exc:
+        return _reader_failed(row, type(exc).__name__)
     row["label"] = result.label
     row["confidence"] = result.confidence
     row["reason_codes"] = list(result.reason_codes)
@@ -168,6 +186,8 @@ def score_card(card: dict, reader, rules: dict) -> dict:
         row["policy_reason"] = "other_mechanism_after_read"
         row["checklist_quote"] = line
         return {"keep": False, "card": row}
+    if row.get("policy_reason") == "theme_quota":
+        row["policy_reason"] = "evidence_gates_passed"
     return {"keep": True, "card": row}
 
 
@@ -179,7 +199,7 @@ def _peek_index(pool: list[dict], theme: str, used: set) -> int | None:
         hunts += 1
         if hunts > TEXT_HUNT:
             return None
-        if _fragments(card)[0]:
+        if _fragments(card, full=False)[0]:
             return index
     return None
 
@@ -199,7 +219,7 @@ def apply_checklist(top: list[dict], overflow: list[dict], reader, rules: dict, 
 
     def judge(card: dict) -> dict:
         nonlocal read, scored, unevaluated
-        if _fragments(card)[0]:
+        if _fragments(card, full=False)[0]:
             read += 1
         outcome = score_card(card, reader, rules)
         status = (outcome["card"].get("checklist") or {}).get("status")
@@ -215,25 +235,32 @@ def apply_checklist(top: list[dict], overflow: list[dict], reader, rules: dict, 
             return None
         if theme is not None and theme in attempted:
             return None
+        found = None
+        hunts = 0
+        while reads_used < backfill_cap and hunts < TEXT_HUNT:
+            index = _peek_index(pool, theme, used)
+            if index is None:
+                break
+            nxt = pool.pop(index)
+            reads_used += 1
+            hunts += 1
+            try:
+                outcome = judge(nxt)
+            except Exception:
+                pool.insert(index, nxt)
+                raise
+            status = (outcome["card"].get("checklist") or {}).get("status")
+            if outcome["keep"] and status == "scored":
+                if unread_card is not None:
+                    failed = (unread_card.get("checklist") or {}).get("status") == "reader_failed"
+                    unread_card["seat_replaced"] = True
+                    unread_card["policy_reason"] = "reader_failed_replaced" if failed else "no_source_text_replaced"
+                found = outcome["card"]
+                break
+            excluded.append(outcome["card"])
         if theme is not None:
             attempted.add(theme)
-        index = _peek_index(pool, theme, used)
-        if index is None:
-            return None
-        nxt = pool.pop(index)
-        reads_used += 1
-        try:
-            outcome = judge(nxt)
-        except Exception:
-            pool.insert(index, nxt)
-            raise
-        if outcome["keep"]:
-            if unread_card is not None:
-                unread_card["seat_replaced"] = True
-                unread_card["policy_reason"] = "no_source_text_replaced"
-            return outcome["card"]
-        excluded.append(outcome["card"])
-        return None
+        return found
 
     for card in top:
         outcome = judge(card)
@@ -289,7 +316,7 @@ def make_reader(settings, query: str | None = None):
         fragments, urls = _fragments(card)
         if not fragments:
             return None
-        asked = str(card.get("theme_query") or query or "").strip()
+        asked = str(query or "").strip()
         out, meta = extractor.extract({
             "technology": card.get("technology") or "",
             "fragments": fragments,

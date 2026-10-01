@@ -1,0 +1,25 @@
+{
+  "claim_id": "C_NEW",
+  "candidate_id": "T_NEW",
+  "source_id": "S_NEW",
+  "claim_text": "",
+  "claim_type": "fact",
+  "gate": "G1",
+  "event_date": null,
+  "published_date": null,
+  "accessed_at": null,
+  "source_location": "section/page/figure/paragraph",
+  "evidence_level": "not_classified",
+  "measurement": {
+    "value": null,
+    "unit": null,
+    "conditions": "",
+    "system_boundary": "",
+    "comparator": ""
+  },
+  "supports_or_contradicts": "not_assessed",
+  "access_limit": "",
+  "interpretation": "",
+  "unresolved_questions": []
+}
+

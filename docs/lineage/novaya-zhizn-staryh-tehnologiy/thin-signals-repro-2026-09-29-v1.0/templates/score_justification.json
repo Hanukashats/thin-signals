@@ -1,0 +1,63 @@
+{
+  "candidate_id": "T_NEW",
+  "model_version": "0.1-research",
+  "axes": {
+    "bottleneck": {
+      "value": null,
+      "source_ids": [],
+      "reason_summary": "",
+      "main_counterargument": "",
+      "why_not_higher": ""
+    },
+    "evidence": {
+      "value": null,
+      "source_ids": [],
+      "reason_summary": "",
+      "main_counterargument": "",
+      "why_not_higher": ""
+    },
+    "need": {
+      "value": null,
+      "source_ids": [],
+      "reason_summary": "",
+      "main_counterargument": "",
+      "why_not_higher": ""
+    },
+    "testability": {
+      "value": null,
+      "source_ids": [],
+      "reason_summary": "",
+      "main_counterargument": "",
+      "why_not_higher": ""
+    },
+    "history": {
+      "value": null,
+      "source_ids": [],
+      "reason_summary": "",
+      "main_counterargument": "",
+      "why_not_higher": ""
+    },
+    "manufacturability": {
+      "value": null,
+      "source_ids": [],
+      "reason_summary": "",
+      "main_counterargument": "",
+      "why_not_higher": ""
+    },
+    "access": {
+      "value": null,
+      "source_ids": [],
+      "reason_summary": "",
+      "main_counterargument": "",
+      "why_not_higher": ""
+    },
+    "whitespace": {
+      "value": null,
+      "source_ids": [],
+      "reason_summary": "",
+      "main_counterargument": "",
+      "why_not_higher": ""
+    }
+  }
+}
+

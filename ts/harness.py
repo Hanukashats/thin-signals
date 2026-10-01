@@ -55,6 +55,7 @@ class RunReport:
     corpus_version: str = "live-w3"
     fanout: dict | None = None
     unread: list[dict] = field(default_factory=list)
+    near_miss: list[dict] = field(default_factory=list)
 
 
 @dataclass
@@ -64,6 +65,8 @@ class Harness:
     snapshot_dir: Path = field(default_factory=lambda: Path("snapshots"))
     store: dict = field(default_factory=dict)
     trust_table: dict = field(default_factory=load_trust)
+    # YYYY-MM-DD. Narrows candidate searches only; the countersearch for maturity keeps every year.
+    since: str | None = None
 
     def run(
         self,
@@ -164,7 +167,8 @@ class Harness:
         for connector in connectors:
             try:
                 depth = 8 if step == "search" and connector.name in _DEEP and limit < 8 else limit
-                found = connector.search(query, limit=depth)
+                dated = self.since and step in {"search", "chain"} and getattr(connector, "takes_since", False)
+                found = connector.search(query, limit=depth, **({"since": self.since} if dated else {}))
                 hits.extend(found)
                 steps.append({"name": step, "connector": connector.name, "status": "ok", "n": len(found)})
             except Exception as e:  # noqa: BLE001 — one dead source must not stop the run

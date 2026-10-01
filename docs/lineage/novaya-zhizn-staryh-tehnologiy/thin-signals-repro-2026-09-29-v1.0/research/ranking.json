@@ -1,0 +1,381 @@
+[
+  {
+    "id": "T02",
+    "name": "Программируемая пневматическая логика для мягких захватов",
+    "score_lower": 66.0,
+    "score_upper": 76.0,
+    "unknown_weight": 10.0,
+    "age_years_approx": 61,
+    "decision": "priority_diligence",
+    "fully_qualified": false,
+    "partner_review_ready": false,
+    "failures": [],
+    "holds": [
+      "commercial_diligence",
+      "rights_diligence",
+      "source_integrity_screen",
+      "incomplete_scores",
+      "system_comparison",
+      "test_protocol"
+    ],
+    "missing_dimensions": [
+      "access",
+      "whitespace"
+    ],
+    "rank": 1
+  },
+  {
+    "id": "T01",
+    "name": "Насосы Кнудсена для газоанализа на микрочипе",
+    "score_lower": 64.0,
+    "score_upper": 74.0,
+    "unknown_weight": 10.0,
+    "age_years_approx": 117,
+    "decision": "priority_diligence",
+    "fully_qualified": false,
+    "partner_review_ready": false,
+    "failures": [],
+    "holds": [
+      "commercial_diligence",
+      "rights_diligence",
+      "source_integrity_screen",
+      "incomplete_scores",
+      "system_comparison",
+      "test_protocol"
+    ],
+    "missing_dimensions": [
+      "access",
+      "whitespace"
+    ],
+    "rank": 2
+  },
+  {
+    "id": "T03",
+    "name": "Гелевые термогальванические элементы для датчиков",
+    "score_lower": 62.0,
+    "score_upper": 72.0,
+    "unknown_weight": 10.0,
+    "age_years_approx": 136,
+    "decision": "priority_diligence",
+    "fully_qualified": false,
+    "partner_review_ready": false,
+    "failures": [],
+    "holds": [
+      "commercial_diligence",
+      "rights_diligence",
+      "source_integrity_screen",
+      "incomplete_scores",
+      "system_comparison",
+      "test_protocol"
+    ],
+    "missing_dimensions": [
+      "access",
+      "whitespace"
+    ],
+    "rank": 3
+  },
+  {
+    "id": "T04",
+    "name": "Электросмачивание для локального охлаждения и конденсации",
+    "score_lower": 57.0,
+    "score_upper": 67.0,
+    "unknown_weight": 10.0,
+    "age_years_approx": 23,
+    "decision": "investigate",
+    "fully_qualified": false,
+    "partner_review_ready": false,
+    "failures": [],
+    "holds": [
+      "commercial_diligence",
+      "rights_diligence",
+      "source_integrity_screen",
+      "incomplete_scores",
+      "system_comparison",
+      "test_protocol"
+    ],
+    "missing_dimensions": [
+      "access",
+      "whitespace"
+    ],
+    "rank": 4
+  },
+  {
+    "id": "T06",
+    "name": "Газогидратное опреснение сложных рассолов",
+    "score_lower": 57.0,
+    "score_upper": 67.0,
+    "unknown_weight": 10.0,
+    "age_years_approx": 66,
+    "decision": "investigate",
+    "fully_qualified": false,
+    "partner_review_ready": false,
+    "failures": [],
+    "holds": [
+      "commercial_diligence",
+      "rights_diligence",
+      "source_integrity_screen",
+      "incomplete_scores",
+      "system_comparison",
+      "test_protocol"
+    ],
+    "missing_dimensions": [
+      "access",
+      "whitespace"
+    ],
+    "rank": 5
+  },
+  {
+    "id": "T16",
+    "name": "Вращающиеся жидкие мраморы — капельные микрореакторы",
+    "score_lower": 57.0,
+    "score_upper": 67.0,
+    "unknown_weight": 10.0,
+    "age_years_approx": 25,
+    "decision": "investigate",
+    "fully_qualified": false,
+    "partner_review_ready": false,
+    "failures": [],
+    "holds": [
+      "commercial_diligence",
+      "rights_diligence",
+      "source_integrity_screen",
+      "incomplete_scores",
+      "system_comparison",
+      "test_protocol"
+    ],
+    "missing_dimensions": [
+      "access",
+      "whitespace"
+    ],
+    "rank": 6
+  },
+  {
+    "id": "T05",
+    "name": "Светоуправляемые полимерные микроприводы",
+    "score_lower": 54.0,
+    "score_upper": 64.0,
+    "unknown_weight": 10.0,
+    "age_years_approx": 23,
+    "decision": "investigate",
+    "fully_qualified": false,
+    "partner_review_ready": false,
+    "failures": [],
+    "holds": [
+      "commercial_diligence",
+      "rights_diligence",
+      "source_integrity_screen",
+      "incomplete_scores",
+      "system_comparison",
+      "test_protocol"
+    ],
+    "missing_dimensions": [
+      "access",
+      "whitespace"
+    ],
+    "rank": 7
+  },
+  {
+    "id": "T13",
+    "name": "Биофотовольтаические элементы для сверхмалых нагрузок",
+    "score_lower": 54.0,
+    "score_upper": 64.0,
+    "unknown_weight": 10.0,
+    "age_years_approx": 62,
+    "decision": "investigate",
+    "fully_qualified": false,
+    "partner_review_ready": false,
+    "failures": [],
+    "holds": [
+      "commercial_diligence",
+      "rights_diligence",
+      "source_integrity_screen",
+      "incomplete_scores",
+      "system_comparison",
+      "test_protocol"
+    ],
+    "missing_dimensions": [
+      "access",
+      "whitespace"
+    ],
+    "rank": 8
+  },
+  {
+    "id": "T09",
+    "name": "Магнонная логика на спиновых волнах",
+    "score_lower": 52.0,
+    "score_upper": 62.0,
+    "unknown_weight": 10.0,
+    "age_years_approx": 21,
+    "decision": "investigate",
+    "fully_qualified": false,
+    "partner_review_ready": false,
+    "failures": [],
+    "holds": [
+      "commercial_diligence",
+      "rights_diligence",
+      "source_integrity_screen",
+      "incomplete_scores",
+      "system_comparison",
+      "test_protocol"
+    ],
+    "missing_dimensions": [
+      "access",
+      "whitespace"
+    ],
+    "rank": 9
+  },
+  {
+    "id": "T10",
+    "name": "Сегнетоэлектрическая фотовольтаика для специальных оптоэлектронных элементов",
+    "score_lower": 52.0,
+    "score_upper": 62.0,
+    "unknown_weight": 10.0,
+    "age_years_approx": 52,
+    "decision": "investigate",
+    "fully_qualified": false,
+    "partner_review_ready": false,
+    "failures": [],
+    "holds": [
+      "commercial_diligence",
+      "rights_diligence",
+      "source_integrity_screen",
+      "incomplete_scores",
+      "system_comparison",
+      "test_protocol"
+    ],
+    "missing_dimensions": [
+      "access",
+      "whitespace"
+    ],
+    "rank": 10
+  },
+  {
+    "id": "T11",
+    "name": "Фотоферментация органических стоков с получением водорода",
+    "score_lower": 52.0,
+    "score_upper": 62.0,
+    "unknown_weight": 10.0,
+    "age_years_approx": 77,
+    "decision": "investigate",
+    "fully_qualified": false,
+    "partner_review_ready": false,
+    "failures": [],
+    "holds": [
+      "commercial_diligence",
+      "rights_diligence",
+      "source_integrity_screen",
+      "bottleneck_not_yet_removed",
+      "incomplete_scores",
+      "system_comparison",
+      "test_protocol"
+    ],
+    "missing_dimensions": [
+      "access",
+      "whitespace"
+    ],
+    "rank": 11
+  },
+  {
+    "id": "T18",
+    "name": "Лазеры с прямой солнечной накачкой",
+    "score_lower": 52.0,
+    "score_upper": 62.0,
+    "unknown_weight": 10.0,
+    "age_years_approx": 63,
+    "decision": "investigate",
+    "fully_qualified": false,
+    "partner_review_ready": false,
+    "failures": [],
+    "holds": [
+      "commercial_diligence",
+      "rights_diligence",
+      "source_integrity_screen",
+      "incomplete_scores",
+      "system_comparison",
+      "test_protocol"
+    ],
+    "missing_dimensions": [
+      "access",
+      "whitespace"
+    ],
+    "rank": 12
+  },
+  {
+    "id": "T19",
+    "name": "Волновая механическая логика и фононные переключатели",
+    "score_lower": 49.0,
+    "score_upper": 59.0,
+    "unknown_weight": 10.0,
+    "age_years_approx": 18,
+    "decision": "watch",
+    "fully_qualified": false,
+    "partner_review_ready": false,
+    "failures": [],
+    "holds": [
+      "commercial_diligence",
+      "rights_diligence",
+      "source_integrity_screen",
+      "historical_fit",
+      "incomplete_scores",
+      "system_comparison",
+      "test_protocol"
+    ],
+    "missing_dimensions": [
+      "access",
+      "whitespace"
+    ],
+    "rank": 13
+  },
+  {
+    "id": "T20",
+    "name": "Ионная память в жидкостных наноканалах",
+    "score_lower": 48.0,
+    "score_upper": 58.0,
+    "unknown_weight": 10.0,
+    "age_years_approx": 15,
+    "decision": "watch",
+    "fully_qualified": false,
+    "partner_review_ready": false,
+    "failures": [],
+    "holds": [
+      "commercial_diligence",
+      "rights_diligence",
+      "source_integrity_screen",
+      "historical_fit",
+      "incomplete_scores",
+      "system_comparison",
+      "test_protocol"
+    ],
+    "missing_dimensions": [
+      "access",
+      "whitespace"
+    ],
+    "rank": 14
+  },
+  {
+    "id": "T17",
+    "name": "Гибридные химические вычислители на реакции Белоусова—Жаботинского",
+    "score_lower": 46.0,
+    "score_upper": 56.0,
+    "unknown_weight": 10.0,
+    "age_years_approx": 34,
+    "decision": "watch",
+    "fully_qualified": false,
+    "partner_review_ready": false,
+    "failures": [],
+    "holds": [
+      "commercial_diligence",
+      "rights_diligence",
+      "source_integrity_screen",
+      "bottleneck_not_yet_removed",
+      "incomplete_scores",
+      "system_comparison",
+      "test_protocol"
+    ],
+    "missing_dimensions": [
+      "access",
+      "whitespace"
+    ],
+    "rank": 15
+  }
+]

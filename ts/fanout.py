@@ -12,7 +12,7 @@ from pathlib import Path
 import yaml
 
 from ts.harness import TOP_N, _tokens
-from ts.scoring.order import scope_rank
+from ts.scoring.order import _published_rank, scope_rank
 
 PLAN_PATH = Path(__file__).resolve().parents[1] / "data" / "theme_plan.yaml"
 
@@ -47,13 +47,26 @@ def _identity(card: dict) -> tuple:
     return ("title", str(card.get("technology") or "").lower())
 
 
+def _newer_first(cards: list[dict]) -> list[dict]:
+    """Among cards that hold the query words, the newer date goes first.
+
+    A card without a date stays in the queue, after the dated ones. Cards without
+    the query words keep their own order behind them.
+    """
+    def key(card: dict) -> tuple:
+        if int(card.get("subject_hits") or 0) > 0:
+            return (0, -_published_rank(card))
+        return (1, 0)
+    return sorted(cards, key=key)
+
+
 def merge_theme_reports(parts: list[tuple[dict, list[dict]]], *, limit: int = TOP_N) -> dict:
     """parts are (theme, already admitted cards in that theme's own order)."""
     queues: list[list[dict]] = []
     notes = []
     for theme, cards in parts:
         tagged = []
-        for card in cards:
+        for card in _newer_first(cards):
             tagged.append({
                 **card,
                 "theme": theme.get("id"),

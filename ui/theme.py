@@ -150,7 +150,7 @@ def brand_header() -> None:
             <div class="ts-brand__name">Тонкие сигналы</div>
             <div class="ts-brand__note">Рабочий стол технологической разведки</div>
           </div>
-          <div class="ts-brand__state">● Публичный стенд</div>
+          <div class="ts-brand__state">● Закрытый стенд</div>
         </div>
         """,
         unsafe_allow_html=True,

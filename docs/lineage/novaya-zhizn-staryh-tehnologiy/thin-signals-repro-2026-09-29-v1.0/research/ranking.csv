@@ -1,0 +1,16 @@
+﻿rank,id,technology,score_lower,score_upper,decision,fully_qualified,holds
+1,T02,Программируемая пневматическая логика для мягких захватов,66.0,76.0,priority_diligence,False,commercial_diligence; rights_diligence; source_integrity_screen; incomplete_scores; system_comparison; test_protocol
+2,T01,Насосы Кнудсена для газоанализа на микрочипе,64.0,74.0,priority_diligence,False,commercial_diligence; rights_diligence; source_integrity_screen; incomplete_scores; system_comparison; test_protocol
+3,T03,Гелевые термогальванические элементы для датчиков,62.0,72.0,priority_diligence,False,commercial_diligence; rights_diligence; source_integrity_screen; incomplete_scores; system_comparison; test_protocol
+4,T04,Электросмачивание для локального охлаждения и конденсации,57.0,67.0,investigate,False,commercial_diligence; rights_diligence; source_integrity_screen; incomplete_scores; system_comparison; test_protocol
+5,T06,Газогидратное опреснение сложных рассолов,57.0,67.0,investigate,False,commercial_diligence; rights_diligence; source_integrity_screen; incomplete_scores; system_comparison; test_protocol
+6,T16,Вращающиеся жидкие мраморы — капельные микрореакторы,57.0,67.0,investigate,False,commercial_diligence; rights_diligence; source_integrity_screen; incomplete_scores; system_comparison; test_protocol
+7,T05,Светоуправляемые полимерные микроприводы,54.0,64.0,investigate,False,commercial_diligence; rights_diligence; source_integrity_screen; incomplete_scores; system_comparison; test_protocol
+8,T13,Биофотовольтаические элементы для сверхмалых нагрузок,54.0,64.0,investigate,False,commercial_diligence; rights_diligence; source_integrity_screen; incomplete_scores; system_comparison; test_protocol
+9,T09,Магнонная логика на спиновых волнах,52.0,62.0,investigate,False,commercial_diligence; rights_diligence; source_integrity_screen; incomplete_scores; system_comparison; test_protocol
+10,T10,Сегнетоэлектрическая фотовольтаика для специальных оптоэлектронных элементов,52.0,62.0,investigate,False,commercial_diligence; rights_diligence; source_integrity_screen; incomplete_scores; system_comparison; test_protocol
+11,T11,Фотоферментация органических стоков с получением водорода,52.0,62.0,investigate,False,commercial_diligence; rights_diligence; source_integrity_screen; bottleneck_not_yet_removed; incomplete_scores; system_comparison; test_protocol
+12,T18,Лазеры с прямой солнечной накачкой,52.0,62.0,investigate,False,commercial_diligence; rights_diligence; source_integrity_screen; incomplete_scores; system_comparison; test_protocol
+13,T19,Волновая механическая логика и фононные переключатели,49.0,59.0,watch,False,commercial_diligence; rights_diligence; source_integrity_screen; historical_fit; incomplete_scores; system_comparison; test_protocol
+14,T20,Ионная память в жидкостных наноканалах,48.0,58.0,watch,False,commercial_diligence; rights_diligence; source_integrity_screen; historical_fit; incomplete_scores; system_comparison; test_protocol
+15,T17,Гибридные химические вычислители на реакции Белоусова—Жаботинского,46.0,56.0,watch,False,commercial_diligence; rights_diligence; source_integrity_screen; bottleneck_not_yet_removed; incomplete_scores; system_comparison; test_protocol

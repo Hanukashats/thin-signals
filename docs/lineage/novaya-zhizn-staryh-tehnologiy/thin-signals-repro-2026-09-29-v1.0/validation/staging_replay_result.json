@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "mode": "offline_frozen_replay",
+  "executed_at_utc": "2026-09-29T13:57:34.031546+00:00",
+  "python_version": "3.8.10",
+  "network_used": false,
+  "integrity": {
+    "status": "PASS",
+    "declared_files": 52,
+    "errors": [],
+    "scope": "Declared immutable files; generated runs/ are not part of the manifest."
+  },
+  "steps": [
+    {
+      "step": "unit_tests",
+      "exit_code": 0,
+      "log": "unit_tests.log"
+    },
+    {
+      "step": "score",
+      "exit_code": 0,
+      "log": "score.log"
+    },
+    {
+      "step": "report",
+      "exit_code": 0,
+      "log": "report.log"
+    }
+  ],
+  "comparisons": [
+    {
+      "file": "ranking.json",
+      "equal": true,
+      "comparison": "JSON structure"
+    },
+    {
+      "file": "sensitivity.json",
+      "equal": true,
+      "comparison": "JSON structure"
+    },
+    {
+      "file": "ranking.csv",
+      "equal": true,
+      "comparison": "UTF-8 text with normalized line endings"
+    },
+    {
+      "file": "REPORT.md",
+      "equal": true,
+      "comparison": "UTF-8 text with normalized line endings"
+    }
+  ],
+  "observed": {
+    "candidates": 15,
+    "sources": 83,
+    "audit_decisions": 14,
+    "commercial_queries": 20,
+    "fully_qualified": 0,
+    "top_three": [
+      "T02",
+      "T01",
+      "T03"
+    ],
+    "doi_records": 43,
+    "sensitivity_scenarios": 16
+  },
+  "baseline_counts_equal": true,
+  "references_valid": true,
+  "baseline_unchanged": true,
+  "scope": "Deterministic replay and data integrity, not scientific or commercial validation."
+}

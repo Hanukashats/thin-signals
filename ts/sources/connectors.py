@@ -115,14 +115,26 @@ class SearxConnector:
         return hits
 
 
+def _day(since: str | None) -> str | None:
+    """YYYY-MM-DD or nothing. Anything else is not put into a query string."""
+    if since and re.fullmatch(r"\d{4}-\d{2}-\d{2}", since):
+        return since
+    return None
+
+
 class ArxivConnector:
     name = "arxiv"
+    takes_since = True
 
     def __init__(self, get: Get):
         self.get = get
 
-    def search(self, query: str, *, limit: int = 5) -> list[Hit]:
-        url = f"https://export.arxiv.org/api/query?search_query=all:{quote(query)}&max_results={limit}"
+    def search(self, query: str, *, limit: int = 5, since: str | None = None) -> list[Hit]:
+        terms = f"all:{quote(query)}"
+        day = _day(since)
+        if day:
+            terms = f"%28{terms}%29+AND+submittedDate:%5B{day.replace('-', '')}0000+TO+209912312359%5D"
+        url = f"https://export.arxiv.org/api/query?search_query={terms}&max_results={limit}"
         try:
             root = ET.fromstring(self.get(url))
         except ET.ParseError as e:
@@ -145,12 +157,16 @@ class ArxivConnector:
 
 class OpenAlexConnector:
     name = "openalex"
+    takes_since = True
 
     def __init__(self, get: Get):
         self.get = get
 
-    def search(self, query: str, *, limit: int = 5) -> list[Hit]:
+    def search(self, query: str, *, limit: int = 5, since: str | None = None) -> list[Hit]:
         url = f"https://api.openalex.org/works?search={quote(query)}&per-page={limit}"
+        day = _day(since)
+        if day:
+            url += f"&filter=from_publication_date:{day}"
         data = _get_json(self.get, url)
         hits = []
         for row in data.get("results") or []:
@@ -168,12 +184,16 @@ class OpenAlexConnector:
 
 class CrossrefConnector:
     name = "crossref"
+    takes_since = True
 
     def __init__(self, get: Get):
         self.get = get
 
-    def search(self, query: str, *, limit: int = 5) -> list[Hit]:
+    def search(self, query: str, *, limit: int = 5, since: str | None = None) -> list[Hit]:
         url = f"https://api.crossref.org/works?query={quote(query)}&rows={limit}"
+        day = _day(since)
+        if day:
+            url += f"&filter=from-pub-date:{day}"
         data = _get_json(self.get, url)
         hits = []
         for row in (data.get("message") or {}).get("items") or []:
@@ -212,13 +232,16 @@ class GithubConnector:
 
 class EuropePmcConnector:
     name = "europepmc"
+    takes_since = True
 
     def __init__(self, get: Get):
         self.get = get
 
-    def search(self, query: str, *, limit: int = 5) -> list[Hit]:
+    def search(self, query: str, *, limit: int = 5, since: str | None = None) -> list[Hit]:
+        day = _day(since)
+        asked = f"({query}) AND FIRST_PDATE:[{day} TO 2099-12-31]" if day else query
         url = ("https://www.ebi.ac.uk/europepmc/webservices/rest/search"
-               f"?query={quote(query)}&format=json&pageSize={limit}&resultType=core")
+               f"?query={quote(asked)}&format=json&pageSize={limit}&resultType=core")
         data = _get_json(self.get, url)
         hits = []
         for row in ((data.get("resultList") or {}).get("result") or [])[:limit]:
@@ -261,13 +284,17 @@ class DoajConnector:
 
 class HalConnector:
     name = "hal"
+    takes_since = True
 
     def __init__(self, get: Get):
         self.get = get
 
-    def search(self, query: str, *, limit: int = 5) -> list[Hit]:
+    def search(self, query: str, *, limit: int = 5, since: str | None = None) -> list[Hit]:
         url = ("https://api.archives-ouvertes.fr/search/"
                f"?q={quote(query)}&wt=json&rows={limit}&fl=title_s,uri_s,producedDate_tdate,abstract_s")
+        day = _day(since)
+        if day:
+            url += "&fq=" + quote(f"producedDate_tdate:[{day}T00:00:00Z TO *]")
         data = _get_json(self.get, url)
         hits = []
         for row in ((data.get("response") or {}).get("docs") or [])[:limit]:

@@ -1,0 +1,66 @@
+{
+  "method": "One weight at a time, +/-20%, renormalized; deterministic ties by ID. Not a probability model.",
+  "scenarios": 16,
+  "rank_ranges": {
+    "T02": {
+      "best": 1,
+      "worst": 1
+    },
+    "T01": {
+      "best": 2,
+      "worst": 2
+    },
+    "T03": {
+      "best": 3,
+      "worst": 3
+    },
+    "T04": {
+      "best": 4,
+      "worst": 5
+    },
+    "T06": {
+      "best": 4,
+      "worst": 6
+    },
+    "T16": {
+      "best": 5,
+      "worst": 6
+    },
+    "T05": {
+      "best": 7,
+      "worst": 7
+    },
+    "T13": {
+      "best": 8,
+      "worst": 8
+    },
+    "T09": {
+      "best": 9,
+      "worst": 12
+    },
+    "T10": {
+      "best": 10,
+      "worst": 10
+    },
+    "T11": {
+      "best": 9,
+      "worst": 12
+    },
+    "T18": {
+      "best": 11,
+      "worst": 12
+    },
+    "T19": {
+      "best": 13,
+      "worst": 13
+    },
+    "T20": {
+      "best": 14,
+      "worst": 14
+    },
+    "T17": {
+      "best": 15,
+      "worst": 15
+    }
+  }
+}

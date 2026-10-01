@@ -1,0 +1,233 @@
+{
+  "workflow_version": "1.0-handoff",
+  "baseline_model_version": "0.1-research",
+  "description": "Declarative workflow for an agent; not a scheduler or executable orchestration engine.",
+  "canonical_process": "docs/WORKFLOW.md",
+  "canonical_calculation": "research/score.py",
+  "stage_outputs_status": "Suggested for future runs; not every output existed separately in the original run.",
+  "stages": [
+    {
+      "id": "S00",
+      "name": "Зафиксировать эксперимент",
+      "depends_on": [],
+      "outputs": [
+        "run_config.json",
+        "PLAN.md"
+      ],
+      "gates": [],
+      "executor": "research_agent",
+      "stop_on_hard_exclusion": true,
+      "unknown_policy": "retain_hold"
+    },
+    {
+      "id": "S01",
+      "name": "Карта поиска",
+      "depends_on": [
+        "S00"
+      ],
+      "outputs": [
+        "longlist.json",
+        "search_queries.jsonl"
+      ],
+      "gates": [],
+      "executor": "research_agent",
+      "stop_on_hard_exclusion": true,
+      "unknown_policy": "retain_hold"
+    },
+    {
+      "id": "S02",
+      "name": "Ранний коммерческий отсев",
+      "depends_on": [
+        "S01"
+      ],
+      "outputs": [
+        "market_search_log.json",
+        "preliminary_exclusions.json"
+      ],
+      "gates": [
+        "G4"
+      ],
+      "executor": "research_agent",
+      "stop_on_hard_exclusion": true,
+      "unknown_policy": "retain_hold"
+    },
+    {
+      "id": "S03",
+      "name": "История и идентичность",
+      "depends_on": [
+        "S02"
+      ],
+      "outputs": [
+        "history_claims.jsonl"
+      ],
+      "gates": [
+        "G0"
+      ],
+      "executor": "research_agent",
+      "stop_on_hard_exclusion": true,
+      "unknown_policy": "retain_hold"
+    },
+    {
+      "id": "S04",
+      "name": "Современная наука",
+      "depends_on": [
+        "S03"
+      ],
+      "outputs": [
+        "evidence_records.jsonl",
+        "sources.json"
+      ],
+      "gates": [
+        "G1"
+      ],
+      "executor": "research_agent",
+      "stop_on_hard_exclusion": true,
+      "unknown_policy": "retain_hold"
+    },
+    {
+      "id": "S05",
+      "name": "Изменение барьера",
+      "depends_on": [
+        "S04"
+      ],
+      "outputs": [
+        "causal_links.jsonl"
+      ],
+      "gates": [
+        "G2"
+      ],
+      "executor": "research_agent",
+      "stop_on_hard_exclusion": true,
+      "unknown_policy": "retain_hold"
+    },
+    {
+      "id": "S06",
+      "name": "Полезность системы",
+      "depends_on": [
+        "S05"
+      ],
+      "outputs": [
+        "application_hypotheses.jsonl"
+      ],
+      "gates": [
+        "G3"
+      ],
+      "executor": "research_agent",
+      "stop_on_hard_exclusion": true,
+      "unknown_policy": "retain_hold"
+    },
+    {
+      "id": "S07",
+      "name": "Компании, права и доступ",
+      "depends_on": [
+        "S06"
+      ],
+      "outputs": [
+        "market_search_log.json",
+        "rights_review.jsonl"
+      ],
+      "gates": [
+        "G4",
+        "G5"
+      ],
+      "executor": "research_agent",
+      "stop_on_hard_exclusion": true,
+      "unknown_policy": "retain_hold"
+    },
+    {
+      "id": "S08",
+      "name": "Экспертные оценки",
+      "depends_on": [
+        "S07"
+      ],
+      "outputs": [
+        "candidates.json",
+        "score_justifications.jsonl",
+        "model.json"
+      ],
+      "gates": [],
+      "executor": "research_agent",
+      "stop_on_hard_exclusion": true,
+      "unknown_policy": "retain_hold"
+    },
+    {
+      "id": "S09",
+      "name": "Детерминированный расчёт",
+      "depends_on": [
+        "S08"
+      ],
+      "outputs": [
+        "ranking.json",
+        "ranking.csv"
+      ],
+      "gates": [
+        "G0",
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "G5",
+        "G6"
+      ],
+      "executor": "deterministic_code",
+      "stop_on_hard_exclusion": true,
+      "unknown_policy": "retain_hold"
+    },
+    {
+      "id": "S10",
+      "name": "Решающий тест",
+      "depends_on": [
+        "S09"
+      ],
+      "outputs": [
+        "test_proposals.jsonl"
+      ],
+      "gates": [
+        "G6"
+      ],
+      "executor": "research_agent",
+      "stop_on_hard_exclusion": true,
+      "unknown_policy": "retain_hold"
+    },
+    {
+      "id": "S11",
+      "name": "Устойчивость и аудит",
+      "depends_on": [
+        "S10"
+      ],
+      "outputs": [
+        "sensitivity.json",
+        "audit_findings.json"
+      ],
+      "gates": [],
+      "executor": "research_agent",
+      "stop_on_hard_exclusion": true,
+      "unknown_policy": "retain_hold"
+    },
+    {
+      "id": "S12",
+      "name": "Отчёт и передача",
+      "depends_on": [
+        "S11"
+      ],
+      "outputs": [
+        "REPORT.md",
+        "comparison.md",
+        "MANIFEST.json",
+        "archive.zip"
+      ],
+      "gates": [],
+      "executor": "research_agent",
+      "stop_on_hard_exclusion": true,
+      "unknown_policy": "retain_hold"
+    }
+  ],
+  "invariants": [
+    "unknown != absent",
+    "high_score_cannot_override_gate",
+    "no_future_evidence_in_fixed_cutoff",
+    "do_not_force_15_qualified",
+    "preserve_baseline"
+  ]
+}
+
