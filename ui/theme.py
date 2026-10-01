@@ -115,6 +115,11 @@ label, [data-testid="stWidgetLabel"] p { color: var(--ts-ink) !important; }
   white-space: normal;
 }
 [data-testid="stMetricLabel"] { color: var(--ts-secondary); }
+[data-testid="stMetricLabel"] p {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+}
 [data-testid="stMetricValue"] [data-testid="stMarkdownContainer"],
 [data-testid="stMetricValue"] p {
   overflow: visible;

@@ -4,6 +4,10 @@ from __future__ import annotations
 import streamlit as st
 
 
+def _choose(state_key: str, index: int) -> None:
+    st.session_state[state_key] = index
+
+
 def _selected(cards: list[dict], state_key: str) -> dict | None:
     if not cards:
         st.session_state.pop(state_key, None)
@@ -26,12 +30,15 @@ def signal_list(cards: list[dict]) -> dict | None:
         label = card.get("label") or "без метки"
         score = card.get("confidence")
         suffix = "без суммы" if score is None else f"сумма {score:g}"
-        if st.button(
-            f"{index + 1:02d}  {title}\n{label} · {suffix}",
+        st.button(
+            f"{index + 1:02d}  {title}",
             key=f"signal-card-{index}",
             use_container_width=True,
-        ):
-            st.session_state["signal_selected"] = index
+            type="primary" if st.session_state.get("signal_selected", 0) == index else "secondary",
+            on_click=_choose,
+            args=("signal_selected", index),
+        )
+        st.caption(f"{label} · {suffix}")
     return _selected(cards, "signal_selected")
 
 
@@ -95,12 +102,15 @@ def potential_list(cards: list[dict]) -> dict | None:
         priority = card.get("review_priority")
         shown = "—" if priority is None else f"{priority:g}/100"
         reasons = " · ".join(card.get("selection_reasons") or [])
-        if st.button(
-            f"{index + 1:02d}  {card.get('title') or 'карточка'}\nприоритет {shown} · {reasons}",
+        st.button(
+            f"{index + 1:02d}  {card.get('title') or 'карточка'}",
             key=f"potential-card-{index}",
             use_container_width=True,
-        ):
-            st.session_state["potential_selected"] = index
+            type="primary" if st.session_state.get("potential_selected", 0) == index else "secondary",
+            on_click=_choose,
+            args=("potential_selected", index),
+        )
+        st.caption(f"приоритет {shown} · {reasons}")
     return _selected(cards, "potential_selected")
 
 
@@ -166,12 +176,15 @@ def old_tech_list(cards: list[dict]) -> dict | None:
         lower = card.get("score_lower")
         upper = card.get("score_upper")
         band = f"{lower:g}–{upper:g}" if isinstance(lower, (int, float)) and isinstance(upper, (int, float)) else "—"
-        if st.button(
-            f"{card.get('rank', '—'):>02}  {card.get('name') or 'карточка'}\nархивная шкала {band}/100",
+        st.button(
+            f"{card.get('rank', '—'):>02}  {card.get('name') or 'карточка'}",
             key=f"old-card-{card.get('id') or index}",
             use_container_width=True,
-        ):
-            st.session_state["old_selected"] = index
+            type="primary" if st.session_state.get("old_selected", 0) == index else "secondary",
+            on_click=_choose,
+            args=("old_selected", index),
+        )
+        st.caption(f"архивная шкала {band}/100")
     return _selected(cards, "old_selected")
 
 
