@@ -7,6 +7,7 @@ from pathlib import Path
 import yaml
 
 from ts.extract import PROMPT_VERSION
+from ts.fanout import _identity
 from ts.nearest import nearest_lines
 from ts.old_tech import search_old_tech_cards
 from ts.plain import (
@@ -23,7 +24,7 @@ from ts.plain import (
     scope_sentence,
     stopper_line,
 )
-from ts.potential import rank_potential_cards
+from ts.potential import POTENTIAL_VERSION, rank_potential_cards
 from ts.scoring.scorer import load_rules
 from ts.ui_text import LABELS, panels
 
@@ -219,6 +220,11 @@ def run_integrity(payload: dict, *, expected_checklist: str) -> dict:
         parts.append(_plural_ru(len(groups["other"]), "прочая карточка", "прочие карточки", "прочих карточек"))
 
     top = [item for item in (payload.get("top") or []) if isinstance(item, dict)]
+    inspected = [
+        item for bucket in ("top", "exclusion_registry", "potential", "unread")
+        for item in (payload.get(bucket) or []) if isinstance(item, dict)
+        and isinstance(item.get("checklist"), dict)
+    ]
     urls = {
         str(source.get("url") or "").strip()
         for item in top
@@ -227,19 +233,19 @@ def run_integrity(payload: dict, *, expected_checklist: str) -> dict:
     }
     versions = sorted({
         str((item.get("checklist") or {}).get("version") or "").strip()
-        for item in top
+        for item in inspected
         if isinstance(item.get("checklist"), dict)
         and str((item.get("checklist") or {}).get("version") or "").strip()
     })
     model_id = str(payload.get("model_id") or "").strip() or next((
         str((item.get("checklist") or {}).get("model_id") or "").strip()
-        for item in top
+        for item in inspected
         if str((item.get("checklist") or {}).get("model_id") or "").strip()
     ), "")
     provider = str(payload.get("provider") or "").strip()
 
     warnings: list[str] = []
-    if top and expected_checklist and versions != [expected_checklist]:
+    if (top or inspected) and expected_checklist and versions != [expected_checklist]:
         shown = ", ".join(versions) if versions else "не записана"
         warnings.append(f"Версия чек-листа у карточек: {shown}; ожидается {expected_checklist}.")
     if model_id and not provider:
@@ -450,11 +456,18 @@ def potential_board(payload: dict) -> dict:
     """Present the separate review queue without calling an index a forecast."""
     stored = payload.get("potential") if isinstance(payload, dict) else None
     persisted = isinstance(stored, list)
-    rows = [card for card in stored if isinstance(card, dict)] if persisted else rank_potential_cards(payload)
+    # Revalidate persisted data under the active contract; historical labels remain historical.
+    rows = rank_potential_cards(payload)
+    current_saved = {
+        _identity(card): card for card in (stored or []) if isinstance(card, dict)
+        and card.get("potential_version") == POTENTIAL_VERSION
+    }
     cards = []
     for index, row in enumerate(rows, start=1):
         metrics = row.get("potential") if isinstance(row.get("potential"), dict) else {}
-        reach = row.get("reach") if isinstance(row.get("reach"), dict) else {}
+        saved = current_saved.get(_identity(row), {})
+        reach = saved.get("reach") or row.get("reach")
+        reach = reach if isinstance(reach, dict) else {}
         axes = []
         codes = metrics.get("evidence_codes") if isinstance(metrics.get("evidence_codes"), dict) else {}
         for axis in ("technical", "demand", "development"):
@@ -481,13 +494,19 @@ def potential_board(payload: dict) -> dict:
             "potential_index": metrics.get("potential_index"),
             "gate_proximity": metrics.get("gate_proximity"),
             "gate_gap": row.get("gate_gap"),
+            "gate_target": row.get("gate_target"),
+            "checklist": dict(row.get("checklist") or {}),
             "selection_reasons": [
                 _POTENTIAL_REASON.get(reason, str(reason))
                 for reason in (row.get("selection_reasons") or [])
             ],
             "axes": axes,
             "coverage": metrics.get("evaluated_axes"),
-            "why_not_admitted": say(REASONS, row.get("policy_reason"), "причина не названа"),
+            "why_not_admitted": (
+                "наблюдение ниже порога слабого сигнала 0,60"
+                if row.get("label") == "watchlist"
+                else say(REASONS, row.get("policy_reason"), "причина не названа")
+            ),
             "hypothesis": {
                 key: str(reach.get(key) or "").strip()
                 for key in ("plain", "sphere", "moves", "plus", "minus", "open")
@@ -502,11 +521,13 @@ def potential_board(payload: dict) -> dict:
     note = (
         "Очередь рассчитана из сохранённых проверенных признаков этого прогона. "
         if persisted
-        else "Очередь пересчитана из сохранённого реестра исключений. "
+        else "Очередь пересчитана из наблюдений и реестра исключений. "
     )
     note += (
         "Индекс означает приоритет следующей проверки, а не вероятность успеха, "
-        "рыночного спроса, внедрения или доходности."
+        "рыночного спроса, внедрения или доходности. Старый чек-лист не участвует: нужен новый прогон. "
+        "Близость сравнивается с порогом наблюдения 0,35; для наблюдений отдельно показано расстояние "
+        "до слабого сигнала 0,60. Высокий потенциал ранжируется по собственному индексу."
     )
     return {"cards": cards, "note": note, "persisted": persisted}
 

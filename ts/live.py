@@ -62,9 +62,9 @@ def _near_miss(registry: list[dict], settings: Settings) -> list[dict]:
     return annotate_reach(cards, settings) if cards else []
 
 
-def _potential(registry: list[dict], settings: Settings) -> list[dict]:
+def _potential(registry: list[dict], settings: Settings, top: list[dict] | None = None) -> list[dict]:
     """Persist the separate evidence-triage queue; it never fills the admitted list."""
-    cards = rank_potential_cards({"exclusion_registry": registry})
+    cards = rank_potential_cards({"top": top or [], "exclusion_registry": registry})
     return annotate_reach(cards, settings) if cards else []
 
 
@@ -155,7 +155,7 @@ def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Se
         report.exclusion_registry = held + list(checked["excluded"]) + list(checked["overflow"])
         report.shortfall = TOP_N - len(report.top)
         report.near_miss = _near_miss(report.exclusion_registry, s)
-        report.potential = _potential(report.exclusion_registry, s)
+        report.potential = _potential(report.exclusion_registry, s, report.top)
         checklist_model, checklist_provider = _checklist_route(checked)
         if checklist_model:
             report.model_id = checklist_model
@@ -231,7 +231,7 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
         exclusion_registry=registry,
         unread=list(checked.get("unread") or []),
         near_miss=_near_miss(registry, settings),
-        potential=_potential(registry, settings),
+        potential=_potential(registry, settings, top),
         model_id=checklist_model or next((item.get("scope_model") for item in top if item.get("scope_model")), None),
         provider=checklist_provider,
         corpus_version=corpus,

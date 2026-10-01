@@ -10,11 +10,12 @@ def _card(
     reason: str = "checklist_below_watchlist",
     status: str = "scored",
 ) -> dict:
+    from ts.checklist import CHECKLIST_VERSION
     return {
         "technology": name,
         "confidence": confidence,
         "policy_reason": reason,
-        "checklist": {"status": status},
+        "checklist": {"status": status, "version": CHECKLIST_VERSION},
         "predictors": predictors,
     }
 
@@ -65,21 +66,18 @@ def test_unknown_is_zero_but_an_axis_absent_from_predictors_is_not_evaluated():
     assert metrics["potential_index"] == 0.0
 
 
-def test_high_potential_below_near_gate_floor_is_selected_without_calling_it_close():
+def test_already_scored_weak_signal_does_not_enter_the_review_queue():
     from ts.potential import rank_potential_cards
 
     card = _card(
-        "далеко, но два подтверждённых технических признака",
-        0.2,
+        "уже слабый сигнал",
+        0.65,
         [_p("P01", "verified"), _p("P02", "verified")],
     )
 
     rows = rank_potential_cards({"exclusion_registry": [card]})
 
-    assert len(rows) == 1
-    assert rows[0]["selection_reasons"] == ["high_potential"]
-    assert rows[0]["potential"]["potential_index"] == 66.7
-    assert rows[0]["review_priority"] == 66.7
+    assert rows == []
 
 
 def test_close_card_is_selected_without_inflating_unevaluated_potential():
@@ -138,3 +136,60 @@ def test_duplicate_predictor_code_cannot_inflate_an_axis():
 
     assert metrics["technical"] == 70.0
     assert metrics["potential_index"] == 46.7
+
+
+def test_real_scored_watchlist_can_enter_high_potential_without_becoming_a_signal():
+    from ts.checklist import score_card
+    from ts.potential import rank_potential_cards
+    from ts.scoring.scorer import load_rules
+    from ts.tests.test_checklist import _card as source_card
+    from ts.tests.test_checklist import _out, _read
+
+    output = _out(verified={"P01", "P02"}, transition="unknown")
+    output["secondary_patterns"] = ["P02"]
+    judged = score_card(source_card(), lambda _: _read(output), load_rules())
+    card = judged["card"]
+    assert card["confidence"] == 0.5
+    assert card["label"] == "watchlist"
+
+    rows = rank_potential_cards({"top": [card], "exclusion_registry": [card]})
+
+    assert len(rows) == 1
+    assert rows[0]["selection_reasons"] == ["high_potential"]
+    assert rows[0]["potential"]["potential_index"] == 66.7
+    assert rows[0]["gate_target"] == 0.6
+    assert rows[0]["gate_gap"] == 0.1
+    assert card["label"] == "watchlist"
+
+
+def test_off_topic_below_gate_result_never_enters_potential():
+    from ts.checklist import score_card
+    from ts.potential import rank_potential_cards
+    from ts.scoring.scorer import load_rules
+    from ts.tests.test_checklist import _card as source_card
+    from ts.tests.test_checklist import _out, _read
+
+    output = _out(transition="unknown")
+    for feature in output["features"]:
+        feature["status"] = "supported" if feature["code"] in {"P01", "P02", "P03"} else "absent"
+    output["one_line_ru"] = "ДРУГОЙ_МЕХАНИЗМ: источник о другом предмете"
+    judged = score_card(source_card(), lambda _: _read(output), load_rules())
+
+    assert judged["card"]["confidence"] == 0.325
+    assert judged["card"]["policy_reason"] == "other_mechanism_after_read"
+    assert rank_potential_cards({"exclusion_registry": [judged["card"]]}) == []
+
+
+def test_legacy_exclusion_cannot_silently_become_current_potential():
+    from ts.checklist import CHECKLIST_VERSION
+    from ts.desk import potential_board, run_integrity
+
+    card = _card("старое наблюдение", 0.325, [_p("P01", "supported")])
+    card["checklist"]["version"] = "checklist-v11"
+    payload = {"top": [], "exclusion_registry": [card], "potential": [card]}
+
+    board = potential_board(payload)
+    assert board["cards"] == []
+    assert "новый прогон" in board["note"]
+    warnings = " ".join(run_integrity(payload, expected_checklist=CHECKLIST_VERSION)["warnings"])
+    assert "checklist-v11" in warnings

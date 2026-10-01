@@ -13,7 +13,7 @@ from ts.fanout import _identity
 from ts.scale import fetch_abstract
 from ts.scoring.scorer import load_rules, score
 
-CHECKLIST_VERSION = "checklist-v14"
+CHECKLIST_VERSION = "checklist-v15"
 TEXT_HUNT = 4
 # Four extra reads for each standing theme. One noisy theme must not spend the rest.
 BACKFILL_CAP = TEXT_HUNT * 13
@@ -272,14 +272,14 @@ def score_card(card: dict, reader, rules: dict) -> dict:
         row["policy_reason"] = "checklist_counter"
         row["checklist_quote"] = fv.evidence.get(fired[0], "")
         return {"keep": False, "card": row}
-    if result.confidence is None or result.confidence < _watchlist(rules):
-        row["policy_reason"] = "checklist_below_watchlist"
-        row["checklist_quote"] = fv.evidence.get(fv.primary_pattern, "")
-        return {"keep": False, "card": row}
     line = str((read.get("output") or {}).get("one_line_ru") or "").strip()
     if line.upper().replace(" ", "_").startswith("ДРУГОЙ_МЕХАНИЗМ"):
         row["policy_reason"] = "other_mechanism_after_read"
         row["checklist_quote"] = line
+        return {"keep": False, "card": row}
+    if result.confidence is None or result.confidence < _watchlist(rules):
+        row["policy_reason"] = "checklist_below_watchlist"
+        row["checklist_quote"] = fv.evidence.get(fv.primary_pattern, "")
         return {"keep": False, "card": row}
     if row.get("policy_reason") == "theme_quota":
         row["policy_reason"] = "evidence_gates_passed"

@@ -441,7 +441,7 @@ requirements:
     forks: [goal.controller]
     acceptance: semantic validator rejects claim without fragment_id; structural rc=0 of donor validators is not a gate
     evidence:
-      - ts/checklist.py checklist-v14 structure, _uncited_verified and exclusion-counter references
+      - ts/checklist.py checklist-v15 structure, _uncited_verified, exclusion-counter references and off-topic ordering
       - ts/tests/test_checklist.py invalid/missing/out-of-range fragment references fail closed
 
   - id: TS-INV-03
@@ -467,7 +467,7 @@ requirements:
     evidence: []
 
   - id: UI-POT-01
-    title: Separate potential queue with gate proximity OR evidenced technical/demand/development potential
+    title: Separate potential-v2 queue over current scored observations, with explicit 0.35/0.60 gate targets and reachable high-potential selection
     priority: P1
     owner: frontend/backend
     state: tested

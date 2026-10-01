@@ -21,6 +21,7 @@ An independent reality audit found that the screen could visually promote `watch
 8. Replace transient root-run API/UI processes with versioned loopback-only
    systemd units using isolated dynamic identities, host credentials and
    restart-on-failure.
+9. Review correction (`potential-v2`, `checklist-v15`): exclude off-topic cards before score-threshold returns; select high potential from current scored watchlist observations below 0.60 as well as near-watchlist exclusions below 0.35. Deduplicate candidates, expose the target gate and formula, and require a new run for historical checklist versions. This changes the separate triage contract, not `rules-0.1`.
 
 ## Explicitly out of scope
 

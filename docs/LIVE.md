@@ -24,7 +24,7 @@ ts run --query "запрос" --extract    # лабораторный режим
 ## Что уже работает
 
 - Прогон и публичный payload сохраняются в PostgreSQL; `/v1/runs/latest` возвращает последний завершённый результат.
-- `checklist-v13` требует валидную ссылку `[n]` для каждого `verified` признака/перехода и сохраняет model/provider provenance.
+- `checklist-v15` требует валидную ссылку `[n]` для каждого `verified` признака/перехода, отсекает другой механизм до порогов и сохраняет model/provider provenance.
 - Закрытый Streamlit UI на `https://tsignal.aispaces.ru` разделяет состояние прогона, метку карточки, факты, гипотезы, проверки и источники.
 - API и UI имеют версионированные persistent units в `deploy/systemd/`; инструкции и rollback — `docs/ops/SYSTEMD.md`.
 
@@ -39,4 +39,4 @@ ts run --query "запрос" --extract    # лабораторный режим
 
 API: `uvicorn ts.api:app --host 127.0.0.1 --port 8095`, затем `POST /v1/runs` с полями `query`, `limit`, `extract`. В ответе статус прогона и метка сигнала лежат отдельно.
 
-Figma source for the evidence-first UI: file `RbbhSTdppIVib4AUkGKvia`, node `36:296`. Production implementation remains Streamlit; it does not ship inactive History/Create-check controls from the concept.
+Figma source for the evidence-first UI: file `RbbhSTdppIVib4AUkGKvia`, node `41:178`. Production implementation remains Streamlit; it does not ship inactive History/Create-check controls from the concept.

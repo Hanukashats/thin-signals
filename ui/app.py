@@ -318,6 +318,11 @@ def potential_module() -> None:
         "подтверждённые признаки технического, спросового либо развивающего потенциала."
     )
     payload = st.session_state.get("payload") or {}
+    if payload:
+        integrity = run_integrity(payload, expected_checklist=CHECKLIST_VERSION)
+        st.caption(integrity["provenance"])
+        if integrity["warnings"]:
+            st.warning(" ".join(integrity["warnings"]), icon="⚠️")
     board = potential_board(payload)
     cards = board["cards"]
     close = sum("близко к порогу допуска" in card["selection_reasons"] for card in cards)

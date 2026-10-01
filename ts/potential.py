@@ -1,4 +1,4 @@
-"""Deterministic review priority for scored cards below the admission gate.
+"""Deterministic review priority for scored observations below weak-signal status.
 
 The resulting numbers are evidence-triage indices, not probabilities of technical
 success, demand, adoption, revenue, or investment return.  Missing dimensions
@@ -8,7 +8,12 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
+from ts.checklist import CHECKLIST_VERSION
+from ts.fanout import _identity
+
+POTENTIAL_VERSION = "potential-v2"
 WATCHLIST_THRESHOLD = 0.35
+WEAK_SIGNAL_THRESHOLD = 0.60
 NEAR_GATE_FLOOR = 0.25
 HIGH_POTENTIAL_THRESHOLD = 65.0
 DEFAULT_CAP = 8
@@ -74,15 +79,19 @@ def potential_metrics(card: dict) -> dict:
 
     confidence = card.get("confidence") if isinstance(card, dict) else None
     gate_proximity = None
+    gate_target = WATCHLIST_THRESHOLD
     if _number(confidence):
+        if float(confidence) >= WATCHLIST_THRESHOLD:
+            gate_target = WEAK_SIGNAL_THRESHOLD
         gate_proximity = round(
-            100.0 * max(0.0, min(float(confidence), WATCHLIST_THRESHOLD)) / WATCHLIST_THRESHOLD,
+            100.0 * max(0.0, min(float(confidence), gate_target)) / gate_target,
             1,
         )
     metrics.update({
         "evaluated_axes": len(evaluated),
         "potential_index": potential_index,
         "gate_proximity": gate_proximity,
+        "gate_target": gate_target,
         "evidence_codes": evidence_codes,
     })
     return metrics
@@ -92,10 +101,17 @@ def _eligible(card: dict) -> bool:
     checklist = card.get("checklist")
     if not isinstance(checklist, dict) or checklist.get("status") != "scored":
         return False
-    confidence = card.get("confidence")
-    if not _number(confidence) or not 0 <= float(confidence) < WATCHLIST_THRESHOLD:
+    if checklist.get("version") != CHECKLIST_VERSION:
         return False
-    if card.get("policy_reason") != "checklist_below_watchlist":
+    confidence = card.get("confidence")
+    if not _number(confidence) or not 0 <= float(confidence) < WEAK_SIGNAL_THRESHOLD:
+        return False
+    if float(confidence) < WATCHLIST_THRESHOLD:
+        if card.get("policy_reason") != "checklist_below_watchlist":
+            return False
+    elif card.get("label") != "watchlist" or card.get("policy_reason") not in {
+        "evidence_gates_passed", "theme_quota", "beyond_top_n", "below_tau",
+    }:
         return False
     for row in card.get("predictors") or []:
         if isinstance(row, dict) and str(row.get("code") or "") in COUNTER_CODES:
@@ -104,17 +120,25 @@ def _eligible(card: dict) -> bool:
 
 
 def rank_potential_cards(payload: dict, *, cap: int = DEFAULT_CAP) -> list[dict]:
-    """Rank cards worth another check; never add them to the admitted TOP list.
+    """Rank observations worth another check; never change their signal label.
 
     A card enters for being close to the existing gate or for having a high
     evidence-based potential index.  The review priority is the stronger of
     those two triage signals, not a combined probability.
     """
-    registry = payload.get("exclusion_registry") if isinstance(payload, dict) else None
+    registry = [
+        card for bucket in ("top", "exclusion_registry")
+        for card in (payload.get(bucket) or [])
+    ] if isinstance(payload, dict) else []
     rows: list[dict] = []
+    seen: set[tuple] = set()
     for card in registry or []:
         if not isinstance(card, dict) or not _eligible(card):
             continue
+        identity = _identity(card)
+        if identity in seen:
+            continue
+        seen.add(identity)
         confidence = float(card["confidence"])
         potential = potential_metrics(card)
         reasons = []
@@ -129,10 +153,14 @@ def rank_potential_cards(payload: dict, *, cap: int = DEFAULT_CAP) -> list[dict]
         potential_value = float(potential_index or 0.0)
         row = dict(card)
         row.update({
+            "potential_version": POTENTIAL_VERSION,
             "potential": potential,
             "selection_reasons": reasons,
-            "gate_gap": round(WATCHLIST_THRESHOLD - confidence, 4),
-            "review_priority": round(max(gate_proximity, potential_value), 1),
+            "gate_target": potential["gate_target"],
+            "gate_gap": round(float(potential["gate_target"]) - confidence, 4),
+            "review_priority": round(max(
+                gate_proximity if "near_gate" in reasons else 0.0, potential_value,
+            ), 1),
         })
         rows.append(row)
     rows.sort(key=lambda row: (

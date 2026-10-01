@@ -27,8 +27,10 @@ lineage; `30:97` is the visual ancestor that was shown before implementation.
 ## Three modules
 
 1. **Тонкие сигналы** — live query, admitted ranking and source-level evidence.
-2. **Потенциал** — a separate deterministic review queue for below-gate cards
-   selected by gate proximity or evidenced technical/demand/development axes.
+2. **Потенциал** — a separate deterministic review queue for scored observations
+   below weak-signal status: near-watchlist exclusions [0.25, 0.35), or high-index
+   watchlist observations [0.35, 0.60). The target gate is explicit. Only current
+   checklist rows are ranked; historical results require a new run.
    Its 0–100 values are triage indices, never success or market probabilities.
 3. **Новая жизнь** — reproducible lookup over the sealed 2026-09-29 research
    package: old barrier, changed constraint, first product, buyers, risk and

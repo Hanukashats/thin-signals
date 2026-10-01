@@ -3,8 +3,8 @@
 ## Current candidate (supersedes the initial design notes below)
 
 - The final design is three-module Deep Space Figma frame `41:178`; the logo and favicon are transparent PNGs, without a dark plate.
-- `checklist-v14` adds structural validation, evidence references for verified claims and fired exclusion counters, bounded cited excerpts and model/provider provenance. Cache reuse also validates mandatory policy and current routing.
-- Potential is a separate deterministic review priority; New Life searches the 15-card integrity-checked research archive from 29.09.2026.
+- `checklist-v15` adds structural validation, evidence references for verified claims and fired exclusion counters, bounded cited excerpts, model/provider provenance and off-topic rejection before threshold returns. Cache reuse also validates mandatory policy and current routing.
+- Potential-v2 is a separate deterministic review priority: high-index scored watchlist [0.35, 0.60) and near-watchlist [0.25, 0.35), current checklist only. New Life searches the 15-card integrity-checked research archive from 29.09.2026.
 - Full isolated-DB test suite: 220 passed. Ruff, LivingSet links, diff and dependency consistency checks passed. Installer pip advisories remain a separate maintenance item; runtime packages had no known advisory in the audit.
 - Desktop/mobile screenshots and dependency audit are in `/srv/codex-operator/outbox/1305367840_1790893410/`.
 - Backup and restore verification: `/srv/thin-signals-backups/20261001-2230/database.dump`; 147 runs verified in a disposable restore database, subsequently removed.

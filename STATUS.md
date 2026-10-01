@@ -2,7 +2,7 @@
 
 Updated: **2026-10-01** · Plan revision: **7.6** (parent 7.5) · Original competition deadline: **2026-09-29 23:59 MSK**
 
-7.6 continuation: evidence and provider boundaries are hardened without changing `rules-0.1`, weights, thresholds or P01–P18. `checklist-v14` validates reader structure and rejects verified features/transitions or fired exclusion counters without an actual `[n]` fragment. Mandatory OpenRouter ZDR fields cannot be weakened; returned model and cached response provenance are checked. Three modules share the evidence-first shell: live signals, the separate below-gate potential queue, and search over the sealed 29.09 old-technology archive. Facts/hypotheses/checks/sources and run provenance stay separate. Figma v4 is node `41:178`; transparent logo/favicon are versioned. API/UI have persistent DynamicUser units ready for activation.
+7.6 continuation: evidence and provider boundaries are hardened without changing `rules-0.1`, weights, thresholds or P01–P18. `checklist-v15` validates reader structure and rejects verified features/transitions or fired exclusion counters without an actual `[n]` fragment; off-topic rejection precedes below-watchlist return. Mandatory OpenRouter ZDR fields cannot be weakened; returned model and cached response provenance are checked. Three modules share the evidence-first shell: live signals, a separate potential queue over current scored observations, and search over the sealed 29.09 old-technology archive. Facts/hypotheses/checks/sources and run provenance stay separate. Figma v4 is node `41:178`; transparent logo/favicon are versioned. API/UI have persistent DynamicUser units ready for activation.
 
 The public route is `https://tsignal.aispaces.ru` through the home proxy to VM101. Account hashes and provider/database credentials remain only in host `.secrets/`. GOAL queue ownership remains `project=thin-signals`, `agent=cursor-bk2`; this Codex continuation did not create, claim or take its card.
 
@@ -15,7 +15,7 @@ The public route is `https://tsignal.aispaces.ru` through the home proxy to VM10
 | W3-live | **in_progress** — live search exists; honest scored TOP-15 and durable per-step ledger remain incomplete |
 | W4-ui | **in_progress, tested candidate** — evidence-first shell and Figma complete; independent review and production smoke required before acceptance |
 | Rules | `rules-0.1`, unchanged |
-| Checklist | `checklist-v14`; old persisted rows may report v11 and are shown as drift, not relabelled |
+| Checklist | `checklist-v15`; old persisted rows remain historical and are excluded from the active potential queue |
 | Production baseline before 7.6 | SourceCraft `main` `66581d0`; public UI/API healthy on transient root-run services |
 | Canonical Git | private SourceCraft `shats123/thin-signals`; GitHub mirror required but not configured/verified on VM101 |
 
@@ -24,10 +24,11 @@ The public route is `https://tsignal.aispaces.ru` through the home proxy to VM10
 - Evidence-link and LLM-policy RED/GREEN tests reproduce the defects then pass after the fix.
 - UI view-model tests prove a `watchlist` card is never grouped as a weak signal.
 - Run integrity warns about checklist drift, missing provider and missing independent evidence.
+- Independent review reproduced three potential defects: unreachable high-potential selection, off-topic admission below 0.35, and silent legacy re-ranking. RED/GREEN regressions cover all three. `potential-v2` uses scored watchlist observations in [0.35, 0.60) for high potential, deduplicates top/exclusions, and keeps near-watchlist selection in [0.25, 0.35). Distances explicitly name the 0.35 or 0.60 target; weak-signal labels and rules remain unchanged.
 - Transparent logo and compact favicon remove the baked-in dark rectangle; the supplied source is preserved exactly.
 - Versioned systemd units bind to loopback, use separate dynamic identities, `LoadCredential`, protected filesystem and `Restart=on-failure`.
 - Figma frame `41:178` defines the three-module Deep Space workbench.
-- 220 tests pass against `thin_signals_test_1790887573`; ruff, LivingSet links and diff checks pass.
+- 223 tests pass against `thin_signals_test_1790887573`; ruff, LivingSet links and diff checks pass. The three added regressions first failed on the reviewed candidate and passed after correction.
 - Backup `/srv/thin-signals-backups/20261001-2230/database.dump` was restored into a disposable database; all 147 runs were present. Production data was not modified by the restore check.
 
 ## Open audit findings
