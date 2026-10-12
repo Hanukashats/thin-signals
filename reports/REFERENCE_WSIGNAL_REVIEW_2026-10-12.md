@@ -100,9 +100,9 @@ This branch now implements the first safe subset:
   reuse an incompatible failed child;
 - a public, structured funnel for discovery → unique sources → deduplicated
   events → countersearch → admitted/excluded/unread, with theme failures,
-  deadline skips and cached/executed work distinguished; duplicate observations
-  across themes count once globally and source-backed child exclusions remain
-  visible;
+  deadline skips and cached/executed work distinguished; DOI and URL are joint
+  aliases, so duplicate observations across themes count once despite incomplete
+  DOI metadata or repeated URLs, and source-backed child exclusions remain visible;
 - the safe funnel is shown in the existing explanation view without raw agent
   prompts or chain-of-thought;
 - `checklist-v17` requires positive discovery text and rejects positive claims

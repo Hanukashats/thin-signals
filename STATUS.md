@@ -56,7 +56,7 @@ containers, so live search no longer depends on backend VM101. Receipt:
 - `run-status-0.2` makes total discovery failure `failed`, partial discovery or
   countersearch failure `degraded`, and failed countersearch blocks admission.
   The latest-run endpoint now returns the newest finished run instead of hiding
-  failed/degraded outcomes. The complete suite now passes 276/276 against a fresh
+  failed/degraded outcomes. The complete suite now passes 280/280 against a fresh
   disposable migrated database; production data was not touched.
 - `live-w19` attaches matching countersearch records to each candidate as a
   separate evidence channel. `checklist-v17` now requires at least one positive
@@ -66,9 +66,10 @@ containers, so live search no longer depends on backend VM101. Receipt:
 - `retrieval-0.3` runs connector calls with bounded concurrency and one inherited
   absolute deadline. Results completing after that deadline are discarded;
   changed wide budgets or ordered theme plans cannot reuse a deadline-failed
-  child run. The safe global funnel deduplicates the same DOI/source across
-  themes and retains a source-backed child exclusion exactly once. Per-call
-  timing, cached/executed counts, failures and skips use allowlisted scalar
+  child run. The safe global funnel treats DOI and URL as joint aliases,
+  deduplicates the same source across themes despite incomplete DOI metadata or
+  repeated URLs, and retains a source-backed child exclusion exactly once.
+  Per-call timing, cached/executed counts, failures and skips use allowlisted scalar
   metadata only; raw prompts and hidden reasoning are not exposed.
 - PostgreSQL persistence now serializes one live query with a transaction-scoped
   advisory lock. Concurrent identical saves return one canonical run instead of

@@ -1,6 +1,7 @@
 """A mission sentence fans out. A named object does not. Weights stay put."""
 from __future__ import annotations
 
+import pytest
 from sqlalchemy import delete, select
 
 from ts.db.models import Candidate, Decision, Run
@@ -76,6 +77,37 @@ def test_themes_take_turns_and_a_read_wide_shift_goes_first():
     assert merged["overflow"][0]["technology"] == "beta two"
     assert merged["overflow"][0]["policy_reason"] == "theme_quota"
     assert [note["taken"] for note in merged["themes"]] == [2, 1]
+
+
+def test_theme_merge_uses_doi_and_url_as_joint_aliases_without_false_merges():
+    alpha = {"id": "a", "title": "Alpha", "query": "alpha cell"}
+    beta = {"id": "b", "title": "Beta", "query": "beta blade"}
+    cards_a = [{
+        "technology": "same event with DOI",
+        "sources": [{"url": "https://source.test/shared", "doi": "10.1000/shared"}],
+    }]
+    cards_b = [
+        {
+            "technology": "same event without DOI",
+            "sources": [{"url": "https://source.test/shared"}],
+        },
+        {
+            "technology": "same DOI at a mirror",
+            "sources": [{"url": "https://mirror.test/shared", "doi": "10.1000/shared"}],
+        },
+        {
+            "technology": "unrelated event",
+            "sources": [{"url": "https://source.test/other", "doi": "10.1000/other"}],
+        },
+    ]
+
+    merged = merge_theme_reports([(alpha, cards_a), (beta, cards_b)], limit=10)
+
+    assert [card["technology"] for card in merged["top"]] == [
+        "same event with DOI",
+        "unrelated event",
+    ]
+    assert merged["overflow"] == []
 
 
 def test_checklist_route_keeps_model_and_provider_from_the_same_card():
@@ -482,7 +514,18 @@ def test_plan_revision_does_not_reuse_a_failed_theme_run(monkeypatch):
     assert connector.calls > calls_after_first
 
 
-def test_wide_funnel_deduplicates_theme_events_and_keeps_child_exclusion(monkeypatch):
+@pytest.mark.parametrize(
+    ("doi_by_theme", "duplicate_beta", "expected_discovery_items"),
+    [
+        ({"alpha": "10.1000/same", "beta": "10.1000/same"}, False, 2),
+        ({"alpha": "10.1000/same", "beta": None}, False, 2),
+        ({"alpha": None, "beta": "10.1000/same"}, False, 2),
+        ({"alpha": None, "beta": None}, True, 3),
+    ],
+)
+def test_wide_funnel_deduplicates_theme_events_and_keeps_child_exclusion(
+    monkeypatch, doi_by_theme, duplicate_beta, expected_discovery_items,
+):
     from contextlib import nullcontext
     from pathlib import Path
     from time import monotonic
@@ -514,14 +557,16 @@ def test_wide_funnel_deduplicates_theme_events_and_keeps_child_exclusion(monkeyp
         def search(self, query: str, *, limit: int = 1):
             if "mass adoption" in query:
                 return []
-            return [Hit(
+            theme = "alpha" if "alpha" in query else "beta"
+            hit = Hit(
                 self.name,
                 "https://untrusted.example/same",
                 "Alpha beta battery study",
                 "Battery experiment reported.",
                 "web",
-                doi="10.1000/same",
-            )]
+                doi=doi_by_theme[theme],
+            )
+            return [hit, hit] if duplicate_beta and theme == "beta" else [hit]
 
     saved = []
     monkeypatch.setattr(live, "load_report", lambda _session, _key: None)
@@ -546,7 +591,7 @@ def test_wide_funnel_deduplicates_theme_events_and_keeps_child_exclusion(monkeyp
     )
 
     funnel = out["retrieval"]["funnel"]
-    assert funnel["discovery_items"] == 2
+    assert funnel["discovery_items"] == expected_discovery_items
     assert funnel["unique_sources"] == 1
     assert funnel["deduplicated_events"] == 1
     assert funnel["excluded"] == 1
@@ -555,7 +600,11 @@ def test_wide_funnel_deduplicates_theme_events_and_keeps_child_exclusion(monkeyp
     assert len(out["exclusion_registry"]) == 1
     exclusion = out["exclusion_registry"][0]
     assert exclusion["reason_codes"] == ["M04"]
-    assert exclusion["sources"][0]["doi"] == "10.1000/same"
+    if any(doi_by_theme.values()):
+        assert any(
+            source.get("doi") == "10.1000/same"
+            for source in exclusion["sources"]
+        )
 
 
 class _DatedEcho(_Echo):

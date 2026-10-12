@@ -11,7 +11,14 @@ import httpx
 
 from ts.checklist import CHECKLIST_VERSION, annotate_checklist
 from ts.desk import near_miss_cards
-from ts.fanout import _identity, is_wide, load_theme_plan, merge_theme_reports, theme_plan_fingerprint
+from ts.fanout import (
+    _identity_groups,
+    _identity_representative,
+    is_wide,
+    load_theme_plan,
+    merge_theme_reports,
+    theme_plan_fingerprint,
+)
 from ts.harness import (
     RUN_CONTRACT_VERSION,
     TOP_N,
@@ -287,9 +294,9 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
     theme_steps = []
     discovered_sources = []
     discovered_source_urls = set()
-    event_identities: set[tuple] = set()
+    event_cards: list[dict] = []
     theme_event_observations = 0
-    child_exclusions: dict[tuple, dict] = {}
+    child_exclusion_cards: list[dict] = []
     child_exclusion_observations = 0
     skipped_themes = []
     for theme in plan["themes"]:
@@ -312,8 +319,7 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
             "status": theme_status,
             "repeated": bool(report.get("repeated")),
         })
-        event_cards = _event_cards(report)
-        event_identities.update(_identity(card) for card in event_cards)
+        event_cards.extend(_event_cards(report))
         try:
             theme_event_observations += max(0, int(report.get("events") or 0))
         except (TypeError, ValueError):
@@ -323,7 +329,7 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
                 continue
             child_exclusion_observations += 1
             tagged = _tag_theme_card(child_card, theme)
-            child_exclusions.setdefault(_identity(tagged), tagged)
+            child_exclusion_cards.append(tagged)
         retrieval = report.get("retrieval") if isinstance(report.get("retrieval"), dict) else {}
         for step in retrieval.get("connectors") or []:
             if isinstance(step, dict):
@@ -358,16 +364,24 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
     checklist_model, checklist_provider = _checklist_route(checked)
     registry = list(checked["excluded"]) + list(checked["overflow"])
     unread = list(checked.get("unread") or [])
-    represented = {
-        _identity(item)
-        for item in [*top, *registry, *unread]
-        if isinstance(item, dict)
-    }
-    for identity, child_card in child_exclusions.items():
-        if identity in represented:
+    event_groups = _identity_groups(event_cards)
+    child_exclusion_groups = _identity_groups(child_exclusion_cards)
+    unique_child_exclusions = [
+        _identity_representative(members)
+        for _identity, members in child_exclusion_groups
+    ]
+    represented_cards = [
+        item for item in [*top, *registry, *unread] if isinstance(item, dict)
+    ]
+    represented_ids = {id(item) for item in represented_cards}
+    child_ids = {id(item) for item in unique_child_exclusions}
+    for _identity_key, members in _identity_groups([
+        *represented_cards, *unique_child_exclusions,
+    ]):
+        if any(id(item) in represented_ids for item in members):
             continue
+        child_card = next(item for item in members if id(item) in child_ids)
         registry.append(child_card)
-        represented.add(identity)
     card = dict(top[0]) if top else _empty_card(
         rules["version"],
         registry,
@@ -402,7 +416,7 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
         sources=sources,
         events=[
             {"key": hashlib.sha256(repr(identity).encode()).hexdigest()[:16]}
-            for identity in sorted(event_identities, key=repr)
+            for identity, _members in sorted(event_groups, key=lambda group: repr(group[0]))
         ],
         card=card,
         top=top,
@@ -423,10 +437,10 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
             "checklist": checked["stats"],
             "deadline_skipped": skipped_themes,
             "theme_runs": theme_runs,
-            "discovered_events": len(event_identities),
+            "discovered_events": len(event_groups),
             "theme_event_observations": theme_event_observations,
             "child_exclusion_observations": child_exclusion_observations,
-            "unique_child_exclusions": len(child_exclusions),
+            "unique_child_exclusions": len(child_exclusion_groups),
         },
     )
     with factory() as session:

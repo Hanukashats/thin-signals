@@ -584,8 +584,9 @@ requirements:
       deadline; ordering is deterministic; per-stage latency, failures, safe
       funnel counters and a retrieval fingerprint are persisted; changed limits,
       budgets or ordered theme plans cannot reuse an incompatible child run;
-      the same DOI/source found by several themes counts once globally and a
-      source-backed child exclusion remains visible exactly once
+      the same DOI/source found by several themes counts once globally despite
+      incomplete DOI metadata or a repeated URL, and a source-backed child
+      exclusion remains visible exactly once
     evidence:
       - ts/harness.py
       - ts/persist.py

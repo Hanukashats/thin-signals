@@ -43,17 +43,105 @@ def is_wide(query: str, plan: dict) -> bool:
 
 
 def _identity(card: dict) -> tuple:
-    dois = tuple(sorted({
-        str(source.get("doi") or "").lower().removeprefix("https://doi.org/")
-        for source in card.get("sources") or []
-        if isinstance(source, dict) and source.get("doi")
-    }))
+    aliases = _identity_aliases(card)
+    dois = tuple(value for kind, value in sorted(aliases) if kind == "doi")
     if dois:
         return ("doi", *dois)
-    urls = tuple(sorted(source.get("url") or "" for source in card.get("sources") or [] if source.get("url")))
+    urls = tuple(value for kind, value in sorted(aliases) if kind == "url")
     if urls:
         return ("url", *urls)
-    return ("title", str(card.get("technology") or "").lower())
+    return ("title", next(value for kind, value in aliases if kind == "title"))
+
+
+def _normalise_doi(value: object) -> str:
+    doi = str(value or "").strip().casefold()
+    for prefix in ("https://doi.org/", "http://doi.org/", "http://dx.doi.org/", "doi:"):
+        if doi.startswith(prefix):
+            return doi.removeprefix(prefix).strip()
+    return doi
+
+
+def _identity_aliases(card: dict) -> frozenset[tuple[str, str]]:
+    """Return every stable source alias; repeats inside one card count once."""
+    aliases: set[tuple[str, str]] = set()
+    for source in card.get("sources") or []:
+        if not isinstance(source, dict):
+            continue
+        doi = _normalise_doi(source.get("doi"))
+        if doi:
+            aliases.add(("doi", doi))
+        url = str(source.get("url") or "").strip()
+        if url:
+            aliases.add(("url", url))
+    if aliases:
+        return frozenset(aliases)
+    title = " ".join(str(card.get("technology") or "").casefold().split())
+    return frozenset({("title", title)})
+
+
+def _identity_groups(cards: list[dict]) -> list[tuple[tuple, list[dict]]]:
+    """Partition cards by intersecting DOI/URL aliases, including transitive bridges.
+
+    A DOI-bearing record and a DOI-less record for the same URL are one event.
+    The canonical group key contains the union of aliases and is input-order invariant.
+    """
+    if not cards:
+        return []
+    parents = list(range(len(cards)))
+
+    def find(index: int) -> int:
+        while parents[index] != index:
+            parents[index] = parents[parents[index]]
+            index = parents[index]
+        return index
+
+    def union(left: int, right: int) -> None:
+        left_root = find(left)
+        right_root = find(right)
+        if left_root == right_root:
+            return
+        parents[max(left_root, right_root)] = min(left_root, right_root)
+
+    aliases_by_index = [_identity_aliases(card) for card in cards]
+    owner: dict[tuple[str, str], int] = {}
+    for index, aliases in enumerate(aliases_by_index):
+        for alias in aliases:
+            previous = owner.get(alias)
+            if previous is None:
+                owner[alias] = index
+            else:
+                union(index, previous)
+
+    members_by_root: dict[int, list[int]] = {}
+    for index in range(len(cards)):
+        members_by_root.setdefault(find(index), []).append(index)
+    groups = []
+    for indices in sorted(members_by_root.values(), key=lambda values: values[0]):
+        aliases = sorted({
+            alias
+            for index in indices
+            for alias in aliases_by_index[index]
+        })
+        groups.append((("aliases", *aliases), [cards[index] for index in indices]))
+    return groups
+
+
+def _identity_map(cards: list[dict]) -> dict[int, tuple]:
+    return {
+        id(card): identity
+        for identity, members in _identity_groups(cards)
+        for card in members
+    }
+
+
+def _identity_representative(cards: list[dict]) -> dict:
+    """Keep the richest member while retaining first-seen order for exact ties."""
+    return max(cards, key=lambda card: (
+        sum(kind == "doi" for kind, _value in _identity_aliases(card)),
+        len(_identity_aliases(card)),
+        len([source for source in card.get("sources") or [] if isinstance(source, dict)]),
+        len(card.get("evidence_fragments") or []),
+    ))
 
 
 def theme_plan_fingerprint(plan: dict) -> str:
@@ -109,6 +197,7 @@ def merge_theme_reports(parts: list[tuple[dict, list[dict]]], *, limit: int = TO
             "admitted": len(tagged),
             "taken": 0,
         })
+    identities = _identity_map([card for queue in queues for card in queue])
     picked: list[dict] = []
     overflow: list[dict] = []
     seen: set[tuple] = set()
@@ -118,7 +207,7 @@ def merge_theme_reports(parts: list[tuple[dict, list[dict]]], *, limit: int = TO
                 break
             while queue:
                 card = queue.pop(0)
-                ident = _identity(card)
+                ident = identities[id(card)]
                 if ident in seen:
                     continue
                 seen.add(ident)
@@ -127,7 +216,7 @@ def merge_theme_reports(parts: list[tuple[dict, list[dict]]], *, limit: int = TO
                 break
     for queue in queues:
         for card in queue:
-            ident = _identity(card)
+            ident = identities[id(card)]
             if ident in seen:
                 continue
             seen.add(ident)
