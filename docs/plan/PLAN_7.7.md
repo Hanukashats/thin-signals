@@ -20,7 +20,9 @@ cited sources, a Thin Signals query produces candidates, and API/UI/public
 health remain green before and after a controlled service restart.
 
 State: **implemented and self-tested**. Evidence is in
-`reports/VM232_RESEARCH_2026-10-12.md`; independent acceptance remains open.
+`reports/VM232_RESEARCH_2026-10-12.md`. The one-module SearXNG patch upgrade is
+recorded in `reports/SEARXNG_UPGRADE_2026-10-12.md`; independent acceptance
+remains open.
 
 ## Wave B — evidence-gated debate (operator gate)
 
@@ -37,7 +39,8 @@ verification, not the implementing role, decides acceptance.
 
 ## Release and provenance
 
-SourceCraft remains canonical. GitHub mirroring is blocked until the exact
-repository and scoped authentication are confirmed. Real commit and test times
-are preserved; an analytical `as_of` date may be supplied to a search, but is
-never represented as a fake implementation timestamp.
+SourceCraft remains canonical. The public mirror target is
+`Hanukashats/thin-signals`; publication is blocked only on completion of the
+interactive GitHub authorization. Real commit and test times are preserved; an
+analytical `as_of` date may be supplied to a search, but is never represented
+as a fake implementation timestamp.

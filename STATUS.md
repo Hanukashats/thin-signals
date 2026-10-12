@@ -43,18 +43,20 @@ containers, so live search no longer depends on backend VM101. Receipt:
 | W4-ui | **in_progress, deployed shell and verified typography** — three modules live; real-account authenticated production smoke remains unobserved |
 | Rules | `rules-0.1`, unchanged |
 | Checklist | `checklist-v15`; old persisted rows remain historical and are excluded from the active potential queue |
-| Production delivery | VM232 public; PostgreSQL/API/UI/sing-box/research services active+enabled; controlled container restart and full VM reboot recovered automatically |
-| Canonical Git | private SourceCraft `shats123/thin-signals`; GitHub mirror required but exact destination/auth are not configured |
+| Production delivery | VM232 public; PostgreSQL/API/UI/sing-box/research services active+enabled; SearXNG patch upgrade and controlled container restart recovered automatically |
+| Canonical Git | private SourceCraft `shats123/thin-signals`; public GitHub target is `Hanukashats/thin-signals`, authorization/publication pending |
 
 ## Verified in this increment
 
 - The historical VM231 recovery checkpoint preserved four PVE snapshots, a
   checksum-recorded PostgreSQL 16 backup and 148/148 restored runs; VM231 is no
   longer present in the live inventory and that receipt is retained as lineage.
-- VM232 owns pinned SearXNG `2026.9.18-12df7aed6` and GPT Researcher v3.7.0
-  built from commit `0957c301`; both bind only to loopback and survive a full
-  VM reboot. The public site recovered automatically after the normal boot
-  window and returns HTTP 200.
+- VM232 owns pinned SearXNG `2026.10.11-ad46ebd7d` at exact amd64 digest
+  `sha256:00ad29bb7d72d896ac3b3ff8b252d9ad9939da3e014828934363c61dba9b7e09`
+  and GPT Researcher v3.7.0 built from commit `0957c301`. The SearXNG upgrade
+  passed an isolated canary, Trivy HIGH/CRITICAL gate, direct JSON/connector
+  tests and controlled restart; GPT Researcher was not recreated. Both remain
+  loopback-only, and API/UI/public health stayed HTTP 200.
 - GPT Researcher live canary completed in 80.76 s, discovered 14 unique source
   URLs, wrote a 6,316-character report and reported $0.05347 cost. Its output
   remains advisory.
@@ -95,6 +97,14 @@ containers, so live search no longer depends on backend VM101. Receipt:
    `fonttools==4.60.0`. They are not imported by the API/UI runtime; update them
    in a separately reviewed presentation rebuild rather than silently changing
    the sealed delivery package.
+7. **Evidence provenance:** the live harness does not fetch/snapshot source
+   bodies, and a checklist `verified` status may therefore cite only a search
+   or API snippet. Version the provenance rule and evaluate saved cases before
+   changing labels.
+8. **Search budget:** up to 34 connector calls run sequentially with 40-second
+   request timeouts and no global deadline. Add bounded concurrency, timing
+   evidence and an overall budget without weakening recall. Full review:
+   `reports/LOGIC_AUDIT_2026-10-12.md`.
 
 ## Requirements snapshot
 
@@ -120,11 +130,12 @@ containers, so live search no longer depends on backend VM101. Receipt:
 
 ## Next trigger
 
-1. Independently review and merge
-   `chore/vm232-local-research-1791810532`, then fast-forward VM232 and repeat
-   the documented health/reboot gate.
-2. Provide the exact GitHub repository URL and repository-scoped credential;
-   compare the pushed SHA before closing `TZ-15`.
+1. Independently review and merge `chore/searxng-2026-10-11-audit`; VM232 is
+   already running its verified candidate and the rollback snapshot remains
+   available.
+2. Complete GitHub authorization, create public `Hanukashats/thin-signals`,
+   publish exact historical commit `0c1fdd3` as `main`, and compare the remote
+   SHA before closing `TZ-15`.
 3. Issue a separate authenticated command before implementing or activating
    ADR-011 adversarial review.
 4. Fill the factual personal team fields in slides 2–4 before external submission;

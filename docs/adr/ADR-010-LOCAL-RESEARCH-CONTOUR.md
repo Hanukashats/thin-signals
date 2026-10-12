@@ -33,12 +33,23 @@ published through Caddy.
 
 | Component | Pin | License | Native interface |
 |---|---|---|---|
-| SearXNG | image version `2026.9.18-12df7aed6`, amd64 digest `sha256:31e3ca5e206ef71b148773e196cc575dc9c866d4f5047c8a7038a45c38bd4578` | AGPL-3.0-or-later | `GET /search?q=...&format=json` |
+| SearXNG | image version `2026.10.11-ad46ebd7d`, amd64 digest `sha256:00ad29bb7d72d896ac3b3ff8b252d9ad9939da3e014828934363c61dba9b7e09` | AGPL-3.0-or-later | `GET /search?q=...&format=json` |
 | GPT Researcher | tag `v3.7.0`, commit `0957c301ed06c2a5857b834358c7227c739041d4` | Apache-2.0 repository license | FastAPI HTTP + `/ws` |
 
 The mutable Docker Hub GPT Researcher image is rejected because inspection
 showed package 0.12.8 built in March 2025. The exact release source is built
 locally and the resulting image ID is recorded in deployment evidence.
+
+### SearXNG patch amendment — 2026-10-12
+
+The original deployed pin was `2026.9.18-12df7aed6` / amd64 digest
+`sha256:31e3ca5e206ef71b148773e196cc575dc9c866d4f5047c8a7038a45c38bd4578`.
+It was replaced one module at a time by the current pin above. The candidate is
+59 upstream commits ahead and zero behind, keeps the same license and JSON
+interface, and passed image scanning plus an isolated same-config canary.
+GPT Researcher, product code, prompts, rules, persistence and public routing
+were deliberately unchanged. Evidence and rollback are recorded in
+`reports/SEARXNG_UPGRADE_2026-10-12.md`.
 
 ## Security and data boundary
 

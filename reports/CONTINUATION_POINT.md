@@ -1,7 +1,37 @@
-# CONTINUATION POINT — SearXNG upgrade audit, 2026-10-12
+# CONTINUATION POINT — SearXNG upgrade deployed, 2026-10-12
 
-This checkpoint was recorded before changing the SearXNG pin. It supersedes
-the operational state below while retaining that recovery evidence as history.
+## Verified current state
+
+- VM232 is running the exact audited amd64 image
+  `searxng/searxng:2026.10.11-ad46ebd7d@sha256:00ad29bb7d72d896ac3b3ff8b252d9ad9939da3e014828934363c61dba9b7e09`.
+- Only SearXNG was recreated. GPT Researcher's container stayed unchanged and
+  healthy; API, UI and public health remained HTTP 200.
+- Direct JSON, the product connector and a controlled SearXNG-only restart
+  passed. All 234 tests passed against a disposable migrated database; ruff,
+  Compose validation and LivingSet links passed.
+- Home-PVE rollback snapshot `pre-searxng-20261012` and the previous SearXNG
+  image are retained. PostgreSQL and research data were not changed.
+- Runtime configuration is SourceCraft commit `16d86974834f`; the final
+  evidence-only follow-up is the commit containing this checkpoint and
+  `reports/SEARXNG_UPGRADE_2026-10-12.md`.
+- The logic audit is recorded in `reports/LOGIC_AUDIT_2026-10-12.md`. It changes
+  no scoring, prompts, API or persistence contract. ADR-011 remains inactive.
+
+## Exact continuation
+
+1. Independently review/accept the frozen upgrade branch and merge it through
+   the normal SourceCraft workflow.
+2. Complete GitHub device authorization; create public
+   `Hanukashats/thin-signals` and push exact historical commit `0c1fdd3` as
+   `main` without rewriting history.
+3. Open separate versioned work for evidence provenance, total-connector
+   failure semantics and bounded concurrent search. Do not fold those behavior
+   changes into this image upgrade.
+
+# Historical checkpoint — SearXNG pre-promotion audit, 2026-10-12
+
+This checkpoint was recorded before changing the SearXNG pin. It is retained
+as promotion evidence and no longer describes the current runtime pin.
 
 ## Verified pre-change state
 

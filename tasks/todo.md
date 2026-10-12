@@ -10,5 +10,6 @@
 - [x] Prove controlled restart and VM reboot recovery; preserve rollback path.
 - [x] Run full repository quality gates and review the diff.
 - [x] Push the reviewed branch to SourceCraft.
-- [ ] Mirror to GitHub after the exact destination and credential are confirmed.
+- [ ] Complete GitHub authorization and mirror exact historical `0c1fdd3` to
+  public `Hanukashats/thin-signals` without rewriting history.
 - [ ] Implement adversarial review after the operator's separate command.
