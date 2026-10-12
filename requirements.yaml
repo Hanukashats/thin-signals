@@ -250,11 +250,14 @@ requirements:
     title: Public repo (GitHub mirror) with README Docker + dependencies
     priority: P1
     owner: release
-    state: planned
+    state: tested
     wave: W5-release
     forks: [hosting.sourcecraft]
     acceptance: GitHub mirror without secrets; README deploy commands verified
-    evidence: []
+    evidence:
+      - https://github.com/Hanukashats/thin-signals
+      - "Public default branch main verified at 0c1fdd37cd95da5013ef27237b3657637601cf32; original 45-commit history preserved without force-push or date rewrite"
+      - reports/GITHUB_MIRROR_2026-10-12.md
 
   - id: TZ-16
     title: Intermediate vs final submission distinction

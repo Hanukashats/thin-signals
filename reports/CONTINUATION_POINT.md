@@ -16,15 +16,15 @@
   `reports/SEARXNG_UPGRADE_2026-10-12.md`.
 - The logic audit is recorded in `reports/LOGIC_AUDIT_2026-10-12.md`. It changes
   no scoring, prompts, API or persistence contract. ADR-011 remains inactive.
+- Public GitHub `Hanukashats/thin-signals` has default branch `main` at exact
+  historical delivery commit `0c1fdd37cd95`; visibility and SHA were verified
+  through both the GitHub API and anonymous Git transport.
 
 ## Exact continuation
 
 1. Independently review/accept the frozen upgrade branch and merge it through
    the normal SourceCraft workflow.
-2. Complete GitHub device authorization; create public
-   `Hanukashats/thin-signals` and push exact historical commit `0c1fdd3` as
-   `main` without rewriting history.
-3. Open separate versioned work for evidence provenance, total-connector
+2. Open separate versioned work for evidence provenance, total-connector
    failure semantics and bounded concurrent search. Do not fold those behavior
    changes into this image upgrade.
 

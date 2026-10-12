@@ -39,8 +39,9 @@ verification, not the implementing role, decides acceptance.
 
 ## Release and provenance
 
-SourceCraft remains canonical. The public mirror target is
-`Hanukashats/thin-signals`; publication is blocked only on completion of the
-interactive GitHub authorization. Real commit and test times are preserved; an
+SourceCraft remains canonical. Public delivery snapshot
+`https://github.com/Hanukashats/thin-signals` has default branch `main` at exact
+historical commit `0c1fdd37cd95`; the original reachable history and timestamps
+were preserved without force-push. Real commit and test times are preserved; an
 analytical `as_of` date may be supplied to a search, but is never represented
 as a fake implementation timestamp.

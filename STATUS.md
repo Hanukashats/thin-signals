@@ -44,7 +44,7 @@ containers, so live search no longer depends on backend VM101. Receipt:
 | Rules | `rules-0.1`, unchanged |
 | Checklist | `checklist-v15`; old persisted rows remain historical and are excluded from the active potential queue |
 | Production delivery | VM232 public; PostgreSQL/API/UI/sing-box/research services active+enabled; SearXNG patch upgrade and controlled container restart recovered automatically |
-| Canonical Git | private SourceCraft `shats123/thin-signals`; public GitHub target is `Hanukashats/thin-signals`, authorization/publication pending |
+| Canonical Git | private SourceCraft `shats123/thin-signals`; public GitHub delivery snapshot `Hanukashats/thin-signals`, `main=0c1fdd3` verified |
 
 ## Verified in this increment
 
@@ -82,26 +82,27 @@ containers, so live search no longer depends on backend VM101. Receipt:
 - 223 tests pass against `thin_signals_test_1790887573`; ruff, LivingSet links and diff checks pass. The three added regressions first failed on the reviewed candidate and passed after correction.
 - Backup `/srv/thin-signals-backups/20261001-2230/database.dump` was restored into a disposable database; all 147 runs were present. Production data was not modified by the restore check.
 - Current private delivery backup restored all 148/148 runs. All 223 product tests and 11 presentation-verifier regressions pass for the replacement package. The prior rollout restarted only UI; the date-only replacement requires no service restart. Public/local health and API readiness pass; the production public login has no browser errors or 390 px horizontal overflow.
+- Public GitHub `Hanukashats/thin-signals` is verified with default branch
+  `main` at exact historical commit `0c1fdd37cd95`; no force-push or timestamp
+  rewrite was used. The 45-commit reachable history passed a bounded secret
+  pattern scan before publication, and the pre-push gate passed all 234 tests.
 
 ## Open audit findings
 
 1. **Rules change required:** score can be non-monotonic when adding a positive secondary feature because primary reassignment changes weights. Do not hotfix; create a new rules version, eval and independent acceptance.
 2. **Run contract:** all search connectors failing can still end as `succeeded`; define a versioned degraded/failed status contract before changing persisted/API semantics.
 3. **Persistence:** canonical step/evidence ledgers are not fully populated for existing live runs; JSON payloads are not a substitute for the intended durable ledger.
-4. **Release:** the exact GitHub mirror and repository-scoped authentication
-   are absent. SourceCraft remains canonical; do not claim dual push until the
-   exact destination and dedicated credential are verified.
-5. **Research scope:** New Life is a reproducible archive search, not new live web research. Its 15 hypotheses have no completed commercial/legal diligence.
-6. **Build-only dependencies:** the 2026-10-12 Trivy scan reports 13 HIGH and
+4. **Research scope:** New Life is a reproducible archive search, not new live web research. Its 15 hypotheses have no completed commercial/legal diligence.
+5. **Build-only dependencies:** the 2026-10-12 Trivy scan reports 13 HIGH and
    6 MEDIUM findings in presentation-only pins `Pillow==11.3.0` and
    `fonttools==4.60.0`. They are not imported by the API/UI runtime; update them
    in a separately reviewed presentation rebuild rather than silently changing
    the sealed delivery package.
-7. **Evidence provenance:** the live harness does not fetch/snapshot source
+6. **Evidence provenance:** the live harness does not fetch/snapshot source
    bodies, and a checklist `verified` status may therefore cite only a search
    or API snippet. Version the provenance rule and evaluate saved cases before
    changing labels.
-8. **Search budget:** up to 34 connector calls run sequentially with 40-second
+7. **Search budget:** up to 34 connector calls run sequentially with 40-second
    request timeouts and no global deadline. Add bounded concurrency, timing
    evidence and an overall budget without weakening recall. Full review:
    `reports/LOGIC_AUDIT_2026-10-12.md`.
@@ -112,7 +113,7 @@ containers, so live search no longer depends on backend VM101. Receipt:
 - implemented: `LP-01…07`, `DN-01`, `RM-01`, `TZ-03`, `TZ-07`, `SC-06`, `SC-07`, `RS-01`
 - proposed/operator-gated: `AR-01`
 - implemented: `TZ-14` (15-slide editable PPTX/PDF and complete render/visual checks; personal team fields still require factual input)
-- release blocker: `TZ-15` (GitHub mirror not verified)
+- tested: `TZ-15` (public GitHub default branch resolves to exact delivery SHA)
 - removed to lineage: `SC-01`, `SC-04`, `SC-05`, `SC-08`, `SC-10`, `TS-AG-01…16`, `TS-AG-18`
 
 ## Hosts
@@ -133,12 +134,9 @@ containers, so live search no longer depends on backend VM101. Receipt:
 1. Independently review and merge `chore/searxng-2026-10-11-audit`; VM232 is
    already running its verified candidate and the rollback snapshot remains
    available.
-2. Complete GitHub authorization, create public `Hanukashats/thin-signals`,
-   publish exact historical commit `0c1fdd3` as `main`, and compare the remote
-   SHA before closing `TZ-15`.
-3. Issue a separate authenticated command before implementing or activating
+2. Issue a separate authenticated command before implementing or activating
    ADR-011 adversarial review.
-4. Fill the factual personal team fields in slides 2–4 before external submission;
+3. Fill the factual personal team fields in slides 2–4 before external submission;
    observe a real-account authenticated production smoke when an authorized
    existing session is available. No accounts were read or changed for this release.
-5. Open separate versioned work for connector-total-failure status, durable ledger population and score monotonicity; none may be hidden inside this recovery increment.
+4. Open separate versioned work for connector-total-failure status, durable ledger population and score monotonicity; none may be hidden inside this recovery increment.
