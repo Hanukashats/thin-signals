@@ -48,6 +48,10 @@ containers, so live search no longer depends on backend VM101. Receipt:
 
 ## Verified in this increment
 
+- Source trust is now hostname/type based: DOI-shaped text in an unknown URL
+  path cannot promote an untrusted web page to `primary`. The regression was
+  RED before the fix and the focused trust suite passes after it;
+  `source-trust-0.2` records the corrected contract.
 - The historical VM231 recovery checkpoint preserved four PVE snapshots, a
   checksum-recorded PostgreSQL 16 backup and 148/148 restored runs; VM231 is no
   longer present in the live inventory and that receipt is retained as lineage.

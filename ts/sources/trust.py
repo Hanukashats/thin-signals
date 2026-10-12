@@ -39,7 +39,6 @@ def classify(url: str, source_type: str, table: dict | None = None) -> str:
     """primary / professional / indicator. Unknown host follows the yaml rules block."""
     table = table or load_trust()
     host = _host(url)
-    path = (urlparse(url).path or "").lower()
     levels = table["levels"]
     # A named retelling site stays a retelling even when the path contains a DOI.
     if _host_in(host, _domains(levels.get("indicator", {}))):
@@ -50,9 +49,6 @@ def classify(url: str, source_type: str, table: dict | None = None) -> str:
             if matched == "github.com" and source_type != "repository":
                 return "indicator"
             return level
-    # A publisher page we have not listed yet is still the article when the DOI is in the path.
-    if "/doi/10." in path or "/doi/abs/" in path:
-        return "primary"
     if source_type in PROFESSIONAL_TYPES:
         return "professional"
     return "indicator"

@@ -173,6 +173,7 @@ requirements:
       - ts/harness.py _sources
       - ts/sources/trust.py
       - ts/tests/test_harness.py::test_unknown_date_is_explicit
+      - "source-trust-0.2: unknown-host DOI-shaped paths remain indicator; ts/tests/test_harness.py::test_trust_levels"
 
   - id: TZ-08
     title: RU summary for foreign sources with generation mark

@@ -1,5 +1,5 @@
 # Source trust levels (METHODOLOGY §7, TZ п.5). Used by connectors (W3) to set Document.trust and by M04.
-version: source-trust-0.1
+version: source-trust-0.2
 levels:
   primary:
     weight: 1.0

@@ -81,7 +81,7 @@ def test_trust_levels():
     assert classify("https://www.mdpi.com/2072-666X/17/8/931", "web") == "primary"
     assert classify("https://www.researchgate.net/publication/1", "web") == "indicator"
     assert classify("https://passive-components.eu/hzo", "web") == "indicator"
-    assert classify("https://unknown-journal.example/doi/10.1000/abc", "web") == "primary"
+    assert classify("https://unknown-journal.example/doi/10.1000/abc", "web") == "indicator"
 
 
 def test_connectors_parse_fixtures():
