@@ -1,0 +1,109 @@
+name: thin-signals-research
+
+services:
+  searxng:
+    image: searxng/searxng@sha256:31e3ca5e206ef71b148773e196cc575dc9c866d4f5047c8a7038a45c38bd4578
+    restart: unless-stopped
+    env_file:
+      - ${SEARX_ENV_FILE:-/etc/thin-signals-research/searxng.env}
+    environment:
+      SEARXNG_BASE_URL: http://127.0.0.1:28088/
+      FORCE_OWNERSHIP: "false"
+    ports:
+      - "127.0.0.1:28088:8080"
+    volumes:
+      - ./searxng:/etc/searxng:ro
+      - /srv/thin-signals-research/searxng-cache:/var/cache/searxng
+    cap_drop: [ALL]
+    cap_add: [CHOWN, SETGID, SETUID, DAC_OVERRIDE]
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 1g
+    cpus: 1.0
+    pids_limit: 256
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  gpt-researcher:
+    image: thin-signals/gpt-researcher:3.7.0-0957c301
+    pull_policy: never
+    restart: unless-stopped
+    depends_on:
+      searxng:
+        condition: service_healthy
+    environment:
+      RETRIEVER: searx
+      SEARX_URL: http://searxng:8080
+      FAST_LLM: openrouter:qwen/qwen3.6-35b-a3b
+      SMART_LLM: openrouter:qwen/qwen3.6-35b-a3b
+      STRATEGIC_LLM: openrouter:qwen/qwen3.6-35b-a3b
+      OPENROUTER_LIMIT_RPS: "1"
+      LLM_KWARGS: '{"extra_body":{"provider":{"zdr":true,"data_collection":"deny"}}}'
+      CONTEXT_FILTER: keyword
+      MAX_SEARCH_RESULTS_PER_QUERY: "5"
+      MAX_ITERATIONS: "2"
+      MAX_SUBTOPICS: "2"
+      MAX_SCRAPER_WORKERS: "6"
+      FAST_TOKEN_LIMIT: "4000"
+      SMART_TOKEN_LIMIT: "6000"
+      STRATEGIC_TOKEN_LIMIT: "4000"
+      TOTAL_WORDS: "900"
+      LANGUAGE: russian
+      REPORT_SOURCE: web
+      SCRAPER: bs
+      CURATE_SOURCES: "false"
+      IMAGE_GENERATION_ENABLED: "false"
+      CORS_ALLOW_ORIGINS: http://127.0.0.1:28000,http://localhost:28000
+      REPORT_STORE_PATH: /usr/src/app/data/reports.json
+      LOGGING_LEVEL: INFO
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        export OPENROUTER_API_KEY="$$(cat /run/secrets/openrouter_key)"
+        exec uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1
+    secrets: [openrouter_key]
+    ports:
+      - "127.0.0.1:28000:8000"
+    volumes:
+      - /srv/thin-signals-research/data:/usr/src/app/data
+      - /srv/thin-signals-research/my-docs:/usr/src/app/my-docs
+      - /srv/thin-signals-research/outputs:/usr/src/app/outputs
+      - /srv/thin-signals-research/logs:/usr/src/app/logs
+    tmpfs:
+      - /tmp:size=536870912,mode=1777
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 4g
+    cpus: 2.0
+    pids_limit: 512
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/', timeout=5).read(1)"
+      interval: 20s
+      timeout: 8s
+      retries: 12
+      start_period: 45s
+    logging:
+      driver: json-file
+      options:
+        max-size: 20m
+        max-file: "3"
+
+secrets:
+  openrouter_key:
+    file: ${OPENROUTER_KEY_FILE:-/opt/thin-signals/.secrets/openrouter_key}
+

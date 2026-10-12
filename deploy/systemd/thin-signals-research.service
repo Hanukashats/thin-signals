@@ -1,0 +1,23 @@
+[Unit]
+Description=Thin Signals local SearXNG and GPT Researcher
+Documentation=https://sourcecraft.dev/shats123/thin-signals
+Wants=network-online.target agi-sing-box.service
+Requires=docker.service
+After=network-online.target docker.service agi-sing-box.service
+ConditionPathExists=/etc/thin-signals-research/searxng.env
+ConditionPathExists=/opt/thin-signals/deploy/research/compose.yaml
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/thin-signals/deploy/research
+ExecStartPre=/usr/bin/docker image inspect thin-signals/gpt-researcher:3.7.0-0957c301
+ExecStart=/usr/bin/docker compose --project-name thin-signals-research -f /opt/thin-signals/deploy/research/compose.yaml up -d --remove-orphans
+ExecReload=/usr/bin/docker compose --project-name thin-signals-research -f /opt/thin-signals/deploy/research/compose.yaml up -d --remove-orphans
+ExecStop=/usr/bin/docker compose --project-name thin-signals-research -f /opt/thin-signals/deploy/research/compose.yaml stop
+TimeoutStartSec=600
+TimeoutStopSec=90
+
+[Install]
+WantedBy=multi-user.target
+

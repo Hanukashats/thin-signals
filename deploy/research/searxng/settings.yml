@@ -1,0 +1,24 @@
+use_default_settings: true
+
+general:
+  debug: false
+  instance_name: Thin Signals Search
+  enable_metrics: false
+
+search:
+  safe_search: 0
+  autocomplete: ""
+  formats:
+    - html
+    - json
+
+server:
+  # Replaced at runtime by root-owned SEARXNG_SECRET.
+  secret_key: overridden-by-SEARXNG_SECRET
+  limiter: false
+  public_instance: false
+  image_proxy: false
+  method: GET
+
+ui:
+  static_use_hash: true
