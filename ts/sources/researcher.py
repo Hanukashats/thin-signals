@@ -12,11 +12,13 @@ import math
 import re
 from collections.abc import Callable
 from dataclasses import replace
+from threading import Lock
 
 from ts.sources.connectors import ConnectorError, Hit, Post
 
 Refetch = Callable[[str], Hit | None]
-ADAPTER_VERSION = "gpt-researcher-advisory-0.1"
+ADAPTER_VERSION = "gpt-researcher-advisory-0.2"
+REQUEST_LIMIT = 1
 
 
 def _safe_research_id(value: object) -> str:
@@ -79,12 +81,37 @@ class GptResearcherConnector:
         endpoint_hash = hashlib.sha256(self.base_url.encode()).hexdigest()[:8]
         self.retrieval_identity = (
             f"{self.name}:{ADAPTER_VERSION}:{endpoint_hash}:"
-            f"{self.max_cost_usd:.6f}:{self.max_leads}"
+            f"{self.max_cost_usd:.6f}:{self.max_leads}:requests={REQUEST_LIMIT}"
         )
         self.last_metadata: dict = {}
+        self._request_count = 0
+        self._request_lock = Lock()
+
+    def stage_enabled(self, step: str) -> bool:
+        """The connector instance is one top-level run's non-renewable spend budget."""
+        if step not in self.search_stages:
+            return False
+        with self._request_lock:
+            return self._request_count < REQUEST_LIMIT
+
+    def _claim_request(self) -> bool:
+        with self._request_lock:
+            if self._request_count >= REQUEST_LIMIT:
+                return False
+            self._request_count += 1
+            return True
 
     def search(self, query: str, *, limit: int = 5) -> list[Hit]:
-        self.last_metadata = {}
+        if not self._claim_request():
+            self.last_metadata = {
+                "request_count": self._request_count,
+                "request_limit": REQUEST_LIMIT,
+            }
+            return []
+        self.last_metadata = {
+            "request_count": self._request_count,
+            "request_limit": REQUEST_LIMIT,
+        }
         raw = self.post(
             f"{self.base_url}/report/",
             {
@@ -115,6 +142,8 @@ class GptResearcherConnector:
         unique_urls = list(dict.fromkeys(url.strip() for url in urls if url.strip()))[: self.max_leads]
         artifacts = _artifact_refs(data)
         self.last_metadata = {
+            "request_count": self._request_count,
+            "request_limit": REQUEST_LIMIT,
             "research_id": research_id,
             "reported_cost_usd": reported_cost,
             "advisory_count": len(unique_urls),

@@ -1,31 +1,33 @@
-# CONTINUATION POINT — reliability GOAL C03 candidate, 2026-10-12
+# CONTINUATION POINT — reliability GOAL C04 candidate, 2026-10-12
 
 ## Verified current state
 
 - Work is isolated on `feat/thin-signals-reliability-20261012`; production and
   its database were not changed.
-- Goal `g-62fcfd60cd61` has C01/C02 already PASS. The C03 implementation groups
+- Goal `g-62fcfd60cd61` has C01/C02/C03 already PASS. The C03 implementation groups
   same-theme work into versioned `technology-candidate-0.1` records, collapses
   DOI/URL mirrors, and awards origin independence only for explicit bounded
   institution/lab identifiers. Cross-theme alias-bridge deduplication and the
   raw event funnel are preserved.
-- The complete suite passes 312/312 against a fresh migrated disposable
+- The C04 candidate permits at most one synchronous GPT Researcher call per
+  top-level run, inherits the absolute run deadline, exposes only allowlisted
+  telemetry, discards generated prose, and passes re-fetched public bodies
+  through the same preserved-primary evidence path. The feature flag stays off.
+- The complete suite passes 315/315 against a fresh migrated disposable
   PostgreSQL database. Ruff, LivingSet links, YAML loading, diff and bounded
   credential-pattern checks pass. The sole warning is the pre-existing
   Starlette TestClient/httpx deprecation notice.
-- Earlier branch commits remain `2f7c1f5` (default-off bounded GPT Researcher
-  adapter) and `fce7fac` (preserved-primary evidence requirement).
+- Earlier branch commits include `9daf408` (typed candidates), `2f7c1f5`
+  (default-off GPT Researcher adapter) and `fce7fac` (preserved-primary evidence
+  requirement).
 
 ## Exact continuation
 
-1. Commit the frozen C03 slice, attach its reproducible evidence to the active
-   kernel goal, mark only C03 PASS, and checkpoint the commit.
-2. Prove C04 end to end: GPT Researcher must run at most once per top-level run,
-   expose only bounded telemetry, discard generated prose, and pass re-fetched
-   bodies through the same preserved-primary evidence path. Keep the flag off.
-3. Implement C05 OpenAlex stable work/DOI identity, explicit ROR origin IDs,
+1. Commit the frozen C04 slice, attach its reproducible evidence to the active
+   kernel goal, mark only C04 PASS, and checkpoint the commit.
+2. Implement C05 OpenAlex stable work/DOI identity, explicit ROR origin IDs,
    chronology and correction/retraction metadata under the inherited deadline.
-4. Freeze the completed candidate for an independent verifier before any push,
+3. Freeze the completed candidate for an independent verifier before any push,
    deployment or production activation.
 
 # Historical checkpoint — SearXNG upgrade deployed, 2026-10-12

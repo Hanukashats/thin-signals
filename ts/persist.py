@@ -106,6 +106,7 @@ def public_report(report: RunReport) -> dict:
                 "name", "connector", "status", "error", "n",
                 "elapsed_ms", "queued_ms", "theme", "cached",
                 "research_id", "reported_cost_usd", "advisory_count", "validated_count",
+                "request_count", "request_limit",
                 "artifact_refs",
             )
             if key in step and (

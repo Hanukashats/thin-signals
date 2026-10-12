@@ -62,7 +62,9 @@ enrichment and frozen replay remain open.
   activity without raw prompts or hidden model reasoning.
 - Fetch and preserve primary text with hashes and provenance.
 - Group publications into typed technology hypotheses without false merges.
-- Add the pinned GPT Researcher native adapter behind a default-off flag.
+- Add the pinned GPT Researcher native adapter behind a default-off flag: one
+  synchronous call per top-level run, one inherited deadline, generated prose
+  discarded, and only re-fetched preserved sources admitted to evidence.
 - Enrich OpenAlex identities, chronology, affiliations, OA locations and
   correction/retraction metadata.
 

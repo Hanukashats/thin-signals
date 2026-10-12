@@ -51,15 +51,17 @@ containers, so live search no longer depends on backend VM101. Receipt:
 
 - Astra independently audited the product path, live research containers and
   resource envelope. The branch now contains a default-off GPT Researcher
-  adapter for its pinned synchronous API. Generated prose is discarded; only
-  bounded public URLs that pass a second SSRF-guarded fetch can become hits.
-  Reported cost, validation counts and hashed artifact references are exposed
-  without prompts or local paths. OpenAlex still lacks graph/retraction/
-  affiliation enrichment. Full findings: `reports/ASTRA_AUDIT_2026-10-12.md`.
+  adapter for its pinned synchronous API. One connector instance permits one
+  call per top-level run and inherits the absolute run deadline. Generated prose
+  is discarded; only bounded public URLs that pass a second SSRF-guarded fetch
+  and normal preserved-evidence path can become hits. Reported cost, validation
+  and request counts and hashed artifact references are exposed without prompts
+  or local paths. OpenAlex still lacks graph/retraction/affiliation enrichment.
+  Full findings: `reports/ASTRA_AUDIT_2026-10-12.md`.
 - `run-status-0.2` makes total discovery failure `failed`, partial discovery or
   countersearch failure `degraded`, and failed countersearch blocks admission.
   The latest-run endpoint now returns the newest finished run instead of hiding
-  failed/degraded outcomes. The complete suite now passes 312/312 against a fresh
+  failed/degraded outcomes. The complete suite now passes 315/315 against a fresh
   disposable migrated database; production data was not touched.
 - `live-w20` attaches matching countersearch records to each candidate as a
   separate evidence channel. `checklist-v18` now requires at least one positive
@@ -146,9 +148,10 @@ containers, so live search no longer depends on backend VM101. Receipt:
 1. **Rules change required:** score can be non-monotonic when adding a positive secondary feature because primary reassignment changes weights. Do not hotfix; create a new rules version, eval and independent acceptance.
 2. **Persistence:** canonical step/evidence ledgers are not fully populated for existing live runs; JSON payloads are not a substitute for the intended durable ledger.
 3. **Research integration:** GPT Researcher and SearXNG work together inside the
-   research service. The Thin Signals adapter is implemented and wired behind
-   `TS_GPT_RESEARCHER_ENABLED=false`; it remains inactive until preserved-source
-   provenance, OpenAlex enrichment and a frozen canary are independently accepted.
+   research service. The Thin Signals adapter and preserved-source boundary are
+   implemented and tested behind `TS_GPT_RESEARCHER_ENABLED=false`; it remains
+   inactive until OpenAlex enrichment, frozen replay/canary and the complete
+   release candidate are independently accepted.
 4. **Research scope:** New Life is a reproducible archive search, not new live web research. Its 15 hypotheses have no completed commercial/legal diligence.
 5. **Build-only dependencies:** the 2026-10-12 Trivy scan reports 13 HIGH and
    6 MEDIUM findings in presentation-only pins `Pillow==11.3.0` and

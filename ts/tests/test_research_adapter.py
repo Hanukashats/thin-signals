@@ -75,6 +75,8 @@ def test_researcher_uses_sync_contract_and_only_returns_refetched_leads():
         "artifact_refs": connector.last_metadata["artifact_refs"],
     }
     assert connector.last_metadata == {
+        "request_count": 1,
+        "request_limit": 1,
         "research_id": "task_1_new-memory",
         "reported_cost_usd": 0.04,
         "advisory_count": 3,
@@ -136,7 +138,13 @@ def test_harness_calls_advisory_research_once_and_exposes_only_safe_provenance(t
 
     connector = GptResearcherConnector(
         "http://127.0.0.1:28000", post,
-        lambda url: Hit("refetch", url, "New memory", "direct record", "paper"),
+        lambda _url: Hit(
+            "refetch", "https://arxiv.org/abs/2601.00001",
+            "New memory", "direct record", "paper",
+            fetched_body=b"Direct primary record body.",
+            fetched_text="Direct primary record body.",
+            fetched_content_type="text/plain",
+        ),
     )
     report = Harness(snapshot_dir=tmp_path, corpus_version="research-adapter").run(
         "new memory", [connector], limit=1,
@@ -157,7 +165,170 @@ def test_harness_calls_advisory_research_once_and_exposes_only_safe_provenance(t
         "reported_cost_usd": 0.04,
         "artifact_refs": connector.last_metadata["artifact_refs"],
     }
+    assert body["sources"][0]["trust"] == "primary"
+    assert body["sources"][0]["evidence"]["status"] == "preserved"
+    assert body["sources"][0]["evidence"]["fragment"] == "Direct primary record body."
     assert "IGNORE THIS" not in repr(body)
+
+
+def test_researcher_connector_instance_allows_only_one_billed_request():
+    posts = []
+    connector = GptResearcherConnector(
+        "http://127.0.0.1:28000",
+        lambda url, payload: posts.append((url, payload)) or _response(),
+        lambda url: Hit("refetch", url, "New memory", "direct record", "paper"),
+    )
+
+    assert connector.stage_enabled("search") is True
+    assert connector.search("first", limit=1)
+    assert connector.stage_enabled("search") is False
+    assert connector.search("second", limit=1) == []
+    assert len(posts) == 1
+    assert connector.public_metadata()["request_count"] == 1
+    assert connector.public_metadata()["request_limit"] == 1
+
+
+def test_wide_run_calls_researcher_once_and_preserves_only_refetched_evidence(
+    monkeypatch, tmp_path,
+):
+    from contextlib import nullcontext
+    from time import monotonic
+    from types import SimpleNamespace
+
+    from ts import live
+
+    posts = []
+
+    def post(url, payload):
+        posts.append((url, payload))
+        return _response()
+
+    researcher = GptResearcherConnector(
+        "http://127.0.0.1:28000",
+        post,
+        lambda _url: Hit(
+            "refetch", "https://arxiv.org/abs/2601.00002",
+            "alpha battery mechanism study", "validated primary text", "paper",
+            fetched_body=b"Validated primary text from the original record.",
+            fetched_text="Validated primary text from the original record.",
+            fetched_content_type="text/plain",
+        ),
+    )
+
+    class FixtureConnector:
+        name = "fixture"
+        search_stages = frozenset({"search"})
+
+        def search(self, query: str, *, limit: int = 1):
+            slug = query.split()[0]
+            return [Hit(
+                self.name,
+                f"https://arxiv.org/abs/{slug}",
+                f"{query} study",
+                "fixture primary text",
+                "paper",
+                doi=f"10.1/{slug}",
+            )]
+
+    monkeypatch.setattr(live, "load_report", lambda *_args: None)
+    monkeypatch.setattr(live, "save_report", lambda *_args: None)
+    monkeypatch.setattr(live, "_near_miss", lambda *_args, **_kwargs: [])
+    monkeypatch.setattr(live, "_potential", lambda *_args, **_kwargs: [])
+    monkeypatch.setattr(
+        live,
+        "annotate_checklist",
+        lambda top, overflow, _settings, query=None: {
+            "top": top, "excluded": [], "overflow": overflow, "unread": [],
+            "stats": {"read": 0},
+        },
+    )
+    monkeypatch.setattr(live, "annotate_scopes", lambda cards, _settings: cards)
+    monkeypatch.setattr(live, "annotate_reach", lambda cards, _settings: cards)
+    settings = SimpleNamespace(
+        rules_version="rules-0.1",
+        search_max_workers=2,
+        search_deadline_seconds=90,
+        source_timeout_seconds=40,
+        wide_search_deadline_seconds=540,
+        snapshot_dir=tmp_path,
+        evidence_fetch_limit=24,
+    )
+    plan = {
+        "version": "research-budget-test",
+        "frame": [],
+        "themes": [
+            {"id": "alpha", "title": "Alpha", "query": "alpha battery mechanism"},
+            {"id": "beta", "title": "Beta", "query": "beta turbine mechanism"},
+        ],
+    }
+
+    body = live._run_wide(
+        "audit mission",
+        plan,
+        limit=1,
+        extract=False,
+        settings=settings,
+        connectors=[researcher, FixtureConnector()],
+        session_factory=lambda: nullcontext(None),
+        day="2026-10-12",
+        deadline_at=monotonic() + 10,
+    )
+
+    research_steps = [
+        step for step in body["retrieval"]["connectors"]
+        if step.get("connector") == "gpt_researcher"
+    ]
+    assert len(posts) == 1
+    assert len(research_steps) == 1
+    assert research_steps[0]["request_count"] == 1
+    assert research_steps[0]["request_limit"] == 1
+    source = next(
+        item for item in body["sources"]
+        if item.get("connector") == "gpt_researcher"
+    )
+    assert source["evidence"]["status"] == "preserved"
+    assert source["trust"] == "primary"
+    assert "IGNORE THIS GENERATED REPORT" not in repr(body)
+
+
+def test_live_researcher_transport_timeout_inherits_global_deadline(monkeypatch, tmp_path):
+    captured = []
+
+    class Response:
+        text = json.dumps({
+            "research_id": "bounded-timeout",
+            "report": "discarded",
+            "research_information": {"source_urls": [], "research_costs": 0.01},
+        })
+
+        @staticmethod
+        def raise_for_status():
+            return None
+
+    def post(_url, **kwargs):
+        captured.append(kwargs["timeout"])
+        return Response()
+
+    monkeypatch.setattr("ts.live.httpx.post", post)
+    monkeypatch.setenv("TS_DISABLE_DOTENV", "1")
+    monkeypatch.setenv("TS_GPT_RESEARCHER_ENABLED", "true")
+    monkeypatch.setenv("TS_GPT_RESEARCHER_URL", "http://127.0.0.1:28000")
+    settings = load(tmp_path)
+    settings.search_deadline_seconds = 0.05
+    settings.source_timeout_seconds = 40
+    connector = next(
+        item for item in default_connectors(settings)
+        if item.name == "gpt_researcher"
+    )
+
+    Harness(
+        snapshot_dir=tmp_path,
+        corpus_version="research-timeout",
+        deadline_seconds=0.05,
+    ).run("bounded research", [connector], limit=1)
+
+    assert len(captured) == 1
+    assert 0 < captured[0] <= 0.05
 
 
 def test_gpt_researcher_is_disabled_by_default_and_misconfiguration_fails_closed(monkeypatch, tmp_path):

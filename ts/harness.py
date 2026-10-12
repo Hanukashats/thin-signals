@@ -85,10 +85,15 @@ def connector_identity(connector) -> str:
 
 def _stage_connectors(connectors, step: str):
     """Some expensive discovery adapters intentionally do not run as falsifiers."""
-    return [
-        connector for connector in connectors
-        if step in getattr(connector, "search_stages", {step})
-    ]
+    selected = []
+    for connector in connectors:
+        if step not in getattr(connector, "search_stages", {step}):
+            continue
+        enabled = getattr(connector, "stage_enabled", None)
+        if callable(enabled) and not enabled(step):
+            continue
+        selected.append(connector)
+    return selected
 
 
 def _connector_metadata(connector) -> dict:
@@ -106,7 +111,7 @@ def _connector_metadata(connector) -> dict:
     cost = raw.get("reported_cost_usd")
     if isinstance(cost, (int, float)) and not isinstance(cost, bool) and 0 <= cost < 1000:
         safe["reported_cost_usd"] = float(cost)
-    for key in ("advisory_count", "validated_count"):
+    for key in ("advisory_count", "validated_count", "request_count", "request_limit"):
         value = raw.get(key)
         if isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= 10_000:
             safe[key] = value
