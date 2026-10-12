@@ -363,6 +363,37 @@ def test_inherited_deadline_records_actual_stage_wait_not_local_default():
     assert 0 <= steps[0]["elapsed_ms"] < 500
 
 
+def test_connector_result_completed_after_deadline_is_discarded():
+    import sys
+    import time
+
+    class LateCpu:
+        name = "late-cpu"
+
+        def search(self, query: str, *, limit: int = 5):
+            until = time.monotonic() + 0.06
+            while time.monotonic() < until:
+                pass
+            return [Hit("late-cpu", "https://example.test/late", query, "late", "paper")]
+
+    harness = Harness(corpus_version="late-result", deadline_seconds=0.02)
+    steps = []
+    previous = sys.getswitchinterval()
+    try:
+        sys.setswitchinterval(0.2)
+        hits, failures = harness._search(
+            [LateCpu()], "late result", 1, steps,
+            deadline_at=time.monotonic() + 0.02,
+        )
+    finally:
+        sys.setswitchinterval(previous)
+
+    assert hits == []
+    assert failures == ["late-cpu"]
+    assert steps[0]["status"] == "failed"
+    assert steps[0]["error"] == "deadline_exceeded"
+
+
 def test_default_http_transport_timeout_is_capped_by_remaining_budget(monkeypatch):
     from types import SimpleNamespace
 

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
 from ts.db.models import Candidate, Decision, Run
@@ -15,8 +15,15 @@ from ts.nearest import build_nearest
 
 
 def save_report(session: Session, report: RunReport) -> str:
+    # Serialize all persistence for one live candidate. This covers both the
+    # idempotency key and the candidate's (origin, technology) uniqueness.
+    session.execute(
+        text("SELECT pg_advisory_xact_lock(hashtextextended(:scope, 0))"),
+        {"scope": f"thin-signals:live:{report.query}"},
+    )
     existing = session.scalar(select(Run).where(Run.idempotency_key == report.idempotency_key))
     if existing is not None:
+        report.repeated = True
         return existing.id
     candidate = session.scalar(
         select(Candidate).where(Candidate.origin == "live", Candidate.technology == report.query)
@@ -93,7 +100,15 @@ def load_report(session: Session, idempotency_key: str) -> dict | None:
 def public_report(report: RunReport) -> dict:
     decision_card = report.top[0].get("technology") if report.top else None
     connector_steps = [
-        dict(step) for step in report.steps
+        {
+            key: step[key]
+            for key in (
+                "name", "connector", "status", "error", "n",
+                "elapsed_ms", "queued_ms", "theme", "cached",
+            )
+            if key in step and isinstance(step[key], (str, int, float, bool))
+        }
+        for step in report.steps
         if step.get("name") in {"search", "chain", "countersearch"}
         and step.get("connector")
     ]
@@ -101,11 +116,28 @@ def public_report(report: RunReport) -> dict:
     retrieval_stages = []
     for name in stage_names:
         rows = [step for step in connector_steps if step["name"] == name]
+        has_themes = any(step.get("theme") for step in rows)
+        themes = list(dict.fromkeys(
+            str(step["theme"])
+            for step in rows if step.get("theme") and not step.get("cached")
+        ))
+        if has_themes:
+            wall_ms = sum(max((
+                step.get("queued_ms", 0) + step.get("elapsed_ms", 0)
+                for step in rows if str(step.get("theme")) == theme
+            ), default=0) for theme in themes)
+        else:
+            wall_ms = max((
+                step.get("queued_ms", 0) + step.get("elapsed_ms", 0)
+                for step in rows
+            ), default=0)
         retrieval_stages.append({
             "name": name,
             "calls": len(rows),
             "succeeded": sum(1 for step in rows if step.get("status") == "ok"),
             "failed": sum(1 for step in rows if step.get("status") == "failed"),
+            "executed": sum(1 for step in rows if not step.get("cached")),
+            "cached": sum(1 for step in rows if step.get("cached")),
             "items": sum(
                 step.get("n", 0) for step in rows
                 if isinstance(step.get("n", 0), int) and not isinstance(step.get("n", 0), bool)
@@ -113,12 +145,12 @@ def public_report(report: RunReport) -> dict:
             # A bounded pool can queue work. Queue delay plus call duration is
             # the observable stage wall time; summing concurrent calls would
             # overstate it.
-            "wall_ms": max((
-                step.get("queued_ms", 0) + step.get("elapsed_ms", 0)
-                for step in rows
-            ), default=0),
+            "wall_ms": wall_ms,
         })
     stage_by_name = {stage["name"]: stage for stage in retrieval_stages}
+    fanout = report.fanout if isinstance(report.fanout, dict) else {}
+    deadline_skipped = list(fanout.get("deadline_skipped") or [])
+    theme_runs = [row for row in (fanout.get("theme_runs") or []) if isinstance(row, dict)]
     retrieval_funnel = None
     if connector_steps:
         retrieval_funnel = {
@@ -130,7 +162,10 @@ def public_report(report: RunReport) -> dict:
                 source.get("url") for source in report.sources
                 if isinstance(source, dict) and source.get("url")
             }),
-            "deduplicated_events": len(report.events),
+            "deduplicated_events": (
+                max(0, int(fanout.get("discovered_events") or 0))
+                if fanout else len(report.events)
+            ),
             "countersearch_items": stage_by_name.get("countersearch", {}).get("items", 0),
             "admitted": len(report.top),
             "excluded": len(report.exclusion_registry),
@@ -165,10 +200,18 @@ def public_report(report: RunReport) -> dict:
             "fingerprint": report.retrieval_fingerprint,
             "connectors": connector_steps,
             "stages": retrieval_stages,
-            "failures": sum(1 for step in connector_steps if step.get("status") == "failed"),
+            "failures": (
+                sum(1 for step in connector_steps if step.get("status") == "failed")
+            ),
+            "theme_failures": (
+                sum(1 for row in theme_runs if row.get("status") == "failed")
+                + len(deadline_skipped)
+            ),
+            "theme_degraded": sum(1 for row in theme_runs if row.get("status") == "degraded"),
+            "deadline_skipped_themes": deadline_skipped,
             "deadline_exhausted": any(
                 step.get("error") == "deadline_exceeded" for step in connector_steps
-            ),
+            ) or bool(deadline_skipped),
             "funnel": retrieval_funnel,
         },
         "decision_scope": "first_admitted_card" if report.top else "run_empty",

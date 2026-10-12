@@ -66,6 +66,52 @@ def test_repeat_returns_the_same_postgres_run(tmp_path):
         session.commit()
 
 
+def test_concurrent_persistence_returns_one_canonical_run(tmp_path):
+    from concurrent.futures import ThreadPoolExecutor
+    from dataclasses import replace
+    from threading import Barrier
+
+    from sqlalchemy import delete, func, select
+
+    from ts.db import session_factory
+    from ts.db.models import Candidate, Decision, Run
+
+    original = _report(tmp_path)
+    base = replace(
+        original,
+        id="concurrent-save-test",
+        query="concurrent-save-query",
+        idempotency_key="concurrent-save-idempotency-key",
+    )
+    reports = [replace(base), replace(base)]
+    factory = session_factory()
+    barrier = Barrier(2)
+
+    def persist(report):
+        with factory() as session:
+            barrier.wait()
+            run_id = save_report(session, report)
+            return run_id, report.repeated
+
+    try:
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            results = list(executor.map(persist, reports))
+
+        assert {run_id for run_id, _repeated in results} == {base.id}
+        assert sorted(repeated for _run_id, repeated in results) == [False, True]
+        with factory() as session:
+            count = session.scalar(
+                select(func.count()).select_from(Run).where(Run.idempotency_key == base.idempotency_key)
+            )
+            assert count == 1
+    finally:
+        with factory() as session:
+            session.execute(delete(Decision).where(Decision.run_id == base.id))
+            session.execute(delete(Run).where(Run.id == base.id))
+            session.execute(delete(Candidate).where(Candidate.id == f"live-{base.id}"))
+            session.commit()
+
+
 def test_degraded_run_status_is_persisted_without_becoming_a_signal_label(tmp_path):
     from dataclasses import replace
 

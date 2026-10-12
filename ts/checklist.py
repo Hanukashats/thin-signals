@@ -13,7 +13,7 @@ from ts.fanout import _identity
 from ts.scale import fetch_abstract
 from ts.scoring.scorer import load_rules, score
 
-CHECKLIST_VERSION = "checklist-v16"
+CHECKLIST_VERSION = "checklist-v17"
 TEXT_HUNT = 4
 # Four extra reads for each standing theme. One noisy theme must not spend the rest.
 BACKFILL_CAP = TEXT_HUNT * 13
@@ -43,7 +43,8 @@ def _fuller(source: dict, snippet: str) -> str:
     return text if len(text) > len(snippet) else snippet
 
 
-def _fragments(card: dict, full: bool = True) -> tuple[list[str], list[str]]:
+def _fragment_bundle(card: dict, full: bool = True) -> tuple[list[str], list[str], int]:
+    """Build one ordered evidence bundle and keep positive evidence ahead of countersearch."""
     fragments: list[str] = []
     urls: list[str] = []
     for source in card.get("sources") or []:
@@ -69,6 +70,7 @@ def _fragments(card: dict, full: bool = True) -> tuple[list[str], list[str]]:
                     break
             fragments.append(abstract)
             urls.append(url)
+    positive_count = len(fragments)
     counter_n = 0
     for source in card.get("counter_sources") or []:
         if not isinstance(source, dict):
@@ -84,9 +86,12 @@ def _fragments(card: dict, full: bool = True) -> tuple[list[str], list[str]]:
         counter_n += 1
         if counter_n >= COUNTER_FRAGMENT_CAP:
             break
-    if fragments:
-        return fragments, urls
-    return [], []
+    return fragments, urls, positive_count
+
+
+def _fragments(card: dict, full: bool = True) -> tuple[list[str], list[str]]:
+    fragments, urls, _positive_count = _fragment_bundle(card, full=full)
+    return fragments, urls
 
 
 def _hosts(card: dict) -> int:
@@ -148,18 +153,28 @@ def _has_fragment_reference(why: object, fragments: list[str]) -> bool:
     return False
 
 
-def _uncited_verified(out: dict, fragments: list[str]) -> list[str]:
+def _has_positive_fragment_reference(why: object, fragments: list[str], positive_count: int) -> bool:
+    """Positive claims must cite discovery evidence, never only countersearch text."""
+    for raw_index in _FRAGMENT_REF.findall(str(why or "")):
+        index = int(raw_index)
+        if 1 <= index <= positive_count and index <= len(fragments) and str(fragments[index - 1]).strip():
+            return True
+    return False
+
+
+def _uncited_verified(out: dict, fragments: list[str], positive_count: int | None = None) -> list[str]:
     missing: list[str] = []
+    positive_count = len(fragments) if positive_count is None else positive_count
     for feature in out.get("features") or []:
         if not isinstance(feature, dict) or feature.get("status") != "verified":
             continue
-        if not _has_fragment_reference(feature.get("why"), fragments):
+        if not _has_positive_fragment_reference(feature.get("why"), fragments, positive_count):
             missing.append(str(feature.get("code") or "UNKNOWN"))
     transition = out.get("transition") or {}
     if (
         isinstance(transition, dict)
         and transition.get("status") == "verified"
-        and not _has_fragment_reference(transition.get("why"), fragments)
+        and not _has_positive_fragment_reference(transition.get("why"), fragments, positive_count)
     ):
         missing.append("TR")
     for counter in out.get("counters") or []:
@@ -247,15 +262,17 @@ def _checklist_invalid(row: dict, meta: dict | None = None) -> dict:
 
 def score_card(card: dict, reader, rules: dict) -> dict:
     row = dict(card)
-    fragments, _urls = _fragments(row)
-    if not fragments:
+    fragments, _urls, positive_count = _fragment_bundle(row)
+    if positive_count == 0:
         _mark(row, "no_fragment")
         row["policy_reason"] = "no_source_text"
         row["confidence"] = None
         row["label"] = None
         return {"keep": False, "unread": True, "card": row}
     try:
-        read = reader(row)
+        reader_row = dict(row)
+        reader_row["_checklist_fragment_bundle"] = (list(fragments), list(_urls))
+        read = reader(reader_row)
     except Exception as exc:  # noqa: BLE001 — provider failures become explicit reader_failed cards
         return _reader_failed(row, type(exc).__name__)
     if not isinstance(read, dict) or not isinstance(read.get("output"), dict):
@@ -265,7 +282,7 @@ def score_card(card: dict, reader, rules: dict) -> dict:
         validate_scoring_output(read["output"])
     except (TypeError, ValueError):
         return _checklist_invalid(row, meta)
-    missing = _uncited_verified(read["output"], fragments)
+    missing = _uncited_verified(read["output"], fragments, positive_count)
     if missing:
         return _evidence_invalid(row, missing, meta)
     row["evidence_fragments"] = _cited_fragments(read["output"], fragments, _urls)
@@ -427,7 +444,16 @@ def make_reader(settings, query: str | None = None):
     )
 
     def reader(card: dict):
-        fragments, urls = _fragments(card)
+        bundle = card.get("_checklist_fragment_bundle")
+        if (
+            isinstance(bundle, tuple)
+            and len(bundle) == 2
+            and isinstance(bundle[0], list)
+            and isinstance(bundle[1], list)
+        ):
+            fragments, urls = list(bundle[0]), list(bundle[1])
+        else:
+            fragments, urls = _fragments(card)
         if not fragments:
             return None
         asked = str(query or "").strip()

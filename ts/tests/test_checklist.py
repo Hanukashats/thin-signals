@@ -108,6 +108,56 @@ def test_any_verified_feature_without_valid_fragment_reference_fails_closed():
     assert judged["card"]["confidence"] is None
 
 
+def test_countersearch_text_cannot_replace_missing_positive_source_text(monkeypatch):
+    card = _card(snippet="")
+    card["counter_sources"] = [{
+        "name": "Press commentary",
+        "url": "https://medium.com/example",
+        "snippet": "An alleged new discovery improves efficiency.",
+        "trust": "indicator",
+        "purpose": "countersearch",
+    }]
+    called = False
+
+    def reader(_card_in):
+        nonlocal called
+        called = True
+        return _read(_out(verified={"P01", "P02", "P03"}, transition="verified"))
+
+    monkeypatch.setattr("ts.checklist.fetch_abstract", lambda _card_in: "")
+    judged = score_card(card, reader, _rules())
+
+    assert called is False
+    assert judged["keep"] is False
+    assert judged["unread"] is True
+    assert judged["card"]["checklist"]["status"] == "no_fragment"
+    assert judged["card"]["policy_reason"] == "no_source_text"
+    assert judged["card"]["confidence"] is None
+
+
+def test_verified_positive_claims_must_cite_positive_not_counter_fragments():
+    card = _card(snippet="Primary experiment reports a measured change.")
+    card["counter_sources"] = [{
+        "name": "Industry review",
+        "url": "https://medium.com/counter",
+        "snippet": "Commentary calls the result an emerging signal.",
+        "trust": "indicator",
+        "purpose": "countersearch",
+    }]
+    out = _out(verified={"P01"}, transition="verified")
+    for feature in out["features"]:
+        if feature["status"] == "verified":
+            feature["why"] = "утверждение только из контрпоиска [2]"
+    out["transition"]["why"] = "переход только из контрпоиска [2]"
+
+    judged = score_card(card, lambda _card_in: _read(out), _rules())
+
+    assert judged["keep"] is False
+    assert judged["card"]["checklist"]["status"] == "evidence_invalid"
+    assert judged["card"]["checklist"]["uncited_verified"] == ["P01", "TR"]
+    assert judged["card"]["confidence"] is None
+
+
 def test_reader_cannot_invent_fragments_to_make_an_out_of_range_reference_valid():
     out = _out(verified={"P01", "P02"}, transition="supported")
     for feature in out["features"]:

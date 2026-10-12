@@ -83,6 +83,51 @@ def test_wide_run_status_preserves_theme_failures():
     assert _wide_status([]) == "failed"
 
 
+def test_wide_retrieval_telemetry_is_bounded_and_marks_cached_work():
+    from ts.harness import RunReport
+    from ts.persist import public_report
+
+    report = RunReport(
+        id="wide", query="mission", idempotency_key="wide-key", repeated=False,
+        steps=[
+            {
+                "name": "search", "connector": "openalex", "status": "ok", "n": 3,
+                "elapsed_ms": 40, "queued_ms": 2, "theme": "one", "cached": False,
+                "raw_prompt": "must never leave the process",
+            },
+            {
+                "name": "search", "connector": "openalex", "status": "failed",
+                "error": "ReadTimeout", "elapsed_ms": 90, "queued_ms": 1,
+                "theme": "two", "cached": True, "raw_response": "private",
+            },
+        ],
+        sources=[{"url": "https://example.test/work"}], events=[],
+        card={
+            "label": None, "confidence": None, "policy_action": "HOLD",
+            "policy_reason": "no_admitted_cards", "reason_codes": [],
+            "predictors": [], "rules_version": "rules-0.1",
+        },
+        top=[], shortfall=15, exclusion_registry=[], status="degraded",
+        fanout={
+            "deadline_skipped": [], "discovered_events": 2,
+            "theme_runs": [
+                {"id": "one", "status": "succeeded", "repeated": False},
+                {"id": "two", "status": "degraded", "repeated": True},
+            ],
+        },
+    )
+
+    retrieval = public_report(report)["retrieval"]
+
+    assert all("raw_prompt" not in step and "raw_response" not in step for step in retrieval["connectors"])
+    assert retrieval["stages"][0]["executed"] == 1
+    assert retrieval["stages"][0]["cached"] == 1
+    assert retrieval["stages"][0]["wall_ms"] == 42
+    assert retrieval["theme_degraded"] == 1
+    assert retrieval["deadline_exhausted"] is False
+    assert retrieval["funnel"]["deduplicated_events"] == 2
+
+
 def test_empty_run_has_its_own_verdict_and_summarizes_exclusions():
     from ts.live import _empty_card
 
@@ -206,6 +251,10 @@ def test_wide_query_searches_themes_and_a_repeat_does_not(monkeypatch):
         assert first["shortfall"] == 11
         assert second["repeated"] is True
         assert echo.queries == searched
+        assert first["retrieval"]["connectors"]
+        assert all(step.get("theme") in {"a", "b"} for step in first["retrieval"]["connectors"])
+        assert first["retrieval"]["funnel"]["discovery_items"] >= 4
+        assert first["retrieval"]["funnel"]["unique_sources"] >= 4
         assert order == ["checklist", "scope", "reach"]
         assert asked == [None]
         assert seen and all(item is None for item in seen)
@@ -262,6 +311,11 @@ def test_expired_wide_deadline_does_not_start_new_theme_tasks(monkeypatch):
         assert echo.queries == []
         assert report["run_status"] == "failed"
         assert report["fanout"]["deadline_skipped"] == ["a", "b"]
+        assert report["retrieval"]["deadline_exhausted"] is True
+        assert report["retrieval"]["failures"] == 0
+        assert report["retrieval"]["theme_failures"] == 2
+        assert report["retrieval"]["deadline_skipped_themes"] == ["a", "b"]
+        assert report["retrieval"]["funnel"] is None
     finally:
         with factory() as session:
             row = session.scalar(select(Run).where(Run.query == mission))
@@ -270,6 +324,79 @@ def test_expired_wide_deadline_does_not_start_new_theme_tasks(monkeypatch):
                 session.execute(delete(Run).where(Run.id == row.id))
                 session.execute(delete(Candidate).where(Candidate.id == f"live-{row.id}"))
                 session.commit()
+
+
+def test_changed_wide_budget_does_not_reuse_a_deadline_failed_theme(monkeypatch):
+    import copy
+    import time
+
+    from ts.live import run_query
+    from ts.persist import public_report
+    from ts.settings import load
+
+    plan = {
+        "version": "themes-budget-cache-test",
+        "frame": ["scientific", "discoveries", "technological", "changes"],
+        "themes": [{"id": "a", "title": "Альфа", "query": "zzbudget alpha cell"}],
+    }
+    monkeypatch.setattr("ts.live.load_theme_plan", lambda: plan)
+    monkeypatch.setattr(
+        "ts.live.annotate_checklist",
+        lambda top, overflow, settings, query=None: {
+            "top": top, "excluded": [], "overflow": overflow, "unread": [],
+            "stats": {"read": 0},
+        },
+    )
+    monkeypatch.setattr("ts.live.annotate_scopes", lambda cards, settings: cards)
+    monkeypatch.setattr("ts.live.annotate_reach", lambda cards, settings: cards)
+
+    stored = {}
+
+    class Session:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+    monkeypatch.setattr(
+        "ts.live.load_report",
+        lambda _session, key: copy.deepcopy(stored.get(key)),
+    )
+    monkeypatch.setattr(
+        "ts.live.save_report",
+        lambda _session, report: stored.__setitem__(report.idempotency_key, public_report(report)),
+    )
+
+    class SlowFirst(_Echo):
+        def search(self, query: str, *, limit: int = 5):
+            self.queries.append(query)
+            if len(self.queries) == 1:
+                time.sleep(0.15)
+                return []
+            return super().search(query, limit=limit)
+
+    connector = SlowFirst()
+    settings = load()
+    settings.search_deadline_seconds = 1
+    settings.wide_search_deadline_seconds = 0.05
+    mission = "scientific discoveries technological changes zzbudget"
+
+    first = run_query(
+        mission, limit=1, settings=settings, connectors=[connector],
+        session_factory=lambda: Session(),
+    )
+    calls_after_failure = len(connector.queries)
+    settings.wide_search_deadline_seconds = 1
+    second = run_query(
+        mission, limit=1, settings=settings, connectors=[connector],
+        session_factory=lambda: Session(),
+    )
+
+    assert first["run_status"] == "failed"
+    assert calls_after_failure == 1
+    assert second["repeated"] is False
+    assert len(connector.queries) > calls_after_failure
 
 
 class _DatedEcho(_Echo):

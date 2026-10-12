@@ -456,8 +456,9 @@ requirements:
     forks: [goal.controller]
     acceptance: semantic validator rejects claim without fragment_id; structural rc=0 of donor validators is not a gate
     evidence:
-      - ts/checklist.py checklist-v16 structure, _uncited_verified, countersearch fragments, exclusion-counter references and off-topic ordering
+      - ts/checklist.py checklist-v17 positive-evidence boundary, structure, countersearch fragments, exclusion-counter references and off-topic ordering
       - ts/tests/test_checklist.py invalid/missing/out-of-range fragment references fail closed
+      - ts/tests/test_checklist.py countersearch cannot replace or be the sole citation for positive evidence
 
   - id: TS-INV-03
     title: Run status separated from signal decision

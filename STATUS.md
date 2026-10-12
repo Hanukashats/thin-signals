@@ -19,13 +19,13 @@ the immediately preceding equivalent staging's **8m51s**. Old pre-checklist
 production duration is unknown; search breadth/depth/thresholds were not weakened.
 See `reports/SEARCH_TIMING_2026-09-29.md`.
 
-7.6 continuation: evidence and provider boundaries are hardened without changing `rules-0.1`, weights, thresholds or P01–P18. `checklist-v16` validates reader structure and rejects verified features/transitions or fired exclusion counters without an actual `[n]` fragment; it also reads separately labelled countersearch evidence. Off-topic rejection precedes below-watchlist return. Mandatory OpenRouter ZDR fields cannot be weakened; returned model and cached response provenance are checked. Three modules share the evidence-first shell: live signals, a separate potential queue over current scored observations, and search over the sealed 29.09 old-technology archive. Facts/hypotheses/checks/sources and run provenance stay separate. Figma v4 is node `41:178`; transparent logo/favicon are versioned. API/UI run as persistent DynamicUser units, active and enabled.
+7.8 continuation: evidence and provider boundaries are hardened without changing `rules-0.1`, weights, thresholds or P01–P18. `checklist-v17` validates reader structure and positive/counter evidence roles; verified positive features/transitions cannot cite only countersearch. Off-topic rejection precedes below-watchlist return. Mandatory OpenRouter ZDR fields cannot be weakened; returned model and cached response provenance are checked. Three modules share the evidence-first shell: live signals, a separate potential queue over current scored observations, and search over the sealed 29.09 old-technology archive. Facts/hypotheses/checks/sources and run provenance stay separate. Figma v4 is node `41:178`; transparent logo/favicon are versioned. API/UI run as persistent DynamicUser units, active and enabled.
 
 The public route is `https://tsignal.aispaces.ru` through Caddy on VM105 to
 VM232's private `:18443` listener. Account hashes and provider/database
 credentials remain only in host `.secrets/`. GOAL queue ownership remains
-`project=thin-signals`, `agent=cursor-bk2`; this Codex continuation did not
-create, claim or take its card.
+`project=thin-signals`, `agent=codex-backend`; active baseline card is
+`g-2629cc78010b`, followed by bounded-retrieval card `g-62fcfd60cd61`.
 
 On 2026-10-12 recovery was completed on Home-PVE VM232: Ubuntu 26.04.1, 4
 vCPU, 12 GB RAM and a 120 GB disk. All 148 saved runs were recovered before
@@ -42,7 +42,7 @@ containers, so live search no longer depends on backend VM101. Receipt:
 | W3-live | **in_progress** — live search exists; honest scored TOP-15 and durable per-step ledger remain incomplete |
 | W4-ui | **in_progress, deployed shell and verified typography** — three modules live; real-account authenticated production smoke remains unobserved |
 | Rules | `rules-0.1`, unchanged |
-| Checklist | `checklist-v16`; old persisted rows remain historical and are excluded from the active potential queue |
+| Checklist | `checklist-v17`; old persisted rows remain historical and are excluded from the active potential queue |
 | Production delivery | VM232 public; PostgreSQL/API/UI/sing-box/research services active+enabled; SearXNG patch upgrade and controlled container restart recovered automatically |
 | Canonical Git | private SourceCraft `shats123/thin-signals`; public GitHub delivery snapshot `Hanukashats/thin-signals`, `main=0c1fdd3` verified |
 | Reliability branch | `feat/thin-signals-reliability-20261012`; not deployed; real Git timestamps retained |
@@ -56,18 +56,22 @@ containers, so live search no longer depends on backend VM101. Receipt:
 - `run-status-0.2` makes total discovery failure `failed`, partial discovery or
   countersearch failure `degraded`, and failed countersearch blocks admission.
   The latest-run endpoint now returns the newest finished run instead of hiding
-  failed/degraded outcomes. The complete suite now passes 267/267 against a fresh
+  failed/degraded outcomes. The complete suite now passes 273/273 against a fresh
   disposable migrated database; production data was not touched.
 - `live-w19` attaches matching countersearch records to each candidate as a
-  separate evidence channel. `checklist-v16` passes those numbered fragments to
-  the reader; a cited M01/M02/M03/M05/M06 finding deterministically excludes the
-  card. Countersearch model output still cannot score or admit a card directly.
-- The reliability branch now runs connector calls with bounded concurrency and
-  one inherited absolute deadline. Per-call latency/queue time, stage failures,
-  a retrieval fingerprint and a safe discovery funnel are persisted and shown
-  without exposing raw prompts or hidden model reasoning. Changed retrieval
-  limits no longer reuse the same in-memory run identity. The temporary test
-  database was removed and production data was untouched.
+  separate evidence channel. `checklist-v17` now requires at least one positive
+  discovery fragment and refuses verified positive claims/transitions cited only
+  to countersearch. A cited M01/M02/M03/M05/M06 finding may still exclude the
+  card. Countersearch output cannot score or admit a card by itself.
+- `retrieval-0.2` runs connector calls with bounded concurrency and one inherited
+  absolute deadline. Results completing after that deadline are discarded;
+  changed wide budgets cannot reuse a deadline-failed child run. Per-call timing,
+  cached/executed counts, theme failures, skipped themes and the safe discovery
+  funnel are aggregated using allowlisted scalar metadata only. Raw prompts,
+  hidden reasoning and child payloads are not exposed.
+- PostgreSQL persistence now serializes one live query with a transaction-scoped
+  advisory lock. Concurrent identical saves return one canonical run instead of
+  racing the unique constraints; the loser returns the stored result as a repeat.
 - The operator-provided public wsignal reference was inspected read-only. Its
   normalized corpus series, evidence-bearing refutation and activity accounting
   were adopted as donor patterns; high agent count and public raw reasoning were
@@ -133,9 +137,14 @@ containers, so live search no longer depends on backend VM101. Receipt:
    or API snippet. Version the provenance rule and evaluate saved cases before
    changing labels.
 7. **Release state:** bounded search, timings, safe funnel and configuration
-   fingerprint are implemented and tested on the reliability branch, but are
-   not deployed until the frozen branch receives independent verification.
+   fingerprint are implemented and tested on the reliability branch. Astra's
+   first frozen review found four P1 defects; all four now have RED/GREEN
+   regressions and await a second independent review before deployment.
    Full original finding: `reports/LOGIC_AUDIT_2026-10-12.md`.
+8. **Bounded-worker residue:** Python cannot forcibly stop an already running
+   thread. Late results are rejected and HTTP calls inherit a remaining-time
+   timeout, but a misbehaving connector may finish in the background. Keep the
+   worker ceiling and include this case in load/canary verification.
 
 ## Requirements snapshot
 

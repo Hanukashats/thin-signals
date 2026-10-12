@@ -29,7 +29,7 @@ from ts.sources.trust import classify, load_trust
 STEPS = ("search", "snapshot", "dedup", "countersearch", "score", "rank")
 TOP_N = 15
 RUN_CONTRACT_VERSION = "run-status-0.2"
-RETRIEVAL_CONTRACT_VERSION = "retrieval-0.1"
+RETRIEVAL_CONTRACT_VERSION = "retrieval-0.2"
 CHAIN_CONNECTORS = frozenset({"searxng", "openalex", "crossref", "sec"})
 _DEEP = frozenset({"arxiv", "openalex", "crossref", "europepmc", "doaj", "hal"})
 # Phrase lists such as "market leader" are not in the brief and are not dataset
@@ -58,6 +58,7 @@ def retrieval_fingerprint(
     deadline_seconds: float,
     source_timeout_seconds: float | None = None,
     wide_deadline_seconds: float | None = None,
+    parent_fingerprint: str | None = None,
 ) -> str:
     """Stable identity for retrieval settings that can change a run result."""
     payload = {
@@ -69,6 +70,7 @@ def retrieval_fingerprint(
         "deadline_seconds": deadline_seconds,
         "source_timeout_seconds": source_timeout_seconds,
         "wide_deadline_seconds": wide_deadline_seconds,
+        "parent_fingerprint": parent_fingerprint,
     }
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
     return hashlib.sha256(encoded.encode()).hexdigest()[:16]
@@ -284,9 +286,14 @@ class Harness:
                     depth = 8 if step == "search" and connector.name in _DEEP and limit < 8 else limit
                     dated = self.since and step in {"search", "chain"} and getattr(connector, "takes_since", False)
                     found = connector.search(query, limit=depth, **({"since": self.since} if dated else {}))
-                    return found, None, round((monotonic() - started) * 1000), queued_ms
+                    completed_at = monotonic()
+                    if completed_at >= deadline_at:
+                        return [], "deadline_exceeded", round((completed_at - started) * 1000), queued_ms
+                    return found, None, round((completed_at - started) * 1000), queued_ms
                 except Exception as e:  # noqa: BLE001 — one dead source must not stop the run
-                    return [], type(e).__name__, round((monotonic() - started) * 1000), queued_ms
+                    completed_at = monotonic()
+                    error = "deadline_exceeded" if completed_at >= deadline_at else type(e).__name__
+                    return [], error, round((completed_at - started) * 1000), queued_ms
             finally:
                 _ACTIVE_SEARCH_DEADLINE.reset(deadline_token)
 

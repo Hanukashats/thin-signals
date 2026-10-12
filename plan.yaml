@@ -30,10 +30,10 @@ execution:
   empty_waves_before_hold: 2
   tenant:
     project: thin-signals
-    agent: cursor-bk2
-    card: g-72024523eeeb
-    order: 3
-    waiting_verifier: g-19b21906ceff
+    agent: codex-backend
+    card: g-2629cc78010b
+    order: 1
+    waiting_verifier: null
   goal_loop:
     scope: project_and_agent
     one_live_card_per_chat: true
@@ -59,9 +59,9 @@ execution:
     The implementer hat still cannot verify the increment it just wrote.
     Those rules live in this file. They are not a second controller inside the product.
     Do not revive a HANDOFF card. Do not share a chat card with another product.
-    This product's queue is project thin-signals, agent cursor-bk2.
-    The open door card is g-19b21906ceff. The live-query card g-6ea92015b4f8 stays in the queue and waits for another hat.
-    Read it with goalctl active project=thin-signals agent=cursor-bk2.
+    This product's active queue is project thin-signals, agent codex-backend.
+    The baseline reliability card is g-2629cc78010b; bounded retrieval follows as g-62fcfd60cd61.
+    Read it with goalctl active project=thin-signals agent=codex-backend.
     Coach and OpenMAIC stay on project coach-profi360 and agent cursor-agent.
     Critical path: logical model + harness + eval + RU UI (ADR-009). No weight training.
     Git SoT: SourceCraft; GitHub mirror for submission.
@@ -182,7 +182,7 @@ phases:
         status: in_progress
         owner: codex
         deliverables:
-          - "checklist-v16 structural, evidence-reference, countersearch-fragment and off-topic validator; potential-v2 current-observation ranking"
+          - "checklist-v17 positive-evidence, structural, countersearch-fragment and off-topic validator; potential-v2 current-observation ranking"
           - "non-overridable ZDR/data-collection policy and returned-model allowlist"
           - "model/provider provenance from the same checklist card"
           - "honest evidence-first Streamlit result shell"

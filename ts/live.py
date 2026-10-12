@@ -145,7 +145,8 @@ def _maker(session_factory):
 
 def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Settings | None = None,
               connectors=None, session_factory=None, _theme: bool = False, _day: str | None = None,
-              _deadline_at: float | None = None) -> dict:
+              _deadline_at: float | None = None,
+              _parent_retrieval_fingerprint: str | None = None) -> dict:
     # The extractor argument is ignored. Passing it into Harness.run collapses every find into one card.
     _ = extract
     s = settings or load()
@@ -172,6 +173,7 @@ def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Se
         max_workers=s.search_max_workers,
         deadline_seconds=s.search_deadline_seconds,
         source_timeout_seconds=s.source_timeout_seconds,
+        parent_fingerprint=_parent_retrieval_fingerprint,
     )
     key = _key(
         query, s.rules_version, corpus=corpus, day=day, retrieval=fingerprint,
@@ -220,6 +222,11 @@ def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Se
             )
     with factory() as session:
         save_report(session, report)
+        if report.repeated:
+            stored = load_report(session, key)
+            if stored is not None:
+                stored["repeated"] = True
+                return stored
     return public_report(report)
 
 
@@ -249,6 +256,11 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
         return stored
     parts = []
     theme_statuses = []
+    theme_runs = []
+    theme_steps = []
+    discovered_sources = []
+    discovered_source_urls = set()
+    discovered_events = 0
     skipped_themes = []
     for theme in plan["themes"]:
         if monotonic() >= deadline_at:
@@ -260,9 +272,46 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
             theme["query"], limit=limit, extract=extract, settings=settings,
             connectors=active_connectors, session_factory=session_factory, _theme=True, _day=day,
             _deadline_at=deadline_at,
+            _parent_retrieval_fingerprint=fingerprint,
         )
         parts.append((theme, list(report.get("top") or [])))
-        theme_statuses.append(str(report.get("run_status") or "failed"))
+        theme_status = str(report.get("run_status") or "failed")
+        theme_statuses.append(theme_status)
+        theme_runs.append({
+            "id": theme["id"],
+            "status": theme_status,
+            "repeated": bool(report.get("repeated")),
+        })
+        try:
+            discovered_events += max(0, int(report.get("events") or 0))
+        except (TypeError, ValueError):
+            pass
+        retrieval = report.get("retrieval") if isinstance(report.get("retrieval"), dict) else {}
+        for step in retrieval.get("connectors") or []:
+            if isinstance(step, dict):
+                safe_step = {
+                    key: step[key]
+                    for key in (
+                        "name", "connector", "status", "error", "n",
+                        "elapsed_ms", "queued_ms",
+                    )
+                    if key in step and isinstance(step[key], (str, int, float, bool))
+                }
+                if safe_step.get("name") and safe_step.get("connector"):
+                    theme_steps.append({
+                        **safe_step,
+                        "theme": theme["id"],
+                        "cached": bool(report.get("repeated")),
+                    })
+        for source in report.get("sources") or []:
+            if not isinstance(source, dict):
+                continue
+            url = str(source.get("url") or "")
+            identity = url or repr(sorted(source.items()))
+            if identity in discovered_source_urls:
+                continue
+            discovered_source_urls.add(identity)
+            discovered_sources.append(dict(source))
     merged = merge_theme_reports(parts, limit=TOP_N)
     # A theme query is not the operator's question. As one, it marks cross-theme papers ДРУГОЙ_МЕХАНИЗМ.
     checked = annotate_checklist(merged["top"], merged["overflow"], settings, query=None)
@@ -276,8 +325,8 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
         checked.get("unread"),
     )
     card.setdefault("rules_version", rules["version"])
-    sources = []
-    seen = set()
+    sources = list(discovered_sources)
+    seen = {str(source.get("url") or "") for source in sources}
     for item in top:
         for source in item.get("sources") or []:
             url = source.get("url")
@@ -291,9 +340,14 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
         repeated=False,
         steps=[
             {
-                "name": "fanout", "status": "degraded" if skipped_themes else "ok",
+                "name": "fanout",
+                "status": (
+                    "ok" if _wide_status(theme_statuses) == "succeeded"
+                    else _wide_status(theme_statuses)
+                ),
                 "themes": len(plan["themes"]), "deadline_skipped": skipped_themes,
             },
+            *theme_steps,
             {"name": "checklist", "status": "ok", **checked["stats"]},
         ],
         sources=sources,
@@ -316,10 +370,17 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
             "reader": "scale",
             "checklist": checked["stats"],
             "deadline_skipped": skipped_themes,
+            "theme_runs": theme_runs,
+            "discovered_events": discovered_events,
         },
     )
     with factory() as session:
         save_report(session, report)
+        if report.repeated:
+            stored = load_report(session, key)
+            if stored is not None:
+                stored["repeated"] = True
+                return stored
     return public_report(report)
 
 

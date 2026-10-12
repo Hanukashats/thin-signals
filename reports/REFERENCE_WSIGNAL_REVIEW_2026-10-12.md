@@ -95,14 +95,17 @@ This branch now implements the first safe subset:
 
 - bounded connector concurrency under one inherited absolute deadline;
 - per-connector latency and explicit deadline failures;
-- a retrieval fingerprint in run identity so changed limits/configuration do
-  not silently reuse an incompatible cached result;
+- a `retrieval-0.2` fingerprint in run identity, including stable parent wide
+  context, so changed limits/budgets do not reuse an incompatible failed child;
 - a public, structured funnel for discovery → unique sources → deduplicated
-  events → countersearch → admitted/excluded/unread;
+  events → countersearch → admitted/excluded/unread, with theme failures,
+  deadline skips and cached/executed work distinguished;
 - the safe funnel is shown in the existing explanation view without raw agent
   prompts or chain-of-thought;
-- countersearch evidence remains a separate channel and cannot directly promote
-  a candidate.
+- `checklist-v17` requires positive discovery text and rejects positive claims
+  cited only to countersearch; countersearch remains a separate negative channel;
+- a connector result completed after the absolute deadline is discarded;
+- concurrent identical PostgreSQL writes serialize to one canonical run.
 
 The already accepted ADR-012 remains the target for the larger adaptation:
 bounded researcher → critic → defender → blinded control critic, followed by a
