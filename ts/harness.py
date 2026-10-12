@@ -24,6 +24,7 @@ from ts.sources.trust import classify, load_trust
 
 STEPS = ("search", "snapshot", "dedup", "countersearch", "score", "rank")
 TOP_N = 15
+RUN_CONTRACT_VERSION = "run-status-0.2"
 CHAIN_CONNECTORS = frozenset({"searxng", "openalex", "crossref", "sec"})
 _DEEP = frozenset({"arxiv", "openalex", "crossref", "europepmc", "doaj", "hal"})
 # Phrase lists such as "market leader" are not in the brief and are not dataset
@@ -51,6 +52,8 @@ class RunReport:
     top: list[dict]
     shortfall: int
     exclusion_registry: list[dict]
+    status: str = "succeeded"
+    run_contract_version: str = RUN_CONTRACT_VERSION
     model_id: str | None = None
     provider: str | None = None
     corpus_version: str = "live-w3"
@@ -81,16 +84,20 @@ class Harness:
         fetch_body=None,
     ) -> RunReport:
         rules = load_rules(self.rules_version)
-        key = hashlib.sha256(f"{query}|{self.corpus_version}|{rules['version']}".encode()).hexdigest()
+        key = hashlib.sha256(
+            f"{query}|{self.corpus_version}|{rules['version']}|{RUN_CONTRACT_VERSION}".encode()
+        ).hexdigest()
         if key in self.store:
             return replace(self.store[key], repeated=True)
         steps: list[dict] = []
         hits, failures = self._search(connectors, query, limit, steps)
+        discovery_successes = len(connectors) - len(failures)
         chain_sources = [item for item in connectors if item.name in CHAIN_CONNECTORS]
         if chain_sources:
             extra, extra_failures = self._search(
                 chain_sources, _chain_query(query), limit, steps, step="chain",
             )
+            discovery_successes += len(chain_sources) - len(extra_failures)
             hits.extend(hit for hit in extra if _on_topic(query, hit))
             failures.extend(extra_failures)
         sources = self._sources(hits)
@@ -98,7 +105,17 @@ class Harness:
         events = dedup(hits)
         steps.append({"name": "dedup", "status": "ok", "events": len(events),
                       "merged": sum(1 for e in events if e["dedup_status"] == "merged")})
-        counter_hits, _ = self._search(connectors, f"{query} mass adoption industry standard", limit, steps, step="countersearch")
+        counter_hits, counter_failures = self._search(
+            connectors, f"{query} mass adoption industry standard", limit, steps, step="countersearch",
+        )
+        countersearch_done = bool(connectors) and len(counter_failures) < len(connectors)
+        run_failures = failures + counter_failures
+        if discovery_successes == 0:
+            run_status = "failed"
+        elif run_failures:
+            run_status = "degraded"
+        else:
+            run_status = "succeeded"
         counters, counter_evidence = markers(counter_hits)
         if sources and all(s["trust"] == "indicator" for s in sources):
             counters["M04"] = True
@@ -107,14 +124,18 @@ class Harness:
         origins = len({_host(h.url) for h in hits})
         if extractor is None and events:
             cards, model_id, provider = self._score_events(
-                query, hits, events, counter_hits, rules, budget_exhausted, steps,
+                query, hits, events, counter_hits, rules, budget_exhausted,
+                countersearch_done, steps,
             )
         else:
             fv, model_id, provider, scope = self._extract(
                 query, hits, observed, origins, counters, counter_evidence, extractor, steps,
             )
             result = score(fv, rules)
-            decision = route(_contract(fv, result, counters, budget_exhausted, countersearch_done=True))
+            decision = route(_contract(
+                fv, result, counters, budget_exhausted,
+                countersearch_done=countersearch_done,
+            ))
             steps.append({"name": "score", "status": "ok", "label": result.label, "gate": decision["action"]})
             cards = [_card(
                 query, result, decision, sources, events, model_id, _blob("", hits),
@@ -123,16 +144,20 @@ class Harness:
         card = cards[0]
         top, excluded = rank(cards, require_subject=bool(_tokens(query)), query=query)
         steps.append({"name": "rank", "status": "ok", "admitted": len(top), "shortfall": TOP_N - len(top),
-                      "connector_failures": failures})
+                      "connector_failures": run_failures, "run_status": run_status,
+                      "countersearch_done": countersearch_done})
         report = RunReport(
             id=key[:16], query=query, idempotency_key=key, repeated=False, steps=steps, sources=sources, events=events,
             card=card, top=top, shortfall=TOP_N - len(top), exclusion_registry=excluded,
-            model_id=model_id, provider=provider, corpus_version=self.corpus_version,
+            status=run_status, model_id=model_id, provider=provider, corpus_version=self.corpus_version,
         )
         self.store[key] = report
         return report
 
-    def _score_events(self, query, hits, events, counter_hits, rules, budget_exhausted, steps):
+    def _score_events(
+        self, query, hits, events, counter_hits, rules, budget_exhausted,
+        countersearch_done, steps,
+    ):
         """One card per distinct find. The same gates apply. Nothing is admitted early."""
         by_url: dict[str, list] = {}
         for hit in hits:
@@ -154,7 +179,10 @@ class Harness:
                 transition="unknown", evidence=evidence, mode="ledger", named_primary=False,
             )
             result = score(fv, rules)
-            decision = route(_contract(fv, result, counters, budget_exhausted, countersearch_done=True))
+            decision = route(_contract(
+                fv, result, counters, budget_exhausted,
+                countersearch_done=countersearch_done,
+            ))
             blob = " ".join([title, *[hit.snippet or "" for hit in group]])
             cards.append(_card(
                 title, result, decision, event_sources, [event], None, _blob(title, group),

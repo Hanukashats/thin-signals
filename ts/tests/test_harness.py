@@ -4,6 +4,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from ts.harness import Harness, dedup, markers
+from ts.persist import public_report
 from ts.snapshots import save_snapshot
 from ts.sources.connectors import (
     ArxivConnector,
@@ -136,6 +137,10 @@ def test_failed_connector_does_not_abort_and_rerun_is_free(tmp_path: Path):
                               Hit("arxiv", "https://doi.org/10.9/c", "Third memory event", "grant", "paper", doi="10.9/c")])
     harness = Harness(snapshot_dir=tmp_path, corpus_version="test")
     report = harness.run("new memory", [Boom(), good], fetch_body=lambda url: b"body")
+    assert report.status == "degraded"
+    body = public_report(report)
+    assert body["run_status"] == "degraded"
+    assert body["run_contract_version"] == "run-status-0.2"
     assert any(s["status"] == "failed" and s["connector"] == "boom" for s in report.steps)
     assert good.calls == 2  # search + countersearch
     again = harness.run("new memory", [Boom(), good])
@@ -144,6 +149,39 @@ def test_failed_connector_does_not_abort_and_rerun_is_free(tmp_path: Path):
     assert report.shortfall == 12
     assert report.sources[0]["trust"] == "primary"
     assert report.sources[0]["date"] == "2026-01-01"
+
+
+def test_total_connector_failure_is_a_failed_run():
+    report = Harness(corpus_version="all-failed").run("new memory", [Boom()])
+
+    assert report.status == "failed"
+    body = public_report(report)
+    assert body["run_status"] == "failed"
+    assert body["run_contract_version"] == "run-status-0.2"
+    assert report.top == []
+
+
+def test_failed_countersearch_degrades_and_blocks_admission():
+    hit = Hit(
+        "arxiv", "https://arxiv.org/abs/10", "New memory mechanism", "prototype",
+        "paper", doi="10.9/counter", published="2026-01-01",
+    )
+
+    class CountersearchFails:
+        name = "arxiv"
+
+        def search(self, query: str, *, limit: int = 5):
+            if "mass adoption industry standard" in query:
+                raise TimeoutError(query)
+            return [hit]
+
+    report = Harness(corpus_version="counter-failed").run(
+        "new memory mechanism", [CountersearchFails()],
+    )
+
+    assert report.status == "degraded"
+    assert report.top == []
+    assert report.exclusion_registry[0]["policy_action"] == "COUNTERSEARCH"
 
 
 def test_query_words_do_not_invent_a_market_link():

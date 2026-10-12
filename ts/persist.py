@@ -41,7 +41,7 @@ def save_report(session: Session, report: RunReport) -> str:
         model_id=report.model_id,
         provider=report.provider,
         idempotency_key=report.idempotency_key,
-        status="succeeded",
+        status=report.status,
         stats=public_report(report),
         finished_at=datetime.now(tz=UTC),
     ))
@@ -87,7 +87,8 @@ def public_report(report: RunReport) -> dict:
     decision_card = report.top[0].get("technology") if report.top else None
     body = {
         "run_id": report.id,
-        "run_status": "succeeded",
+        "run_status": report.status,
+        "run_contract_version": report.run_contract_version,
         "query": report.query,
         "repeated": report.repeated,
         "signal_label": report.card["label"],

@@ -64,6 +64,16 @@ def test_checklist_route_keeps_model_and_provider_from_the_same_card():
     assert _checklist_route({"top": [], "excluded": [], "unread": []}) == (None, None)
 
 
+def test_wide_run_status_preserves_theme_failures():
+    from ts.live import _wide_status
+
+    assert _wide_status(["succeeded", "succeeded"]) == "succeeded"
+    assert _wide_status(["succeeded", "degraded"]) == "degraded"
+    assert _wide_status(["succeeded", "failed"]) == "degraded"
+    assert _wide_status(["failed", "failed"]) == "failed"
+    assert _wide_status([]) == "failed"
+
+
 def test_empty_run_has_its_own_verdict_and_summarizes_exclusions():
     from ts.live import _empty_card
 

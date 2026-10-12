@@ -11,7 +11,7 @@ import httpx
 from ts.checklist import CHECKLIST_VERSION, annotate_checklist
 from ts.desk import near_miss_cards
 from ts.fanout import is_wide, load_theme_plan, merge_theme_reports
-from ts.harness import TOP_N, Harness, RunReport
+from ts.harness import RUN_CONTRACT_VERSION, TOP_N, Harness, RunReport
 from ts.persist import load_report, public_report, save_report
 from ts.plain import REASONS, say
 from ts.potential import rank_potential_cards
@@ -53,7 +53,9 @@ def _since(day: str) -> str:
 def _key(query: str, rules_version: str, corpus: str = CORPUS, day: str | None = None) -> str:
     """A repeat on the same UTC day returns the stored run. The next day searches again."""
     window = day or _today()
-    return hashlib.sha256(f"{query}|{corpus}+{window}|{rules_version}".encode()).hexdigest()
+    return hashlib.sha256(
+        f"{query}|{corpus}+{window}|{rules_version}|{RUN_CONTRACT_VERSION}".encode()
+    ).hexdigest()
 
 
 def _near_miss(registry: list[dict], settings: Settings) -> list[dict]:
@@ -79,6 +81,15 @@ def _checklist_route(checked: dict) -> tuple[str | None, str | None]:
                 str(checklist["provider"]) if checklist.get("provider") else None
             )
     return None, None
+
+
+def _wide_status(statuses: list[str]) -> str:
+    """Fold theme run states without hiding a failed or degraded search."""
+    if not statuses or all(status == "failed" for status in statuses):
+        return "failed"
+    if any(status != "succeeded" for status in statuses):
+        return "degraded"
+    return "succeeded"
 
 
 def _empty_card(rules_version: str, registry=None, unread=None) -> dict:
@@ -187,12 +198,14 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
         stored["repeated"] = True
         return stored
     parts = []
+    theme_statuses = []
     for theme in plan["themes"]:
         report = run_query(
             theme["query"], limit=limit, extract=extract, settings=settings,
             connectors=connectors, session_factory=session_factory, _theme=True, _day=day,
         )
         parts.append((theme, list(report.get("top") or [])))
+        theme_statuses.append(str(report.get("run_status") or "failed"))
     merged = merge_theme_reports(parts, limit=TOP_N)
     # A theme query is not the operator's question. As one, it marks cross-theme papers ДРУГОЙ_МЕХАНИЗМ.
     checked = annotate_checklist(merged["top"], merged["overflow"], settings, query=None)
@@ -229,6 +242,7 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
         top=top,
         shortfall=TOP_N - len(top),
         exclusion_registry=registry,
+        status=_wide_status(theme_statuses),
         unread=list(checked.get("unread") or []),
         near_miss=_near_miss(registry, settings),
         potential=_potential(registry, settings, top),

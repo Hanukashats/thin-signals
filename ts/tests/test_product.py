@@ -66,6 +66,35 @@ def test_repeat_returns_the_same_postgres_run(tmp_path):
         session.commit()
 
 
+def test_degraded_run_status_is_persisted_without_becoming_a_signal_label(tmp_path):
+    from dataclasses import replace
+
+    from sqlalchemy import delete
+
+    from ts.db import session_factory
+    from ts.db.models import Candidate, Decision, Run
+
+    original = _report(tmp_path)
+    report = replace(
+        original,
+        id="degraded-status-test",
+        query="product-degraded-query",
+        idempotency_key="degraded-status-test-key",
+        status="degraded",
+    )
+    factory = session_factory()
+    with factory() as session:
+        save_report(session, report)
+        loaded = load_report(session, report.idempotency_key)
+        assert loaded["run_status"] == "degraded"
+        assert loaded["run_contract_version"] == "run-status-0.2"
+        assert loaded["signal_label"] != loaded["run_status"]
+        session.execute(delete(Decision).where(Decision.run_id == report.id))
+        session.execute(delete(Run).where(Run.id == report.id))
+        session.execute(delete(Candidate).where(Candidate.id == f"live-{report.id}"))
+        session.commit()
+
+
 def test_api_separates_run_status_label_and_exclusion():
     def runner(query, limit, extract):
         return {
