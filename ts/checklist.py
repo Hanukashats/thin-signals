@@ -13,13 +13,15 @@ from ts.fanout import _identity
 from ts.scale import fetch_abstract
 from ts.scoring.scorer import load_rules, score
 
-CHECKLIST_VERSION = "checklist-v15"
+CHECKLIST_VERSION = "checklist-v16"
 TEXT_HUNT = 4
 # Four extra reads for each standing theme. One noisy theme must not spend the rest.
 BACKFILL_CAP = TEXT_HUNT * 13
 DROP_COUNTERS = ("M01", "M02", "M03", "M05", "M06")
 # Connectors and the harness cut snippets here. A snippet this long was probably cut mid-text.
 SNIPPET_CAP = 500
+SOURCE_FRAGMENT_CAP = 6
+COUNTER_FRAGMENT_CAP = 2
 _FULL: dict[tuple[str, str], str] = {}
 _FRAGMENT_REF = re.compile(r"\[(\d+)\]")
 
@@ -55,7 +57,22 @@ def _fragments(card: dict, full: bool = True) -> tuple[list[str], list[str]]:
         name = str(source.get("name") or "").strip()
         fragments.append(f"{name}. {snippet}".strip(". "))
         urls.append(str(source.get("url") or ""))
-        if len(fragments) >= 6:
+        if len(fragments) >= SOURCE_FRAGMENT_CAP:
+            break
+    counter_n = 0
+    for source in card.get("counter_sources") or []:
+        if not isinstance(source, dict):
+            continue
+        snippet = str(source.get("snippet") or "").strip()
+        if not snippet:
+            continue
+        if full:
+            snippet = _fuller(source, snippet)
+        name = str(source.get("name") or "").strip()
+        fragments.append(f"КОНТРПОИСК: {name}. {snippet}".strip(". "))
+        urls.append(str(source.get("url") or ""))
+        counter_n += 1
+        if counter_n >= COUNTER_FRAGMENT_CAP:
             break
     if fragments:
         return fragments, urls

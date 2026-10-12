@@ -19,7 +19,7 @@ the immediately preceding equivalent staging's **8m51s**. Old pre-checklist
 production duration is unknown; search breadth/depth/thresholds were not weakened.
 See `reports/SEARCH_TIMING_2026-09-29.md`.
 
-7.6 continuation: evidence and provider boundaries are hardened without changing `rules-0.1`, weights, thresholds or P01–P18. `checklist-v15` validates reader structure and rejects verified features/transitions or fired exclusion counters without an actual `[n]` fragment; off-topic rejection precedes below-watchlist return. Mandatory OpenRouter ZDR fields cannot be weakened; returned model and cached response provenance are checked. Three modules share the evidence-first shell: live signals, a separate potential queue over current scored observations, and search over the sealed 29.09 old-technology archive. Facts/hypotheses/checks/sources and run provenance stay separate. Figma v4 is node `41:178`; transparent logo/favicon are versioned. API/UI run as persistent DynamicUser units, active and enabled.
+7.6 continuation: evidence and provider boundaries are hardened without changing `rules-0.1`, weights, thresholds or P01–P18. `checklist-v16` validates reader structure and rejects verified features/transitions or fired exclusion counters without an actual `[n]` fragment; it also reads separately labelled countersearch evidence. Off-topic rejection precedes below-watchlist return. Mandatory OpenRouter ZDR fields cannot be weakened; returned model and cached response provenance are checked. Three modules share the evidence-first shell: live signals, a separate potential queue over current scored observations, and search over the sealed 29.09 old-technology archive. Facts/hypotheses/checks/sources and run provenance stay separate. Figma v4 is node `41:178`; transparent logo/favicon are versioned. API/UI run as persistent DynamicUser units, active and enabled.
 
 The public route is `https://tsignal.aispaces.ru` through Caddy on VM105 to
 VM232's private `:18443` listener. Account hashes and provider/database
@@ -42,7 +42,7 @@ containers, so live search no longer depends on backend VM101. Receipt:
 | W3-live | **in_progress** — live search exists; honest scored TOP-15 and durable per-step ledger remain incomplete |
 | W4-ui | **in_progress, deployed shell and verified typography** — three modules live; real-account authenticated production smoke remains unobserved |
 | Rules | `rules-0.1`, unchanged |
-| Checklist | `checklist-v15`; old persisted rows remain historical and are excluded from the active potential queue |
+| Checklist | `checklist-v16`; old persisted rows remain historical and are excluded from the active potential queue |
 | Production delivery | VM232 public; PostgreSQL/API/UI/sing-box/research services active+enabled; SearXNG patch upgrade and controlled container restart recovered automatically |
 | Canonical Git | private SourceCraft `shats123/thin-signals`; public GitHub delivery snapshot `Hanukashats/thin-signals`, `main=0c1fdd3` verified |
 | Reliability branch | `feat/thin-signals-reliability-20261012`; not deployed; real Git timestamps retained |
@@ -56,8 +56,12 @@ containers, so live search no longer depends on backend VM101. Receipt:
 - `run-status-0.2` makes total discovery failure `failed`, partial discovery or
   countersearch failure `degraded`, and failed countersearch blocks admission.
   The latest-run endpoint now returns the newest finished run instead of hiding
-  failed/degraded outcomes. The complete suite passes 254/254 against a fresh
+  failed/degraded outcomes. The complete suite passes 256/256 against a fresh
   disposable migrated database; production data was not touched.
+- `live-w19` attaches matching countersearch records to each candidate as a
+  separate evidence channel. `checklist-v16` passes those numbered fragments to
+  the reader; a cited M01/M02/M03/M05/M06 finding deterministically excludes the
+  card. Countersearch model output still cannot score or admit a card directly.
 - Source trust is now hostname/type based: DOI-shaped text in an unknown URL
   path cannot promote an untrusted web page to `primary`. The regression was
   RED before the fix and the focused trust suite passes after it;

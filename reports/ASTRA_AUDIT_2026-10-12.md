@@ -40,7 +40,9 @@ created a disposable migrated database and passed 253 tests; production data
 was not used.
 
 Post-audit verification after the latest-run visibility regression was added:
-254/254 tests passed against another fresh disposable migrated database.
+254/254 tests passed against another fresh disposable migrated database. After
+countersearch evidence wiring, the complete suite passed 256/256 in a third
+fresh disposable migrated database.
 
 ## Recommended method
 

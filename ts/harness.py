@@ -140,6 +140,7 @@ class Harness:
             cards = [_card(
                 query, result, decision, sources, events, model_id, _blob("", hits),
                 subject_hits=_subject_hits(query, query), scope=scope,
+                counter_sources=self._sources(counter_hits, purpose="countersearch"),
             )]
         card = cards[0]
         top, excluded = rank(cards, require_subject=bool(_tokens(query)), query=query)
@@ -167,7 +168,8 @@ class Harness:
             group = [hit for url in event["urls"] for hit in by_url.get(url, [])]
             title = group[0].title if group else query
             event_sources = self._sources(group)
-            counters, evidence = markers(group + _about_find(group, counter_hits))
+            related_counter_hits = _about_find(group, counter_hits)
+            counters, evidence = markers(group + related_counter_hits)
             if event_sources and all(source["trust"] == "indicator" for source in event_sources):
                 counters["M04"] = True
                 evidence["M04"] = "у этой находки только пересказы, первоисточника нет"
@@ -187,6 +189,7 @@ class Harness:
             cards.append(_card(
                 title, result, decision, event_sources, [event], None, _blob(title, group),
                 subject_hits=max(_subject_hits(query, title), _subject_hits(query, blob)),
+                counter_sources=self._sources(related_counter_hits, purpose="countersearch"),
             ))
             steps.append({"name": "score", "status": "ok", "label": result.label, "gate": decision["action"], "find": title})
         return cards, None, None
@@ -206,10 +209,10 @@ class Harness:
                 steps.append({"name": step, "connector": connector.name, "status": "failed", "error": type(e).__name__})
         return hits, failures
 
-    def _sources(self, hits: list[Hit]) -> list[dict]:
+    def _sources(self, hits: list[Hit], purpose: str | None = None) -> list[dict]:
         cards = []
         for hit in hits:
-            cards.append({
+            card = {
                 "name": hit.title,
                 "url": hit.url,
                 "date": hit.published,
@@ -220,7 +223,10 @@ class Harness:
                 "connector": hit.connector,
                 "snippet": (hit.snippet or "")[:500],
                 **({"doi": hit.doi} if hit.doi else {}),
-            })
+            }
+            if purpose:
+                card["purpose"] = purpose
+            cards.append(card)
         return cards
 
     def _snapshot(self, hits, fetch_body, steps) -> None:
@@ -515,7 +521,7 @@ def _blob(title: str, hits: list) -> str:
 
 
 def _card(query, result, decision, sources, events, model_id, text: str = "", subject_hits: int = 0,
-          scope: int | None = None) -> dict:
+          scope: int | None = None, counter_sources: list[dict] | None = None) -> dict:
     return {
         "technology": query,
         "subject_hits": subject_hits,
@@ -528,6 +534,7 @@ def _card(query, result, decision, sources, events, model_id, text: str = "", su
         "reason_codes": result.reason_codes,
         "predictors": result.predictors,
         "sources": sources,
+        "counter_sources": list(counter_sources or []),
         "events": len(events),
         "planned_not_deployment": [e["key"] for e in events if e["type"] == "planned_for"],
         "model_id": model_id,

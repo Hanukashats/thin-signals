@@ -184,6 +184,46 @@ def test_failed_countersearch_degrades_and_blocks_admission():
     assert report.exclusion_registry[0]["policy_action"] == "COUNTERSEARCH"
 
 
+def test_countersearch_evidence_is_attached_to_the_matching_card():
+    discovery = Hit(
+        "custom", "https://lab.example/quantum-widget", "Quantum Widget Alpha",
+        "early prototype", "paper", published="2026-01-01",
+    )
+    counter = Hit(
+        "custom", "https://www.iso.org/standard/quantum-widget",
+        "Quantum Widget industry standard", "mass adoption since 2020", "registry",
+        published="2020-01-01",
+    )
+
+    class DiscoveryAndCountersearch:
+        name = "custom"
+
+        def search(self, query: str, *, limit: int = 5):
+            if "mass adoption industry standard" in query:
+                return [counter]
+            return [discovery]
+
+    report = Harness(corpus_version="counter-evidence").run(
+        "quantum widget", [DiscoveryAndCountersearch()],
+    )
+    card = (report.top or report.exclusion_registry)[0]
+
+    assert card["counter_sources"] == [
+        {
+            "name": "Quantum Widget industry standard",
+            "url": "https://www.iso.org/standard/quantum-widget",
+            "date": "2020-01-01",
+            "date_unknown_reason": None,
+            "type": "registry",
+            "language": "und",
+            "trust": "primary",
+            "connector": "custom",
+            "snippet": "mass adoption since 2020",
+            "purpose": "countersearch",
+        }
+    ]
+
+
 def test_query_words_do_not_invent_a_market_link():
     hit = Hit("arxiv", "https://arxiv.org/abs/1", "Lab humidity sensor", "prototype", "paper",
               doi="10.1/h", published="2026-01-01")

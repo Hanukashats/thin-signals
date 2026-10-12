@@ -256,6 +256,35 @@ def test_counter_drops_with_quote():
     assert result["excluded"][0]["checklist_quote"] == "уже есть лидеры [1]"
 
 
+def test_countersearch_fragment_reaches_the_reader_and_drops_the_card():
+    card = _card()
+    card["counter_sources"] = [{
+        "name": "Industry registry",
+        "url": "https://registry.example/widget",
+        "snippet": "The market has an established standard and mass adoption.",
+        "purpose": "countersearch",
+    }]
+    seen = {}
+    out = _out(counters={"M01": "зрелый отраслевой стандарт [2]"})
+
+    def reader(received):
+        from ts.checklist import _fragments
+
+        seen["fragments"], seen["urls"] = _fragments(received)
+        return _read(out)
+
+    judged = score_card(card, reader, _rules())
+
+    assert seen["fragments"][1].startswith("КОНТРПОИСК: Industry registry")
+    assert seen["urls"][1] == "https://registry.example/widget"
+    assert judged["keep"] is False
+    assert judged["card"]["policy_reason"] == "checklist_counter"
+    assert any(
+        fragment["fragment"] == 2
+        for fragment in judged["card"]["evidence_fragments"]
+    )
+
+
 def test_reader_m04_ignored():
     rules = _rules()
     card = _card()

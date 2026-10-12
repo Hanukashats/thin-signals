@@ -456,7 +456,7 @@ requirements:
     forks: [goal.controller]
     acceptance: semantic validator rejects claim without fragment_id; structural rc=0 of donor validators is not a gate
     evidence:
-      - ts/checklist.py checklist-v15 structure, _uncited_verified, exclusion-counter references and off-topic ordering
+      - ts/checklist.py checklist-v16 structure, _uncited_verified, countersearch fragments, exclusion-counter references and off-topic ordering
       - ts/tests/test_checklist.py invalid/missing/out-of-range fragment references fail closed
 
   - id: TS-INV-03
@@ -550,10 +550,12 @@ requirements:
     owner: AI/domain
     state: tested
     wave: W9-run-contract
-    acceptance: all countersearch connectors failing sets countersearch_done false and prevents RANK_ELIGIBLE
+    acceptance: all countersearch connectors failing sets countersearch_done false and prevents RANK_ELIGIBLE; matching countersearch fragments reach the checklist and a cited exclusion counter deterministically removes the card
     evidence:
       - ts/harness.py
       - ts/tests/test_harness.py::test_failed_countersearch_degrades_and_blocks_admission
+      - ts/tests/test_harness.py::test_countersearch_evidence_is_attached_to_the_matching_card
+      - ts/tests/test_checklist.py::test_countersearch_fragment_reaches_the_reader_and_drops_the_card
 
   - id: RS-05
     title: Bounded GPT Researcher and OpenAlex evidence adapter

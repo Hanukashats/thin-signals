@@ -182,7 +182,7 @@ phases:
         status: in_progress
         owner: codex
         deliverables:
-          - "checklist-v15 structural, evidence-reference and off-topic validator; potential-v2 current-observation ranking"
+          - "checklist-v16 structural, evidence-reference, countersearch-fragment and off-topic validator; potential-v2 current-observation ranking"
           - "non-overridable ZDR/data-collection policy and returned-model allowlist"
           - "model/provider provenance from the same checklist card"
           - "honest evidence-first Streamlit result shell"

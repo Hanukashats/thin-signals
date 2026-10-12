@@ -38,7 +38,7 @@ from ts.sources.connectors import (
     SecConnector,
 )
 
-CORPUS = "live-w18"
+CORPUS = "live-w19"
 THEME_LOOKBACK_DAYS = 365
 
 
