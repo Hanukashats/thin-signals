@@ -101,6 +101,11 @@ containers, so live search no longer depends on backend VM101. Receipt:
   monotonic deadline. The complete suite is 332/332 on a disposable migrated
   database. Production and feature flags remain unchanged pending another
   independent verdict.
+- A third frozen-candidate review found public citation misattribution and
+  slow-header deadline drift. `checklist-v21` now cites the attested final URL;
+  `retrieval-0.6` actively aborts header parsing at the same absolute deadline.
+  Both exact RED regressions and the complete 334-test suite pass locally;
+  production remains untouched pending a clean independent PASS.
 - The default live path re-fetches a primary-first, configured maximum of source
   bodies inside the inherited deadline and stores immutable SHA-256 snapshots.
   Source cards distinguish `preserved` from `snippet_only`; verified features
@@ -179,7 +184,7 @@ containers, so live search no longer depends on backend VM101. Receipt:
    in a separately reviewed presentation rebuild rather than silently changing
    the sealed delivery package.
 6. **Evidence provenance release gate:** bounded source snapshots and
-   `checklist-v20` are implemented and tested on the branch. A frozen replay and
+   `checklist-v21` are implemented and tested on the branch. A frozen replay and
    canary must measure coverage/latency before production activation; saved
    historical runs remain immutable.
 7. **Release state:** bounded search, timings, safe funnel and configuration

@@ -548,6 +548,7 @@ def test_pinned_transport_rejects_a_response_whose_final_eof_misses_deadline():
     worker.start()
     port = server.server_address[1]
     started = time.monotonic()
+    fetch_elapsed = None
     try:
         with pytest.raises(ConnectorError, match="transport"):
             fetch_public_target(
@@ -561,13 +562,54 @@ def test_pinned_transport_rejects_a_response_whose_final_eof_misses_deadline():
                 headers={"User-Agent": "test"},
                 timeout_seconds=0.1,
             )
+        fetch_elapsed = time.monotonic() - started
     finally:
-        elapsed = time.monotonic() - started
         server.shutdown()
         server.server_close()
         worker.join(timeout=1)
 
-    assert elapsed < 0.16
+    assert fetch_elapsed is not None and fetch_elapsed < 0.16
+
+
+def test_pinned_transport_total_deadline_includes_slow_trickled_headers():
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            payload = b"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nbody"
+            try:
+                for byte in payload:
+                    self.connection.sendall(bytes([byte]))
+                    time.sleep(0.01)
+            except (BrokenPipeError, ConnectionResetError):
+                return
+
+        def log_message(self, _format, *_args):
+            return
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    worker = Thread(target=server.serve_forever, daemon=True)
+    worker.start()
+    port = server.server_address[1]
+    started = time.monotonic()
+    try:
+        with pytest.raises(ConnectorError, match="transport"):
+            fetch_public_target(
+                PublicTarget(
+                    url=f"http://slow-headers.example:{port}/evidence",
+                    scheme="http",
+                    host="slow-headers.example",
+                    port=port,
+                    addresses=("127.0.0.1",),
+                ),
+                headers={"User-Agent": "test"},
+                timeout_seconds=0.1,
+            )
+        fetch_elapsed = time.monotonic() - started
+    finally:
+        server.shutdown()
+        server.server_close()
+        worker.join(timeout=1)
+
+    assert fetch_elapsed is not None and fetch_elapsed < 0.16
 
 
 @pytest.mark.parametrize("url", [

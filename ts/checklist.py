@@ -18,7 +18,7 @@ from ts.snapshots import read_attested_snapshot
 from ts.sources.refetch import extract_text
 from ts.sources.trust import classify
 
-CHECKLIST_VERSION = "checklist-v20"
+CHECKLIST_VERSION = "checklist-v21"
 TEXT_HUNT = 4
 # Four extra reads for each standing theme. One noisy theme must not spend the rest.
 BACKFILL_CAP = TEXT_HUNT * 13
@@ -130,8 +130,11 @@ def _fragment_bundle_details(
             snippet = _fuller(source, snippet)
         name = str(source.get("name") or "").strip()
         fragments.append(f"{name}. {snippet}".strip(". "))
-        urls.append(str(source.get("url") or ""))
         attested = _preserved_evidence(evidence, snapshot_root)
+        urls.append(
+            str((evidence or {}).get("fetched_url") or source.get("url") or "")
+            if attested else str(source.get("url") or "")
+        )
         if attested and _effective_source_trust(source, evidence) == "primary":
             source_provenance = "preserved_primary"
             verified_indices.add(len(fragments))

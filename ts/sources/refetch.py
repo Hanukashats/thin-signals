@@ -10,6 +10,7 @@ import ssl
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from html.parser import HTMLParser
+from threading import Timer
 from time import monotonic
 from urllib.parse import quote, urljoin, urlparse
 
@@ -153,9 +154,13 @@ class _PinnedHTTPSConnection(http.client.HTTPSConnection):
         )
         try:
             sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-            self.sock = self._context.wrap_socket(sock, server_hostname=self.host)
+            # Expose the raw socket before TLS so the absolute-deadline watchdog
+            # can abort a peer that trickles handshake records indefinitely.
+            self.sock = sock
+            self.sock = self._context.wrap_socket(self.sock, server_hostname=self.host)
         except Exception:
             sock.close()
+            self.sock = None
             raise
 
 
@@ -174,6 +179,25 @@ def _numeric_socket(address: str, port: int, timeout: float, source_address=None
     except Exception:
         sock.close()
         raise
+
+
+def _response_socket(connection, response=None):
+    read_socket = connection.sock
+    if read_socket is None and response is not None:
+        raw = getattr(getattr(response, "fp", None), "raw", None)
+        read_socket = getattr(raw, "_sock", None)
+    return read_socket
+
+
+def _abort_connection(connection, response_box) -> None:
+    read_socket = _response_socket(connection, response_box[0])
+    if read_socket is None:
+        return
+    try:
+        read_socket.shutdown(socket.SHUT_RDWR)
+    except OSError:
+        pass
+    read_socket.close()
 
 
 def fetch_public_target(
@@ -203,6 +227,8 @@ def fetch_public_target(
     last_error: BaseException | None = None
     for address in target.addresses:
         connection = None
+        response = None
+        deadline_timer = None
         try:
             remaining = deadline_at - monotonic()
             if remaining <= 0:
@@ -211,8 +237,17 @@ def fetch_public_target(
                 _PinnedHTTPSConnection if target.scheme == "https" else _PinnedHTTPConnection
             )
             connection = connection_type(target, address, remaining)
+            response_box = [None]
+            deadline_timer = Timer(
+                max(0.001, deadline_at - monotonic()),
+                _abort_connection,
+                args=(connection, response_box),
+            )
+            deadline_timer.daemon = True
+            deadline_timer.start()
             connection.request("GET", path, headers=request_headers)
             response = connection.getresponse()
+            response_box[0] = response
             declared = response.getheader("content-length")
             if declared and declared.isdigit() and int(declared) > max_body_bytes:
                 raise ConnectorError("advisory response is too large")
@@ -222,10 +257,7 @@ def fetch_public_target(
                 remaining = deadline_at - monotonic()
                 if remaining <= 0:
                     raise TimeoutError("advisory re-fetch deadline exceeded")
-                read_socket = connection.sock
-                if read_socket is None:
-                    raw = getattr(getattr(response, "fp", None), "raw", None)
-                    read_socket = getattr(raw, "_sock", None)
+                read_socket = _response_socket(connection, response)
                 if read_socket is not None:
                     read_socket.settimeout(max(0.001, remaining))
                 chunk = read_chunk(min(65_536, max_body_bytes + 1 - len(body)))
@@ -246,6 +278,8 @@ def fetch_public_target(
         except (OSError, TimeoutError, http.client.HTTPException, ssl.SSLError) as exc:
             last_error = exc
         finally:
+            if deadline_timer is not None:
+                deadline_timer.cancel()
             if connection is not None:
                 connection.close()
     raise ConnectorError("advisory re-fetch transport failed") from last_error

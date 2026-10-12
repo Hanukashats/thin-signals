@@ -311,6 +311,43 @@ def test_final_indicator_redirect_cannot_retain_declared_primary_trust(tmp_path)
     assert judged["card"]["evidence_fragments"][0]["provenance"] == "preserved_non_primary"
 
 
+def test_preserved_fragment_cites_its_attested_final_url_not_an_unrelated_primary(tmp_path):
+    fetched_url = "https://arxiv.org/abs/2401.00001"
+    text = "The attested arXiv paper contains this result."
+    text_hash = hashlib.sha256(text.encode()).hexdigest()
+    snapshot = save_snapshot(
+        tmp_path,
+        fetched_url,
+        text.encode(),
+        content_type="text/plain",
+        text_hash=text_hash,
+    )
+    card = _card(url="https://nature.com/articles/unrelated", snippet="search snippet")
+    card["sources"][0]["evidence"] = {
+        "version": "snapshot-evidence-0.2",
+        "status": "preserved",
+        "fragment": text,
+        "snapshot_ref": "sha256:" + snapshot["content_hash"],
+        "attestation_ref": snapshot["attestation_ref"],
+        "content_hash": snapshot["content_hash"],
+        "fragment_hash": text_hash,
+        "text_hash": text_hash,
+        "fetched_url": fetched_url,
+        "fetched_source_type": "paper",
+        "content_type": "text/plain",
+    }
+
+    judged = score_card(
+        card,
+        lambda _card: _read(_out(verified={"P01"})),
+        _rules(),
+        snapshot_root=tmp_path,
+    )
+
+    assert judged["card"]["evidence_fragments"][0]["provenance"] == "preserved_primary"
+    assert judged["card"]["evidence_fragments"][0]["url"] == fetched_url
+
+
 def test_missing_snapshot_blob_cannot_keep_verified_provenance(tmp_path):
     card = _card()
     out = _out(verified={"P01"}, transition="verified")
