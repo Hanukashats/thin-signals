@@ -59,6 +59,10 @@ class Settings:
     litellm_url: str | None = None
     embedding_alias: str = "embedding-local"
     extra: dict = field(default_factory=dict)
+    search_max_workers: int = 6
+    search_deadline_seconds: float = 90.0
+    wide_search_deadline_seconds: float = 540.0
+    source_timeout_seconds: float = 40.0
 
     @property
     def sqlalchemy_url(self) -> str:
@@ -93,4 +97,8 @@ def load(root: str | Path | None = None) -> Settings:
         docling_url=g("TS_DOCLING_URL"),
         litellm_url=g("TS_LITELLM_URL"),
         embedding_alias=g("TS_EMBEDDING_ALIAS", "embedding-local"),
+        search_max_workers=int(g("TS_SEARCH_MAX_WORKERS", "6")),
+        search_deadline_seconds=float(g("TS_SEARCH_DEADLINE_SECONDS", "90")),
+        wide_search_deadline_seconds=float(g("TS_WIDE_SEARCH_DEADLINE_SECONDS", "540")),
+        source_timeout_seconds=float(g("TS_SOURCE_TIMEOUT_SECONDS", "40")),
     )

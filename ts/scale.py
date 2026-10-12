@@ -270,4 +270,6 @@ def apply_reader(cards: list[dict], reader) -> list[dict]:
 
 
 def annotate_scopes(cards: list[dict], settings) -> list[dict]:
+    if not cards:
+        return []
     return apply_reader(cards, make_reader(settings))

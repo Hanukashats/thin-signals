@@ -92,6 +92,50 @@ def load_report(session: Session, idempotency_key: str) -> dict | None:
 
 def public_report(report: RunReport) -> dict:
     decision_card = report.top[0].get("technology") if report.top else None
+    connector_steps = [
+        dict(step) for step in report.steps
+        if step.get("name") in {"search", "chain", "countersearch"}
+        and step.get("connector")
+    ]
+    stage_names = list(dict.fromkeys(step["name"] for step in connector_steps))
+    retrieval_stages = []
+    for name in stage_names:
+        rows = [step for step in connector_steps if step["name"] == name]
+        retrieval_stages.append({
+            "name": name,
+            "calls": len(rows),
+            "succeeded": sum(1 for step in rows if step.get("status") == "ok"),
+            "failed": sum(1 for step in rows if step.get("status") == "failed"),
+            "items": sum(
+                step.get("n", 0) for step in rows
+                if isinstance(step.get("n", 0), int) and not isinstance(step.get("n", 0), bool)
+            ),
+            # A bounded pool can queue work. Queue delay plus call duration is
+            # the observable stage wall time; summing concurrent calls would
+            # overstate it.
+            "wall_ms": max((
+                step.get("queued_ms", 0) + step.get("elapsed_ms", 0)
+                for step in rows
+            ), default=0),
+        })
+    stage_by_name = {stage["name"]: stage for stage in retrieval_stages}
+    retrieval_funnel = None
+    if connector_steps:
+        retrieval_funnel = {
+            "discovery_items": sum(
+                stage_by_name.get(name, {}).get("items", 0)
+                for name in ("search", "chain")
+            ),
+            "unique_sources": len({
+                source.get("url") for source in report.sources
+                if isinstance(source, dict) and source.get("url")
+            }),
+            "deduplicated_events": len(report.events),
+            "countersearch_items": stage_by_name.get("countersearch", {}).get("items", 0),
+            "admitted": len(report.top),
+            "excluded": len(report.exclusion_registry),
+            "unread": len(getattr(report, "unread", None) or []),
+        }
     body = {
         "run_id": report.id,
         "run_status": report.status,
@@ -117,6 +161,16 @@ def public_report(report: RunReport) -> dict:
         "rules_version": report.card["rules_version"],
         "chain_link": report.card.get("chain_link"),
         "fanout": report.fanout,
+        "retrieval": {
+            "fingerprint": report.retrieval_fingerprint,
+            "connectors": connector_steps,
+            "stages": retrieval_stages,
+            "failures": sum(1 for step in connector_steps if step.get("status") == "failed"),
+            "deadline_exhausted": any(
+                step.get("error") == "deadline_exceeded" for step in connector_steps
+            ),
+            "funnel": retrieval_funnel,
+        },
         "decision_scope": "first_admitted_card" if report.top else "run_empty",
         "decision_card": decision_card,
         "counters": {

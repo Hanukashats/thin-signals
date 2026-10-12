@@ -53,6 +53,8 @@ paths remain indicator; old runs remain immutable.
 ## Wave 2 — evidence retrieval
 
 - Bounded connector concurrency, per-call timing and one global deadline.
+- Persist a retrieval fingerprint and a safe source funnel; show structured
+  activity without raw prompts or hidden model reasoning.
 - Fetch and preserve primary text with hashes and provenance.
 - Group publications into typed technology hypotheses without false merges.
 - Add the pinned GPT Researcher native adapter behind a default-off flag.
@@ -63,12 +65,17 @@ Acceptance: deterministic ordering under concurrency; timeout/cancel tests;
 snippet-only claims cannot be verified; duplicate DOI views count once; GPT-R
 failure is explicit degradation and never direct evidence.
 
+Reference benchmark and donor decision:
+`reports/REFERENCE_WSIGNAL_REVIEW_2026-10-12.md`.
+
 ## Wave 3 — bounded adversarial review
 
 - Typed claim, objection, rebuttal, control finding and arbiter schemas.
 - One equal-budget researcher/critic/defender/control-critic round.
 - Append-only review events in PostgreSQL with hashes, provenance, duration,
   tokens and cost.
+- Public role traces contain safe structured events only; raw prompts, secrets
+  and hidden reasoning are excluded.
 - Deterministic arbiter and default-off feature flag.
 
 Acceptance: malformed output, invalid citation, timeout or unresolved critical

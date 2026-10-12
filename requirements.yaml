@@ -572,6 +572,27 @@ requirements:
       - docs/adr/ADR-012-RELIABILITY-FIRST-RESEARCH-LOOP.md
       - reports/ASTRA_AUDIT_2026-10-12.md
 
+  - id: RS-06
+    title: Bounded and observable retrieval contract
+    priority: P0
+    owner: research/backend
+    state: tested
+    wave: W10-research-adapter
+    acceptance: >
+      connector calls run with bounded concurrency under one inherited absolute
+      deadline; ordering is deterministic; per-stage latency, failures, safe
+      funnel counters and a retrieval fingerprint are persisted; changed limits
+      cannot reuse the same in-memory run identity
+    evidence:
+      - ts/harness.py
+      - ts/persist.py
+      - ts/desk.py
+      - ts/tests/test_harness.py::test_connector_fanout_is_concurrent_timed_and_deterministically_ordered
+      - ts/tests/test_harness.py::test_global_search_deadline_fails_closed_without_waiting_for_every_connector
+      - ts/tests/test_harness.py::test_retrieval_configuration_is_part_of_repeat_identity
+      - ts/tests/test_desk.py::test_reasoning_shows_safe_retrieval_funnel_without_raw_agent_prompts
+      - reports/REFERENCE_WSIGNAL_REVIEW_2026-10-12.md
+
   - id: AR-01
     title: Evidence-gated researcher critic defender methodology
     priority: P1
@@ -583,7 +604,9 @@ requirements:
       a defender can influence promotion only through new valid evidence or a
       narrower corrected claim; unresolved critical objections HOLD; baseline
       versus proposed evaluation has zero evidence-less promotions and records
-      latency, tokens, cost, model and provider
+      latency, tokens, cost, model and provider; public traces expose structured
+      actions and evidence but not raw prompts,
+      secrets or hidden model reasoning
     evidence:
       - docs/adr/ADR-011-ADVERSARIAL-REVIEW-PROPOSAL.md
       - docs/adr/ADR-012-RELIABILITY-FIRST-RESEARCH-LOOP.md

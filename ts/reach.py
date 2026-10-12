@@ -135,4 +135,6 @@ def apply_reach(cards: list[dict], reader) -> list[dict]:
 
 
 def annotate_reach(cards: list[dict], settings) -> list[dict]:
+    if not cards:
+        return []
     return apply_reach(cards, make_reader(settings))

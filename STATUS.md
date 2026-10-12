@@ -56,12 +56,22 @@ containers, so live search no longer depends on backend VM101. Receipt:
 - `run-status-0.2` makes total discovery failure `failed`, partial discovery or
   countersearch failure `degraded`, and failed countersearch blocks admission.
   The latest-run endpoint now returns the newest finished run instead of hiding
-  failed/degraded outcomes. The complete suite passes 256/256 against a fresh
+  failed/degraded outcomes. The complete suite now passes 267/267 against a fresh
   disposable migrated database; production data was not touched.
 - `live-w19` attaches matching countersearch records to each candidate as a
   separate evidence channel. `checklist-v16` passes those numbered fragments to
   the reader; a cited M01/M02/M03/M05/M06 finding deterministically excludes the
   card. Countersearch model output still cannot score or admit a card directly.
+- The reliability branch now runs connector calls with bounded concurrency and
+  one inherited absolute deadline. Per-call latency/queue time, stage failures,
+  a retrieval fingerprint and a safe discovery funnel are persisted and shown
+  without exposing raw prompts or hidden model reasoning. Changed retrieval
+  limits no longer reuse the same in-memory run identity. The temporary test
+  database was removed and production data was untouched.
+- The operator-provided public wsignal reference was inspected read-only. Its
+  normalized corpus series, evidence-bearing refutation and activity accounting
+  were adopted as donor patterns; high agent count and public raw reasoning were
+  rejected. Evidence: `reports/REFERENCE_WSIGNAL_REVIEW_2026-10-12.md`.
 - Source trust is now hostname/type based: DOI-shaped text in an unknown URL
   path cannot promote an untrusted web page to `primary`. The regression was
   RED before the fix and the focused trust suite passes after it;
@@ -122,16 +132,16 @@ containers, so live search no longer depends on backend VM101. Receipt:
    bodies, and a checklist `verified` status may therefore cite only a search
    or API snippet. Version the provenance rule and evaluate saved cases before
    changing labels.
-7. **Search budget:** up to 34 connector calls run sequentially with 40-second
-   request timeouts and no global deadline. Add bounded concurrency, timing
-   evidence and an overall budget without weakening recall. Full review:
-   `reports/LOGIC_AUDIT_2026-10-12.md`.
+7. **Release state:** bounded search, timings, safe funnel and configuration
+   fingerprint are implemented and tested on the reliability branch, but are
+   not deployed until the frozen branch receives independent verification.
+   Full original finding: `reports/LOGIC_AUDIT_2026-10-12.md`.
 
 ## Requirements snapshot
 
 - tested: `TZ-04`, `TZ-06`, `LLM-01`, `SC-12`, `TS-INV-02`, `TS-INV-03`
 - implemented: `LP-01…07`, `DN-01`, `RM-01`, `TZ-03`, `TZ-07`, `SC-06`, `SC-07`, `RS-01`
-- tested: `RS-02`, `RS-03`, `RS-04`
+- tested: `RS-02`, `RS-03`, `RS-04`, `RS-06`
 - planned and feature-off: `RS-05`, `AR-01`
 - implemented: `TZ-14` (15-slide editable PPTX/PDF and complete render/visual checks; personal team fields still require factual input)
 - tested: `TZ-15` (public GitHub default branch resolves to exact delivery SHA)

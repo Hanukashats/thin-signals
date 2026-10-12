@@ -29,6 +29,15 @@ def test_mission_sentences_are_wide_and_a_named_object_is_not():
     assert load_rules()["thresholds"]["weak_signal"] == 0.60
 
 
+def test_live_repeat_key_changes_with_retrieval_fingerprint():
+    from ts.live import _key
+
+    first = _key("query", "rules-0.1", day="2026-10-12", retrieval="aaa")
+    changed = _key("query", "rules-0.1", day="2026-10-12", retrieval="bbb")
+
+    assert first != changed
+
+
 def test_themes_take_turns_and_a_read_wide_shift_goes_first():
     alpha = {"id": "a", "title": "Альфа", "query": "alpha cell"}
     beta = {"id": "b", "title": "Бета", "query": "beta blade"}
@@ -173,10 +182,12 @@ def test_wide_query_searches_themes_and_a_repeat_does_not(monkeypatch):
     )
     from ts.harness import Harness
     seen = []
+    inherited_deadlines = []
     real_run = Harness.run
 
     def wrapped(self, *args, **kwargs):
         seen.append(kwargs.get("extractor", "missing"))
+        inherited_deadlines.append(kwargs.get("deadline_at"))
         return real_run(self, *args, **kwargs)
 
     monkeypatch.setattr(Harness, "run", wrapped)
@@ -198,6 +209,8 @@ def test_wide_query_searches_themes_and_a_repeat_does_not(monkeypatch):
         assert order == ["checklist", "scope", "reach"]
         assert asked == [None]
         assert seen and all(item is None for item in seen)
+        assert all(item is not None for item in inherited_deadlines)
+        assert len(set(inherited_deadlines)) == 1
         assert "Альфа" in "\n".join(__import__("ts.ui_text", fromlist=["screen"]).screen(first)["lines"])
         with factory() as session:
             mission_row = session.scalar(select(Run).where(Run.query == mission))
@@ -216,6 +229,46 @@ def test_wide_query_searches_themes_and_a_repeat_does_not(monkeypatch):
                 session.execute(delete(Decision).where(Decision.run_id.in_(ids)))
                 session.execute(delete(Run).where(Run.id.in_(ids)))
                 session.execute(delete(Candidate).where(Candidate.id.in_([f"live-{item}" for item in ids])))
+                session.commit()
+
+
+def test_expired_wide_deadline_does_not_start_new_theme_tasks(monkeypatch):
+    from sqlalchemy import delete
+
+    from ts.db import session_factory
+    from ts.db.models import Candidate, Decision, Run
+    from ts.live import run_query
+    from ts.settings import load
+
+    plan = {
+        "version": "themes-deadline-test",
+        "frame": ["scientific", "discoveries", "technological", "changes"],
+        "themes": [
+            {"id": "a", "title": "Альфа", "query": "zzdeadline alpha cell"},
+            {"id": "b", "title": "Бета", "query": "zzdeadline beta blade"},
+        ],
+    }
+    monkeypatch.setattr("ts.live.load_theme_plan", lambda: plan)
+    settings = load()
+    settings.wide_search_deadline_seconds = 0
+    echo = _Echo()
+    factory = session_factory()
+    mission = "scientific discoveries technological changes"
+
+    report = run_query(
+        mission, limit=1, settings=settings, connectors=[echo], session_factory=factory,
+    )
+    try:
+        assert echo.queries == []
+        assert report["run_status"] == "failed"
+        assert report["fanout"]["deadline_skipped"] == ["a", "b"]
+    finally:
+        with factory() as session:
+            row = session.scalar(select(Run).where(Run.query == mission))
+            if row is not None:
+                session.execute(delete(Decision).where(Decision.run_id == row.id))
+                session.execute(delete(Run).where(Run.id == row.id))
+                session.execute(delete(Candidate).where(Candidate.id == f"live-{row.id}"))
                 session.commit()
 
 

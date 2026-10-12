@@ -59,6 +59,16 @@ def _fragments(card: dict, full: bool = True) -> tuple[list[str], list[str]]:
         urls.append(str(source.get("url") or ""))
         if len(fragments) >= SOURCE_FRAGMENT_CAP:
             break
+    if not fragments:
+        abstract = fetch_abstract(card)
+        if abstract:
+            url = ""
+            for source in card.get("sources") or []:
+                if isinstance(source, dict) and source.get("url"):
+                    url = str(source["url"])
+                    break
+            fragments.append(abstract)
+            urls.append(url)
     counter_n = 0
     for source in card.get("counter_sources") or []:
         if not isinstance(source, dict):
@@ -76,15 +86,7 @@ def _fragments(card: dict, full: bool = True) -> tuple[list[str], list[str]]:
             break
     if fragments:
         return fragments, urls
-    abstract = fetch_abstract(card)
-    if not abstract:
-        return [], []
-    url = ""
-    for source in card.get("sources") or []:
-        if isinstance(source, dict) and source.get("url"):
-            url = str(source["url"])
-            break
-    return [abstract], [url]
+    return [], []
 
 
 def _hosts(card: dict) -> int:
@@ -441,4 +443,12 @@ def make_reader(settings, query: str | None = None):
 
 def annotate_checklist(top: list[dict], overflow: list[dict], settings, query: str | None = None) -> dict:
     rules = load_rules(settings.rules_version)
+    if not top and not overflow:
+        return {
+            "top": [], "excluded": [], "unread": [], "overflow": [],
+            "stats": {
+                "read": 0, "scored": 0, "unevaluated": 0,
+                "unread": 0, "dropped": 0, "backfill": 0,
+            },
+        }
     return apply_checklist(top, overflow, make_reader(settings, query), rules)

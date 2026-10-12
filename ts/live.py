@@ -5,13 +5,21 @@ import hashlib
 from collections import Counter
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
+from time import monotonic
 
 import httpx
 
 from ts.checklist import CHECKLIST_VERSION, annotate_checklist
 from ts.desk import near_miss_cards
 from ts.fanout import is_wide, load_theme_plan, merge_theme_reports
-from ts.harness import RUN_CONTRACT_VERSION, TOP_N, Harness, RunReport
+from ts.harness import (
+    RUN_CONTRACT_VERSION,
+    TOP_N,
+    Harness,
+    RunReport,
+    retrieval_fingerprint,
+    transport_timeout,
+)
 from ts.persist import load_report, public_report, save_report
 from ts.plain import REASONS, say
 from ts.potential import rank_potential_cards
@@ -50,11 +58,17 @@ def _since(day: str) -> str:
     return (datetime.fromisoformat(day).date() - timedelta(days=THEME_LOOKBACK_DAYS)).isoformat()
 
 
-def _key(query: str, rules_version: str, corpus: str = CORPUS, day: str | None = None) -> str:
+def _key(
+    query: str,
+    rules_version: str,
+    corpus: str = CORPUS,
+    day: str | None = None,
+    retrieval: str | None = None,
+) -> str:
     """A repeat on the same UTC day returns the stored run. The next day searches again."""
     window = day or _today()
     return hashlib.sha256(
-        f"{query}|{corpus}+{window}|{rules_version}|{RUN_CONTRACT_VERSION}".encode()
+        f"{query}|{corpus}+{window}|{rules_version}|{RUN_CONTRACT_VERSION}|{retrieval or 'legacy'}".encode()
     ).hexdigest()
 
 
@@ -130,19 +144,38 @@ def _maker(session_factory):
 
 
 def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Settings | None = None,
-              connectors=None, session_factory=None, _theme: bool = False, _day: str | None = None) -> dict:
+              connectors=None, session_factory=None, _theme: bool = False, _day: str | None = None,
+              _deadline_at: float | None = None) -> dict:
     # The extractor argument is ignored. Passing it into Harness.run collapses every find into one card.
     _ = extract
     s = settings or load()
     day = _day or _today()
     plan = load_theme_plan()
-    if is_wide(query, plan):
+    wide = is_wide(query, plan)
+    deadline_at = _deadline_at
+    if deadline_at is None:
+        seconds = s.wide_search_deadline_seconds if wide else s.search_deadline_seconds
+        deadline_at = monotonic() + max(0.0, seconds)
+    if wide:
         return _run_wide(
             query, plan, limit=limit, extract=extract, settings=s,
             connectors=connectors, session_factory=session_factory, day=day,
+            deadline_at=deadline_at,
         )
     corpus = CORPUS if _theme else f"{CORPUS}+{CHECKLIST_VERSION}"
-    key = _key(query, s.rules_version, corpus=corpus, day=day)
+    active_connectors = list(connectors) if connectors is not None else default_connectors(s)
+    since = _since(day) if _theme else None
+    fingerprint = retrieval_fingerprint(
+        [connector.name for connector in active_connectors],
+        limit=limit,
+        since=since,
+        max_workers=s.search_max_workers,
+        deadline_seconds=s.search_deadline_seconds,
+        source_timeout_seconds=s.source_timeout_seconds,
+    )
+    key = _key(
+        query, s.rules_version, corpus=corpus, day=day, retrieval=fingerprint,
+    )
     factory = _maker(session_factory)
     with factory() as session:
         stored = load_report(session, key)
@@ -151,12 +184,16 @@ def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Se
         return stored
     report = Harness(
         rules_version=s.rules_version, snapshot_dir=s.snapshot_dir, corpus_version=CORPUS,
-        since=_since(day) if _theme else None,
+        since=since, max_workers=s.search_max_workers,
+        deadline_seconds=s.search_deadline_seconds,
     ).run(
-        query, connectors if connectors is not None else default_connectors(s),
-        limit=limit, extractor=None,
+        query, active_connectors,
+        limit=limit, extractor=None, deadline_at=deadline_at,
     )
-    report = replace(report, id=key[:16], idempotency_key=key, corpus_version=corpus)
+    report = replace(
+        report, id=key[:16], idempotency_key=key, corpus_version=corpus,
+        retrieval_fingerprint=fingerprint,
+    )
     if not _theme:
         tail = [card for card in report.exclusion_registry if card.get("policy_reason") == "beyond_top_n"]
         held = [card for card in report.exclusion_registry if card.get("policy_reason") != "beyond_top_n"]
@@ -186,11 +223,24 @@ def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Se
     return public_report(report)
 
 
-def _run_wide(query, plan, *, limit, extract, settings, connectors, session_factory, day) -> dict:
+def _run_wide(query, plan, *, limit, extract, settings, connectors, session_factory, day,
+              deadline_at) -> dict:
     """One stored run for the mission sentence. Theme queries stay their own runs."""
     rules = load_rules(settings.rules_version)
     corpus = f"{CORPUS}+{plan['version']}+{CHECKLIST_VERSION}"
-    key = _key(query, rules["version"], corpus=corpus, day=day)
+    active_connectors = list(connectors) if connectors is not None else default_connectors(settings)
+    fingerprint = retrieval_fingerprint(
+        [connector.name for connector in active_connectors],
+        limit=limit,
+        since=_since(day),
+        max_workers=settings.search_max_workers,
+        deadline_seconds=settings.search_deadline_seconds,
+        source_timeout_seconds=settings.source_timeout_seconds,
+        wide_deadline_seconds=settings.wide_search_deadline_seconds,
+    )
+    key = _key(
+        query, rules["version"], corpus=corpus, day=day, retrieval=fingerprint,
+    )
     factory = _maker(session_factory)
     with factory() as session:
         stored = load_report(session, key)
@@ -199,10 +249,17 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
         return stored
     parts = []
     theme_statuses = []
+    skipped_themes = []
     for theme in plan["themes"]:
+        if monotonic() >= deadline_at:
+            parts.append((theme, []))
+            theme_statuses.append("failed")
+            skipped_themes.append(theme["id"])
+            continue
         report = run_query(
             theme["query"], limit=limit, extract=extract, settings=settings,
-            connectors=connectors, session_factory=session_factory, _theme=True, _day=day,
+            connectors=active_connectors, session_factory=session_factory, _theme=True, _day=day,
+            _deadline_at=deadline_at,
         )
         parts.append((theme, list(report.get("top") or [])))
         theme_statuses.append(str(report.get("run_status") or "failed"))
@@ -233,7 +290,10 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
         idempotency_key=key,
         repeated=False,
         steps=[
-            {"name": "fanout", "status": "ok", "themes": len(plan["themes"])},
+            {
+                "name": "fanout", "status": "degraded" if skipped_themes else "ok",
+                "themes": len(plan["themes"]), "deadline_skipped": skipped_themes,
+            },
             {"name": "checklist", "status": "ok", **checked["stats"]},
         ],
         sources=sources,
@@ -249,11 +309,13 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
         model_id=checklist_model or next((item.get("scope_model") for item in top if item.get("scope_model")), None),
         provider=checklist_provider,
         corpus_version=corpus,
+        retrieval_fingerprint=fingerprint,
         fanout={
             "version": plan["version"],
             "themes": merged["themes"],
             "reader": "scale",
             "checklist": checked["stats"],
+            "deadline_skipped": skipped_themes,
         },
     )
     with factory() as session:
@@ -265,12 +327,19 @@ def default_connectors(s: Settings):
     headers = {"User-Agent": "thin-signals/0.1 (research scan)", "Accept": "application/json"}
 
     def get(url: str) -> str:
-        response = httpx.get(url, timeout=40, follow_redirects=True, headers=headers)
+        response = httpx.get(
+            url, timeout=transport_timeout(getattr(s, "source_timeout_seconds", 40.0)),
+            follow_redirects=True, headers=headers,
+        )
         response.raise_for_status()
         return response.text
 
     def post(url: str, payload: dict) -> str:
-        response = httpx.post(url, json=payload, timeout=40, headers={**headers, "Content-Type": "application/json"})
+        response = httpx.post(
+            url, json=payload,
+            timeout=transport_timeout(getattr(s, "source_timeout_seconds", 40.0)),
+            headers={**headers, "Content-Type": "application/json"},
+        )
         response.raise_for_status()
         return response.text
 

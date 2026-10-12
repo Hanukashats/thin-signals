@@ -265,6 +265,27 @@ def test_empty_run_chain_and_banner_do_not_borrow_a_rejected_card_verdict():
     assert all("Источников в прогоне" not in line for line in banner)
 
 
+def test_reasoning_shows_safe_retrieval_funnel_without_raw_agent_prompts():
+    chain = reasoning({
+        "signal_label": "watchlist",
+        "retrieval": {
+            "funnel": {
+                "discovery_items": 41,
+                "unique_sources": 18,
+                "deduplicated_events": 12,
+                "countersearch_items": 9,
+                "admitted": 3,
+                "excluded": 7,
+                "unread": 2,
+            }
+        },
+    })
+
+    line = next(step for step in chain["steps"] if step.startswith("Воронка поиска:"))
+    assert "41" in line and "18" in line and "12" in line and "3" in line
+    assert "prompt" not in line.lower()
+
+
 def _scored(name: str, confidence, reason: str = "checklist_below_watchlist") -> dict:
     return {
         "technology": name, "confidence": confidence, "policy_reason": reason,

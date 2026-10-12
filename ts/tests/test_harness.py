@@ -1,6 +1,7 @@
 """W3 harness: connectors parse fixtures, dedup, roadmap, rank, idempotent rerun."""
 from __future__ import annotations
 
+import time
 from pathlib import Path
 
 from ts.harness import Harness, dedup, markers
@@ -141,6 +142,19 @@ def test_failed_connector_does_not_abort_and_rerun_is_free(tmp_path: Path):
     body = public_report(report)
     assert body["run_status"] == "degraded"
     assert body["run_contract_version"] == "run-status-0.2"
+    assert body["retrieval"]["connectors"]
+    assert all("elapsed_ms" in row for row in body["retrieval"]["connectors"])
+    assert body["retrieval"]["failures"] >= 1
+    assert body["retrieval"]["stages"][0]["name"] == "search"
+    assert body["retrieval"]["funnel"] == {
+        "discovery_items": 3,
+        "unique_sources": 3,
+        "deduplicated_events": 3,
+        "countersearch_items": 3,
+        "admitted": 3,
+        "excluded": 0,
+        "unread": 0,
+    }
     assert any(s["status"] == "failed" and s["connector"] == "boom" for s in report.steps)
     assert good.calls == 2  # search + countersearch
     again = harness.run("new memory", [Boom(), good])
@@ -149,6 +163,33 @@ def test_failed_connector_does_not_abort_and_rerun_is_free(tmp_path: Path):
     assert report.shortfall == 12
     assert report.sources[0]["trust"] == "primary"
     assert report.sources[0]["date"] == "2026-01-01"
+
+
+def test_retrieval_configuration_is_part_of_repeat_identity():
+    connector = Scripted("arxiv", [])
+    harness = Harness(corpus_version="fingerprint")
+
+    first = harness.run("same query", [connector], limit=2)
+    changed_limit = harness.run("same query", [connector], limit=5)
+
+    assert first.retrieval_fingerprint
+    assert changed_limit.retrieval_fingerprint
+    assert first.retrieval_fingerprint != changed_limit.retrieval_fingerprint
+    assert changed_limit.repeated is False
+    assert public_report(first)["retrieval"]["fingerprint"] == first.retrieval_fingerprint
+
+
+def test_retrieval_funnel_counts_unique_urls_not_connector_rows():
+    shared = Hit(
+        "first", "https://example.org/same", "Shared result", "prototype", "web",
+    )
+    report = Harness(corpus_version="unique-funnel").run(
+        "shared result",
+        [Scripted("first", [shared]), Scripted("second", [shared])],
+    )
+
+    assert len(report.sources) == 2
+    assert public_report(report)["retrieval"]["funnel"]["unique_sources"] == 1
 
 
 def test_total_connector_failure_is_a_failed_run():
@@ -222,6 +263,135 @@ def test_countersearch_evidence_is_attached_to_the_matching_card():
             "purpose": "countersearch",
         }
     ]
+
+
+def test_countersearch_is_not_linked_by_one_generic_shared_word():
+    discovery = Hit(
+        "custom", "https://lab.example/battery", "Novel quantum battery electrode",
+        "early electrochemistry prototype", "paper",
+    )
+    unrelated = Hit(
+        "custom", "https://www.iso.org/standard/database",
+        "Novel database engine standard", "mass adoption in enterprise databases",
+        "registry",
+    )
+
+    class MixedSearch:
+        name = "custom"
+
+        def search(self, query: str, *, limit: int = 5):
+            if "mass adoption industry standard" in query:
+                return [unrelated]
+            return [discovery]
+
+    report = Harness(corpus_version="counter-unrelated").run(
+        "quantum battery electrode", [MixedSearch()],
+    )
+    card = (report.top or report.exclusion_registry)[0]
+
+    assert card["counter_sources"] == []
+
+
+def test_connector_fanout_is_concurrent_timed_and_deterministically_ordered():
+    class Delayed:
+        def __init__(self, name: str, delay: float):
+            self.name = name
+            self.delay = delay
+
+        def search(self, query: str, *, limit: int = 5):
+            time.sleep(self.delay)
+            return [Hit(
+                self.name, f"https://{self.name}.example/item", self.name,
+                query, "paper",
+            )]
+
+    harness = Harness(corpus_version="parallel-order", max_workers=3)
+    steps = []
+    started = time.monotonic()
+    hits, failures = harness._search(
+        [Delayed("slow", 0.06), Delayed("fast", 0.005), Delayed("middle", 0.025)],
+        "parallel", 1, steps, deadline_at=time.monotonic() + 1,
+    )
+    elapsed = time.monotonic() - started
+
+    assert failures == []
+    assert [hit.connector for hit in hits] == ["slow", "fast", "middle"]
+    assert [step["connector"] for step in steps] == ["slow", "fast", "middle"]
+    assert all(step["elapsed_ms"] >= 0 for step in steps)
+    assert all(step["queued_ms"] >= 0 for step in steps)
+    assert elapsed < 0.11
+
+
+def test_global_search_deadline_fails_closed_without_waiting_for_every_connector():
+    class TooSlow:
+        def __init__(self, name: str):
+            self.name = name
+
+        def search(self, query: str, *, limit: int = 5):
+            time.sleep(0.2)
+            return []
+
+    harness = Harness(corpus_version="deadline", max_workers=2, deadline_seconds=0.02)
+    started = time.monotonic()
+    report = harness.run("deadline query", [TooSlow("one"), TooSlow("two")])
+    elapsed = time.monotonic() - started
+
+    assert elapsed < 0.12
+    assert report.status == "failed"
+    failed = [step for step in report.steps if step.get("status") == "failed"]
+    assert failed
+    assert all(step.get("error") == "deadline_exceeded" for step in failed)
+    assert all("elapsed_ms" in step for step in failed)
+
+
+def test_inherited_deadline_records_actual_stage_wait_not_local_default():
+    class TooSlow:
+        name = "slow"
+
+        def search(self, query: str, *, limit: int = 5):
+            time.sleep(0.2)
+            return []
+
+    harness = Harness(corpus_version="inherited-deadline", deadline_seconds=90)
+    steps = []
+    harness._search(
+        [TooSlow()], "deadline", 1, steps,
+        deadline_at=time.monotonic() + 0.02,
+    )
+
+    assert steps[0]["error"] == "deadline_exceeded"
+    assert 0 <= steps[0]["elapsed_ms"] < 500
+
+
+def test_default_http_transport_timeout_is_capped_by_remaining_budget(monkeypatch):
+    from types import SimpleNamespace
+
+    from ts.live import default_connectors
+
+    seen = []
+
+    class Response:
+        text = '{"results": []}'
+
+        @staticmethod
+        def raise_for_status():
+            return None
+
+    def fake_get(url, **kwargs):
+        seen.append(kwargs["timeout"])
+        return Response()
+
+    monkeypatch.setattr("ts.live.httpx.get", fake_get)
+    connector = default_connectors(SimpleNamespace(searxng_url="http://searx"))[0]
+    harness = Harness(corpus_version="transport-budget", deadline_seconds=0.05)
+    steps = []
+
+    harness._search(
+        [connector], "budget", 1, steps, deadline_at=time.monotonic() + 0.05,
+    )
+
+    assert len(seen) == 1
+    assert 0 < seen[0] <= 0.05
 
 
 def test_query_words_do_not_invent_a_market_link():

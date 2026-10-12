@@ -285,6 +285,35 @@ def test_countersearch_fragment_reaches_the_reader_and_drops_the_card():
     )
 
 
+def test_countersearch_does_not_suppress_primary_abstract_fallback(monkeypatch):
+    card = _card(snippet="")
+    card["counter_sources"] = [{
+        "name": "Industry registry",
+        "url": "https://www.iso.org/standard/widget",
+        "snippet": "An established standard.",
+        "purpose": "countersearch",
+    }]
+    calls = []
+    monkeypatch.setattr(
+        "ts.checklist.fetch_abstract",
+        lambda received: calls.append(received) or "Primary source abstract.",
+    )
+
+    from ts.checklist import _fragments
+
+    fragments, urls = _fragments(card)
+
+    assert calls == [card]
+    assert fragments == [
+        "Primary source abstract.",
+        "КОНТРПОИСК: Industry registry. An established standard",
+    ]
+    assert urls == [
+        "https://arxiv.org/abs/2401.00001",
+        "https://www.iso.org/standard/widget",
+    ]
+
+
 def test_reader_m04_ignored():
     rules = _rules()
     card = _card()
@@ -662,6 +691,7 @@ def test_confident_counts_only_scored_above_075():
     )
     body = public_report(report)
     assert body["counters"]["confident"] == 1
+    assert body["retrieval"]["funnel"] is None
     shown = run_banner(body)
     assert any("75%" in line and "1" in line for line in shown)
     hidden = run_banner({"top": [{"confidence": 0}], "counters": {"admitted": 1, "sources": 1, "confident": 0}})

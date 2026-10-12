@@ -762,6 +762,23 @@ def reasoning(payload: dict) -> dict:
                 confident=counters.get("confident", "—"),
             )
         )
+    retrieval = payload.get("retrieval") if isinstance(payload.get("retrieval"), dict) else {}
+    funnel = retrieval.get("funnel") if isinstance(retrieval.get("funnel"), dict) else {}
+    if funnel:
+        steps.append(
+            "Воронка поиска: коннекторы вернули {found} записей; после объединения — "
+            "{sources} уникальных ссылок и {events} событий; контрпоиск вернул "
+            "{counter} записей; допущено {admitted}, исключено {excluded}, "
+            "осталось непрочитанными {unread}.".format(
+                found=funnel.get("discovery_items", "—"),
+                sources=funnel.get("unique_sources", "—"),
+                events=funnel.get("deduplicated_events", "—"),
+                counter=funnel.get("countersearch_items", "—"),
+                admitted=funnel.get("admitted", "—"),
+                excluded=funnel.get("excluded", "—"),
+                unread=funnel.get("unread", "—"),
+            )
+        )
     label = payload.get("signal_label")
     conclusion = (
         "список пуст: ни одна карточка не прошла допуск"

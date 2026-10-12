@@ -249,10 +249,10 @@ phases:
         requirements: [RS-02, RS-03, RS-04]
         forks: []
       - id: W10-research-adapter
-        status: planned
+        status: in_progress
         owner: research/backend
-        deliverables: ["bounded GPT Researcher adapter", "OpenAlex evidence enrichment", "provenance snapshots", "global deadline"]
-        requirements: [RS-05]
+        deliverables: ["bounded GPT Researcher adapter", "OpenAlex evidence enrichment", "provenance snapshots", "global deadline", "retrieval fingerprint and safe funnel"]
+        requirements: [RS-05, RS-06]
         forks: [runtime.adapter]
       - id: W11-adversarial-eval
         status: planned

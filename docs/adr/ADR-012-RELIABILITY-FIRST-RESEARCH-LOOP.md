@@ -48,6 +48,12 @@ of ten results therefore cannot be repaired honestly by lowering thresholds.
 10. Any scoring correction is a new rules version with frozen replay, separate
     holdout, ablations and independent verification. Historical decisions stay
     immutable.
+11. Public activity views expose structured role, state, tool category, evidence
+    references, latency, tokens, cost and errors. They never expose raw system
+    prompts, hidden model reasoning, credentials or unrestricted tool payloads.
+12. Historical mention dynamics use comparable versioned corpus windows and
+    persist both numerator and denominator. A large crawl or raw mention count
+    is not itself evidence of momentum.
 
 ## Upstream boundary
 
@@ -67,6 +73,12 @@ assumed without a separate upstream contract test.
 
 The feature flag remains off until all required gates pass. Deadline or target
 count never turns `UNKNOWN` into `PROMOTE`.
+
+The operator-provided public wsignal reference was inspected read-only. Its
+evidence-bearing refutation, normalized corpus series and run accounting are
+useful donor patterns; its high agent count, raw prompt/reasoning exposure and
+observed source failures are not. Detailed evidence and adaptation decisions are
+recorded in `reports/REFERENCE_WSIGNAL_REVIEW_2026-10-12.md`.
 
 ## Consequences
 

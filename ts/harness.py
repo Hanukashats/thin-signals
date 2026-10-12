@@ -7,12 +7,16 @@ EPO/CORDIS are not called (fork stub_unavailable).
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 from collections import OrderedDict
+from concurrent.futures import ThreadPoolExecutor, wait
+from contextvars import ContextVar
 from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from itertools import pairwise
 from pathlib import Path
+from time import monotonic
 from typing import Protocol
 
 from ts.scoring.policy import route
@@ -25,12 +29,49 @@ from ts.sources.trust import classify, load_trust
 STEPS = ("search", "snapshot", "dedup", "countersearch", "score", "rank")
 TOP_N = 15
 RUN_CONTRACT_VERSION = "run-status-0.2"
+RETRIEVAL_CONTRACT_VERSION = "retrieval-0.1"
 CHAIN_CONNECTORS = frozenset({"searxng", "openalex", "crossref", "sec"})
 _DEEP = frozenset({"arxiv", "openalex", "crossref", "europepmc", "doaj", "hal"})
 # Phrase lists such as "market leader" are not in the brief and are not dataset
 # patterns. They are not an admission cut. Maturity still comes from a filled
 # checklist when texts are read, and from M04 when every source is a retelling.
 MATURE_MARKERS: dict = {}
+_ACTIVE_SEARCH_DEADLINE: ContextVar[float | None] = ContextVar(
+    "thin_signals_search_deadline", default=None,
+)
+
+
+def transport_timeout(max_seconds: float = 40.0) -> float:
+    """Cap one HTTP request by the inherited search deadline in this worker."""
+    deadline_at = _ACTIVE_SEARCH_DEADLINE.get()
+    if deadline_at is None:
+        return max_seconds
+    return max(0.001, min(max_seconds, deadline_at - monotonic()))
+
+
+def retrieval_fingerprint(
+    connector_names,
+    *,
+    limit: int,
+    since: str | None,
+    max_workers: int,
+    deadline_seconds: float,
+    source_timeout_seconds: float | None = None,
+    wide_deadline_seconds: float | None = None,
+) -> str:
+    """Stable identity for retrieval settings that can change a run result."""
+    payload = {
+        "version": RETRIEVAL_CONTRACT_VERSION,
+        "connectors": list(connector_names),
+        "limit": limit,
+        "since": since,
+        "max_workers": max_workers,
+        "deadline_seconds": deadline_seconds,
+        "source_timeout_seconds": source_timeout_seconds,
+        "wide_deadline_seconds": wide_deadline_seconds,
+    }
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+    return hashlib.sha256(encoded.encode()).hexdigest()[:16]
 
 
 class Searcher(Protocol):
@@ -54,6 +95,7 @@ class RunReport:
     exclusion_registry: list[dict]
     status: str = "succeeded"
     run_contract_version: str = RUN_CONTRACT_VERSION
+    retrieval_fingerprint: str | None = None
     model_id: str | None = None
     provider: str | None = None
     corpus_version: str = "live-w3"
@@ -72,6 +114,8 @@ class Harness:
     trust_table: dict = field(default_factory=load_trust)
     # YYYY-MM-DD. Narrows candidate searches only; the countersearch for maturity keeps every year.
     since: str | None = None
+    max_workers: int = 6
+    deadline_seconds: float = 90.0
 
     def run(
         self,
@@ -82,20 +126,37 @@ class Harness:
         extractor=None,
         budget_exhausted: bool = False,
         fetch_body=None,
+        deadline_at: float | None = None,
     ) -> RunReport:
+        connectors = list(connectors)
         rules = load_rules(self.rules_version)
+        fingerprint = retrieval_fingerprint(
+            [connector.name for connector in connectors],
+            limit=limit,
+            since=self.since,
+            max_workers=self.max_workers,
+            deadline_seconds=self.deadline_seconds,
+        )
         key = hashlib.sha256(
-            f"{query}|{self.corpus_version}|{rules['version']}|{RUN_CONTRACT_VERSION}".encode()
+            f"{query}|{self.corpus_version}|{rules['version']}|{RUN_CONTRACT_VERSION}|{fingerprint}".encode()
         ).hexdigest()
         if key in self.store:
             return replace(self.store[key], repeated=True)
         steps: list[dict] = []
-        hits, failures = self._search(connectors, query, limit, steps)
+        deadline_at = (
+            deadline_at
+            if deadline_at is not None
+            else monotonic() + max(0.0, self.deadline_seconds)
+        )
+        hits, failures = self._search(
+            connectors, query, limit, steps, deadline_at=deadline_at,
+        )
         discovery_successes = len(connectors) - len(failures)
         chain_sources = [item for item in connectors if item.name in CHAIN_CONNECTORS]
         if chain_sources:
             extra, extra_failures = self._search(
                 chain_sources, _chain_query(query), limit, steps, step="chain",
+                deadline_at=deadline_at,
             )
             discovery_successes += len(chain_sources) - len(extra_failures)
             hits.extend(hit for hit in extra if _on_topic(query, hit))
@@ -107,6 +168,7 @@ class Harness:
                       "merged": sum(1 for e in events if e["dedup_status"] == "merged")})
         counter_hits, counter_failures = self._search(
             connectors, f"{query} mass adoption industry standard", limit, steps, step="countersearch",
+            deadline_at=deadline_at,
         )
         countersearch_done = bool(connectors) and len(counter_failures) < len(connectors)
         run_failures = failures + counter_failures
@@ -151,6 +213,7 @@ class Harness:
             id=key[:16], query=query, idempotency_key=key, repeated=False, steps=steps, sources=sources, events=events,
             card=card, top=top, shortfall=TOP_N - len(top), exclusion_registry=excluded,
             status=run_status, model_id=model_id, provider=provider, corpus_version=self.corpus_version,
+            retrieval_fingerprint=fingerprint,
         )
         self.store[key] = report
         return report
@@ -194,19 +257,69 @@ class Harness:
             steps.append({"name": "score", "status": "ok", "label": result.label, "gate": decision["action"], "find": title})
         return cards, None, None
 
-    def _search(self, connectors, query, limit, steps, step="search"):
+    def _search(self, connectors, query, limit, steps, step="search", deadline_at=None):
+        ordered_connectors = list(connectors)
         hits: list[Hit] = []
-        failures = []
-        for connector in connectors:
-            try:
-                depth = 8 if step == "search" and connector.name in _DEEP and limit < 8 else limit
-                dated = self.since and step in {"search", "chain"} and getattr(connector, "takes_since", False)
-                found = connector.search(query, limit=depth, **({"since": self.since} if dated else {}))
-                hits.extend(found)
-                steps.append({"name": step, "connector": connector.name, "status": "ok", "n": len(found)})
-            except Exception as e:  # noqa: BLE001 — one dead source must not stop the run
+        failures: list[str] = []
+        stage_started = monotonic()
+        deadline_at = deadline_at if deadline_at is not None else monotonic() + max(0.0, self.deadline_seconds)
+        remaining = deadline_at - monotonic()
+        if remaining <= 0:
+            for connector in ordered_connectors:
                 failures.append(connector.name)
-                steps.append({"name": step, "connector": connector.name, "status": "failed", "error": type(e).__name__})
+                steps.append({
+                    "name": step, "connector": connector.name, "status": "failed",
+                    "error": "deadline_exceeded", "elapsed_ms": 0, "queued_ms": 0,
+                })
+            return hits, failures
+
+        def invoke(connector):
+            started = monotonic()
+            queued_ms = round((started - stage_started) * 1000)
+            deadline_token = _ACTIVE_SEARCH_DEADLINE.set(deadline_at)
+            try:
+                if monotonic() >= deadline_at:
+                    return [], "deadline_exceeded", round((monotonic() - started) * 1000), queued_ms
+                try:
+                    depth = 8 if step == "search" and connector.name in _DEEP and limit < 8 else limit
+                    dated = self.since and step in {"search", "chain"} and getattr(connector, "takes_since", False)
+                    found = connector.search(query, limit=depth, **({"since": self.since} if dated else {}))
+                    return found, None, round((monotonic() - started) * 1000), queued_ms
+                except Exception as e:  # noqa: BLE001 — one dead source must not stop the run
+                    return [], type(e).__name__, round((monotonic() - started) * 1000), queued_ms
+            finally:
+                _ACTIVE_SEARCH_DEADLINE.reset(deadline_token)
+
+        if not ordered_connectors:
+            return hits, failures
+        executor = ThreadPoolExecutor(max_workers=max(1, min(self.max_workers, len(ordered_connectors))))
+        futures = [executor.submit(invoke, connector) for connector in ordered_connectors]
+        done, _pending = wait(futures, timeout=max(0.0, deadline_at - monotonic()))
+        elapsed_at_deadline = round((monotonic() - stage_started) * 1000)
+        for connector, future in zip(ordered_connectors, futures, strict=True):
+            if future not in done:
+                future.cancel()
+                failures.append(connector.name)
+                steps.append({
+                    "name": step, "connector": connector.name, "status": "failed",
+                    "error": "deadline_exceeded", "elapsed_ms": elapsed_at_deadline,
+                    "queued_ms": 0,
+                })
+                continue
+            found, error, elapsed_ms, queued_ms = future.result()
+            if error:
+                failures.append(connector.name)
+                steps.append({
+                    "name": step, "connector": connector.name, "status": "failed",
+                    "error": error, "elapsed_ms": elapsed_ms, "queued_ms": queued_ms,
+                })
+                continue
+            hits.extend(found)
+            steps.append({
+                "name": step, "connector": connector.name, "status": "ok",
+                "n": len(found), "elapsed_ms": elapsed_ms, "queued_ms": queued_ms,
+            })
+        executor.shutdown(wait=False, cancel_futures=True)
         return hits, failures
 
     def _sources(self, hits: list[Hit], purpose: str | None = None) -> list[dict]:
@@ -418,14 +531,22 @@ def _on_topic(query: str, hit: Hit) -> bool:
 
 def _about_find(group: list[Hit], counter_hits: list[Hit]) -> list[Hit]:
     """A maturity phrase counts only when it is about this find, not about another result."""
-    tokens = re.findall(r"[a-z0-9а-яё]{5,}", " ".join(hit.title for hit in group).lower())
-    if not tokens:
-        return []
     related = []
-    for hit in counter_hits:
-        blob = f"{hit.title} {hit.snippet}".lower()
-        if any(token in blob for token in tokens):
-            related.append(hit)
+    for counter in counter_hits:
+        counter_doi = (counter.doi or "").lower().removeprefix("https://doi.org/")
+        counter_tokens = set(re.findall(
+            r"[a-z0-9а-яё]{3,}", f"{counter.title} {counter.snippet}".lower(),
+        ))
+        for source in group:
+            source_doi = (source.doi or "").lower().removeprefix("https://doi.org/")
+            if source_doi and source_doi == counter_doi:
+                related.append(counter)
+                break
+            source_tokens = set(re.findall(r"[a-z0-9а-яё]{3,}", source.title.lower()))
+            shared = source_tokens & counter_tokens
+            if len(source_tokens) >= 2 and len(shared) >= 2 and len(shared) * 2 >= len(source_tokens):
+                related.append(counter)
+                break
     return related
 
 
