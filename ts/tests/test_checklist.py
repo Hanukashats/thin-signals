@@ -13,7 +13,23 @@ def _rules():
     return load_rules()
 
 
-def _card(name="proton cell", *, theme="a", url="https://arxiv.org/abs/2401.00001", snippet="A fragment about the cell."):
+def _card(
+    name="proton cell",
+    *,
+    theme="a",
+    url="https://arxiv.org/abs/2401.00001",
+    snippet="A fragment about the cell.",
+    preserved=True,
+):
+    evidence = (
+        {
+            "status": "preserved",
+            "fragment": snippet,
+            "snapshot_ref": "sha256:" + "0" * 64,
+            "content_hash": "0" * 64,
+        }
+        if preserved else {"status": "snippet_only"}
+    )
     return {
         "technology": name,
         "theme": theme,
@@ -27,7 +43,10 @@ def _card(name="proton cell", *, theme="a", url="https://arxiv.org/abs/2401.0000
         "planned_not_deployment": [],
         "scope": 2,
         "scope_why": "как было",
-        "sources": [{"name": "Paper", "url": url, "snippet": snippet}],
+        "sources": [{
+            "name": "Paper", "url": url, "snippet": snippet,
+            "trust": "primary", "evidence": evidence,
+        }],
     }
 
 
@@ -106,6 +125,72 @@ def test_any_verified_feature_without_valid_fragment_reference_fails_closed():
     assert judged["card"]["checklist"]["uncited_verified"] == ["P02"]
     assert judged["card"]["policy_reason"] == "checklist_uncited_verified"
     assert judged["card"]["confidence"] is None
+
+
+def test_snippet_only_positive_claim_is_capped_to_supported():
+    card = _card()
+    card["sources"][0]["trust"] = "primary"
+    card["sources"][0]["evidence"] = {"status": "snippet_only"}
+    out = _out(verified={"P01"}, transition="verified")
+
+    judged = score_card(card, lambda _card: _read(out), _rules())
+
+    assert judged["card"]["checklist"]["status"] == "scored"
+    assert judged["card"]["checklist"]["provenance_capped"] == ["P01", "TR"]
+    assert judged["card"]["evidence_fragments"][0]["provenance"] == "snippet_only"
+    assert judged["card"]["confidence"] == score(
+        vector_for(card, {
+            **out,
+            "features": [
+                {**row, "status": "supported"} if row["code"] == "P01" else row
+                for row in out["features"]
+            ],
+            "transition": {**out["transition"], "status": "supported"},
+        }),
+        _rules(),
+    ).confidence
+
+
+def test_preserved_primary_fragment_can_remain_verified_and_carries_snapshot_ref():
+    card = _card(snippet="search snippet")
+    card["sources"][0].update({
+        "trust": "primary",
+        "evidence": {
+            "status": "preserved",
+            "fragment": "Direct text from the preserved primary document.",
+            "snapshot_ref": "sha256:" + "a" * 64,
+            "content_hash": "a" * 64,
+        },
+    })
+    out = _out(verified={"P01"}, transition="verified")
+
+    judged = score_card(card, lambda _card: _read(out), _rules())
+
+    assert "provenance_capped" not in judged["card"]["checklist"]
+    assert judged["card"]["evidence_fragments"] == [{
+        "fragment": 1,
+        "text": "Paper. Direct text from the preserved primary document",
+        "url": "https://arxiv.org/abs/2401.00001",
+        "provenance": "preserved_primary",
+        "snapshot_ref": "sha256:" + "a" * 64,
+    }]
+
+
+def test_preserved_professional_fragment_is_still_at_most_supported():
+    card = _card(url="https://reuters.com/example")
+    card["sources"][0].update({
+        "trust": "professional",
+        "evidence": {
+            "status": "preserved",
+            "fragment": "Directly fetched professional reporting.",
+            "snapshot_ref": "sha256:" + "b" * 64,
+        },
+    })
+    out = _out(verified={"P01"})
+
+    judged = score_card(card, lambda _card: _read(out), _rules())
+
+    assert judged["card"]["checklist"]["provenance_capped"] == ["P01"]
 
 
 def test_countersearch_text_cannot_replace_missing_positive_source_text(monkeypatch):
@@ -474,13 +559,20 @@ def test_cut_snippet_is_read_from_the_fuller_record(monkeypatch):
         return full
 
     monkeypatch.setattr(checklist, "fetch_abstract", fake)
-    cut = _card(url="https://arxiv.org/abs/cut", snippet="y" * checklist.SNIPPET_CAP)
+    cut = _card(
+        url="https://arxiv.org/abs/cut", snippet="y" * checklist.SNIPPET_CAP,
+        preserved=False,
+    )
     fragments, _ = checklist._fragments(cut)
     checklist._fragments(cut)
     assert fragments == [f"Paper. {full}"]
     assert asked == ["https://arxiv.org/abs/cut"]
 
-    whole = _card(url="https://arxiv.org/abs/whole", snippet="z" * (checklist.SNIPPET_CAP - 1))
+    whole = _card(
+        url="https://arxiv.org/abs/whole",
+        snippet="z" * (checklist.SNIPPET_CAP - 1),
+        preserved=False,
+    )
     assert checklist._fragments(whole)[0] == ["Paper. " + "z" * (checklist.SNIPPET_CAP - 1)]
     assert asked == ["https://arxiv.org/abs/cut"]
     checklist._FULL.clear()
@@ -491,7 +583,10 @@ def test_cut_snippet_stays_when_the_record_is_shorter_or_closed(monkeypatch):
 
     checklist._FULL.clear()
     monkeypatch.setattr(checklist, "fetch_abstract", lambda _card: "")
-    cut = _card(url="https://arxiv.org/abs/closed", snippet="y" * checklist.SNIPPET_CAP)
+    cut = _card(
+        url="https://arxiv.org/abs/closed", snippet="y" * checklist.SNIPPET_CAP,
+        preserved=False,
+    )
     assert checklist._fragments(cut)[0] == ["Paper. " + "y" * checklist.SNIPPET_CAP]
     title_only = _card(url="https://example.test/title", snippet="")
 

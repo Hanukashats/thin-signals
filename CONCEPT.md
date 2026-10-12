@@ -61,8 +61,9 @@ Researcher формирует advisory-пакет через локальный 
 На ветке 7.8 native synchronous adapter уже реализован, но выключен. Он не
 передаёт Markdown в модель/скоринг: URL заново скачивается через публичный
 HTTP(S)-контур с запретом private/loopback redirect, и только прошедший проверку
-текст становится discovery hit. Сохранённый snapshot всё ещё является отдельным
-обязательным W10 gate перед правом статуса `verified`.
+текст становится discovery hit. Основной live path также сохраняет bounded
+primary-first snapshot по SHA-256; `checklist-v18` оставляет `verified` только
+при ссылке на такой primary-фрагмент. Остальные тексты дают максимум `supported`.
 
 ## 3.2 Публичный вход
 

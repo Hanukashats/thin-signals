@@ -66,6 +66,13 @@ redirect-цели; текст/размер ограничены. Превыше�
 fail-closed до передачи lead в harness. Наружу выходят только research id,
 стоимость, счётчики и хеши artifact path; не prose, prompt или локальный путь.
 
+Обычный live path повторно получает не более `TS_EVIDENCE_FETCH_LIMIT`
+уникальных источников на тематический прогон, primary-first и внутри общего
+deadline. Raw body хранится только content-addressed snapshot; публичная карточка
+получает bounded fragment, content hash и `sha256:` reference. `checklist-v18`
+капит `verified` до `supported`, если ссылка ведёт лишь на snippet или
+non-primary fragment. Старые записи без нового provenance не переписываются.
+
 Не добавлять: Neo4j, S3, Procrastinate, Redis, Kafka, K8s, BERTopic, вторая vector DB, LoRA. Replacement matrix — `docs/plan/PLAN_7.2.md` §6.
 
 ## 3. Repo layout (целевой)

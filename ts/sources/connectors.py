@@ -9,7 +9,7 @@ import json
 import re
 import xml.etree.ElementTree as ET
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC
 from urllib.parse import quote
 
@@ -69,6 +69,10 @@ class Hit:
     planned_for: str | None = None
     deployment: bool = False
     advisory_provenance: dict | None = None
+    fetched_body: bytes | None = field(default=None, repr=False, compare=False)
+    fetched_text: str | None = field(default=None, repr=False, compare=False)
+    fetched_content_type: str | None = field(default=None, repr=False, compare=False)
+    evidence: dict | None = field(default=None, repr=False, compare=False)
 
     def __post_init__(self) -> None:
         self.language = _language(self.title + " " + self.snippet, self.language)

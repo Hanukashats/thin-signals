@@ -67,6 +67,7 @@ class Settings:
     gpt_researcher_url: str | None = None
     gpt_researcher_max_cost_usd: float = 0.08
     gpt_researcher_max_leads: int = 12
+    evidence_fetch_limit: int = 24
 
     @property
     def sqlalchemy_url(self) -> str:
@@ -109,4 +110,5 @@ def load(root: str | Path | None = None) -> Settings:
         gpt_researcher_url=g("TS_GPT_RESEARCHER_URL"),
         gpt_researcher_max_cost_usd=float(g("TS_GPT_RESEARCHER_MAX_COST_USD", "0.08")),
         gpt_researcher_max_leads=int(g("TS_GPT_RESEARCHER_MAX_LEADS", "12")),
+        evidence_fetch_limit=int(g("TS_EVIDENCE_FETCH_LIMIT", "24")),
     )

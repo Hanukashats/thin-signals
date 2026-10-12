@@ -228,10 +228,13 @@ def _maker(session_factory):
 def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Settings | None = None,
               connectors=None, session_factory=None, _theme: bool = False, _day: str | None = None,
               _deadline_at: float | None = None,
-              _parent_retrieval_fingerprint: str | None = None) -> dict:
+              _parent_retrieval_fingerprint: str | None = None,
+              _fetch_body=None) -> dict:
     # The extractor argument is ignored. Passing it into Harness.run collapses every find into one card.
     _ = extract
     s = settings or load()
+    if _fetch_body is None and connectors is None:
+        _fetch_body = default_evidence_fetcher(s)
     day = _day or _today()
     plan = load_theme_plan()
     wide = is_wide(query, plan)
@@ -243,7 +246,7 @@ def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Se
         return _run_wide(
             query, plan, limit=limit, extract=extract, settings=s,
             connectors=connectors, session_factory=session_factory, day=day,
-            deadline_at=deadline_at,
+            deadline_at=deadline_at, fetch_body=_fetch_body,
         )
     corpus = CORPUS if _theme else f"{CORPUS}+{CHECKLIST_VERSION}"
     active_connectors = list(connectors) if connectors is not None else default_connectors(s)
@@ -256,6 +259,7 @@ def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Se
         deadline_seconds=s.search_deadline_seconds,
         source_timeout_seconds=s.source_timeout_seconds,
         parent_fingerprint=_parent_retrieval_fingerprint,
+        snapshot_limit=getattr(s, "evidence_fetch_limit", 24),
     )
     key = _key(
         query, s.rules_version, corpus=corpus, day=day, retrieval=fingerprint,
@@ -270,9 +274,10 @@ def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Se
         rules_version=s.rules_version, snapshot_dir=s.snapshot_dir, corpus_version=CORPUS,
         since=since, max_workers=s.search_max_workers,
         deadline_seconds=s.search_deadline_seconds,
+        snapshot_limit=getattr(s, "evidence_fetch_limit", 24),
     ).run(
         query, active_connectors,
-        limit=limit, extractor=None, deadline_at=deadline_at,
+        limit=limit, extractor=None, deadline_at=deadline_at, fetch_body=_fetch_body,
     )
     report = replace(
         report, id=key[:16], idempotency_key=key, corpus_version=corpus,
@@ -313,7 +318,7 @@ def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Se
 
 
 def _run_wide(query, plan, *, limit, extract, settings, connectors, session_factory, day,
-              deadline_at) -> dict:
+              deadline_at, fetch_body=None) -> dict:
     """One stored run for the mission sentence. Theme queries stay their own runs."""
     rules = load_rules(settings.rules_version)
     corpus = f"{CORPUS}+{plan['version']}+{CHECKLIST_VERSION}"
@@ -327,6 +332,7 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
         source_timeout_seconds=settings.source_timeout_seconds,
         wide_deadline_seconds=settings.wide_search_deadline_seconds,
         parent_fingerprint=f"theme-plan:{theme_plan_fingerprint(plan)}",
+        snapshot_limit=getattr(settings, "evidence_fetch_limit", 24),
     )
     key = _key(
         query, rules["version"], corpus=corpus, day=day, retrieval=fingerprint,
@@ -358,6 +364,7 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
             connectors=active_connectors, session_factory=session_factory, _theme=True, _day=day,
             _deadline_at=deadline_at,
             _parent_retrieval_fingerprint=fingerprint,
+            _fetch_body=fetch_body,
         )
         parts.append((theme, list(report.get("top") or [])))
         theme_status = str(report.get("run_status") or "failed")
@@ -496,6 +503,40 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
     return public_report(report)
 
 
+def _public_refetcher(s: Settings, headers: dict):
+    def request_lead(url: str):
+        try:
+            with httpx.stream(
+                "GET",
+                url,
+                timeout=transport_timeout(getattr(s, "source_timeout_seconds", 40.0)),
+                follow_redirects=False,
+                headers=headers,
+            ) as response:
+                declared = response.headers.get("content-length")
+                if declared and declared.isdigit() and int(declared) > MAX_BODY_BYTES:
+                    raise ConnectorError("advisory response is too large")
+                body = bytearray()
+                for chunk in response.iter_bytes():
+                    body.extend(chunk)
+                    if len(body) > MAX_BODY_BYTES:
+                        raise ConnectorError("advisory response is too large")
+                return RefetchResponse(
+                    response.status_code,
+                    dict(response.headers),
+                    bytes(body),
+                )
+        except httpx.HTTPError as exc:
+            raise ConnectorError("advisory re-fetch transport failed") from exc
+
+    return lambda url: refetch_public_url(url, request_lead)
+
+
+def default_evidence_fetcher(s: Settings):
+    headers = {"User-Agent": "thin-signals/0.1 (research scan)", "Accept": "*/*"}
+    return _public_refetcher(s, headers)
+
+
 def default_connectors(s: Settings):
     headers = {"User-Agent": "thin-signals/0.1 (research scan)", "Accept": "application/json"}
 
@@ -524,35 +565,10 @@ def default_connectors(s: Settings):
         if not researcher_url:
             raise ValueError("TS_GPT_RESEARCHER_URL is required when GPT Researcher is enabled")
 
-        def request_lead(url: str):
-            try:
-                with httpx.stream(
-                    "GET",
-                    url,
-                    timeout=transport_timeout(getattr(s, "source_timeout_seconds", 40.0)),
-                    follow_redirects=False,
-                    headers=headers,
-                ) as response:
-                    declared = response.headers.get("content-length")
-                    if declared and declared.isdigit() and int(declared) > MAX_BODY_BYTES:
-                        raise ConnectorError("advisory response is too large")
-                    body = bytearray()
-                    for chunk in response.iter_bytes():
-                        body.extend(chunk)
-                        if len(body) > MAX_BODY_BYTES:
-                            raise ConnectorError("advisory response is too large")
-                    return RefetchResponse(
-                        response.status_code,
-                        dict(response.headers),
-                        bytes(body),
-                    )
-            except httpx.HTTPError as exc:
-                raise ConnectorError("advisory re-fetch transport failed") from exc
-
         connectors.append(GptResearcherConnector(
             researcher_url,
             post,
-            lambda url: refetch_public_url(url, request_lead),
+            _public_refetcher(s, headers),
             max_cost_usd=getattr(s, "gpt_researcher_max_cost_usd", 0.08),
             max_leads=getattr(s, "gpt_researcher_max_leads", 12),
         ))

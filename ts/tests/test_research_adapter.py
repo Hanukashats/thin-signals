@@ -217,6 +217,9 @@ def test_refetch_accepts_bounded_public_text_and_rejects_private_redirects():
     assert hit.url == "https://public.example/article"
     assert hit.title == "Lab record"
     assert "Direct primary evidence" in hit.snippet
+    assert hit.fetched_body.startswith(b"<html>")
+    assert "Direct primary evidence" in hit.fetched_text
+    assert hit.fetched_content_type == "text/html"
 
     with pytest.raises(ConnectorError, match="public"):
         refetch_public_url(

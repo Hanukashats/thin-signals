@@ -131,6 +131,54 @@ def test_snapshot_repeat_does_not_create_a_second_file(tmp_path: Path):
     assert len([p for p in (tmp_path / "blobs").rglob("*") if p.is_file()]) == 1
 
 
+def test_embedded_refetch_body_becomes_safe_preserved_source_evidence(tmp_path: Path):
+    hit = Hit(
+        "gpt_researcher",
+        "https://arxiv.org/abs/2401.00001",
+        "New memory mechanism",
+        "search snippet",
+        "paper",
+        fetched_body=b"<html><body>Direct primary document text.</body></html>",
+        fetched_text="Direct primary document text.",
+        fetched_content_type="text/html",
+    )
+
+    report = Harness(snapshot_dir=tmp_path, corpus_version="preserved-evidence").run(
+        "new memory mechanism", [Scripted("gpt_researcher", [hit])], limit=1,
+    )
+
+    evidence = report.sources[0]["evidence"]
+    assert evidence["status"] == "preserved"
+    assert evidence["fragment"] == "Direct primary document text."
+    assert evidence["snapshot_ref"] == "sha256:" + evidence["content_hash"]
+    assert (tmp_path / "blobs" / evidence["content_hash"][:2] / evidence["content_hash"]).is_file()
+    assert "fetched_body" not in repr(public_report(report))
+
+
+def test_snapshot_fetch_limit_is_bounded_and_unfetched_sources_are_explicit(tmp_path: Path):
+    hits = [
+        Hit("arxiv", f"https://arxiv.org/abs/{index}", f"New mechanism {index}", "snippet", "paper")
+        for index in range(3)
+    ]
+    calls = []
+
+    def fetch(url):
+        calls.append(url)
+        return Hit(
+            "refetch", url, "Fetched", "fetched", "paper",
+            fetched_body=f"body:{url}".encode(), fetched_text=f"full:{url}",
+            fetched_content_type="text/plain",
+        )
+
+    report = Harness(
+        snapshot_dir=tmp_path, corpus_version="bounded-evidence", snapshot_limit=1,
+    ).run("new mechanism", [Scripted("arxiv", hits)], limit=3, fetch_body=fetch)
+
+    assert len(calls) == 1
+    assert sum(source["evidence"]["status"] == "preserved" for source in report.sources) == 1
+    assert sum(source["evidence"]["status"] == "snippet_only" for source in report.sources) == 2
+
+
 def test_failed_connector_does_not_abort_and_rerun_is_free(tmp_path: Path):
     hit = Hit("arxiv", "https://arxiv.org/abs/9", "New memory mechanism", "three labs replicated", "paper",
               published="2026-01-01", doi="10.9/new")
@@ -255,12 +303,13 @@ def test_countersearch_evidence_is_attached_to_the_matching_card():
             "url": "https://www.iso.org/standard/quantum-widget",
             "date": "2020-01-01",
             "date_unknown_reason": None,
-            "type": "registry",
-            "language": "und",
-            "trust": "primary",
-            "connector": "custom",
-            "snippet": "mass adoption since 2020",
-            "purpose": "countersearch",
+                "type": "registry",
+                "language": "und",
+                "trust": "primary",
+                "connector": "custom",
+                "snippet": "mass adoption since 2020",
+                "evidence": {"status": "snippet_only"},
+                "purpose": "countersearch",
         }
     ]
 

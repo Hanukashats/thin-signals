@@ -5,6 +5,7 @@ This module does not sort and does not call Harness.run.
 """
 from __future__ import annotations
 
+import copy
 import re
 from urllib.parse import urlparse
 
@@ -13,7 +14,7 @@ from ts.fanout import _identity
 from ts.scale import fetch_abstract
 from ts.scoring.scorer import load_rules, score
 
-CHECKLIST_VERSION = "checklist-v17"
+CHECKLIST_VERSION = "checklist-v18"
 TEXT_HUNT = 4
 # Four extra reads for each standing theme. One noisy theme must not spend the rest.
 BACKFILL_CAP = TEXT_HUNT * 13
@@ -43,21 +44,35 @@ def _fuller(source: dict, snippet: str) -> str:
     return text if len(text) > len(snippet) else snippet
 
 
-def _fragment_bundle(card: dict, full: bool = True) -> tuple[list[str], list[str], int]:
+def _fragment_bundle_details(card: dict, full: bool = True):
     """Build one ordered evidence bundle and keep positive evidence ahead of countersearch."""
     fragments: list[str] = []
     urls: list[str] = []
+    provenance: list[str] = []
+    snapshot_refs: list[str] = []
+    verified_indices: set[int] = set()
     for source in card.get("sources") or []:
         if not isinstance(source, dict):
             continue
-        snippet = str(source.get("snippet") or "").strip()
+        evidence = source.get("evidence") if isinstance(source.get("evidence"), dict) else None
+        preserved = str((evidence or {}).get("fragment") or "").strip()
+        snippet = preserved or str(source.get("snippet") or "").strip()
         if not snippet:
             continue
-        if full:
+        if full and not preserved:
             snippet = _fuller(source, snippet)
         name = str(source.get("name") or "").strip()
         fragments.append(f"{name}. {snippet}".strip(". "))
         urls.append(str(source.get("url") or ""))
+        if evidence and evidence.get("status") == "preserved" and preserved and source.get("trust") == "primary":
+            source_provenance = "preserved_primary"
+            verified_indices.add(len(fragments))
+        elif evidence and evidence.get("status") == "preserved" and preserved:
+            source_provenance = "preserved_non_primary"
+        else:
+            source_provenance = "snippet_only"
+        provenance.append(source_provenance)
+        snapshot_refs.append(str((evidence or {}).get("snapshot_ref") or ""))
         if len(fragments) >= SOURCE_FRAGMENT_CAP:
             break
     if not fragments:
@@ -70,6 +85,8 @@ def _fragment_bundle(card: dict, full: bool = True) -> tuple[list[str], list[str
                     break
             fragments.append(abstract)
             urls.append(url)
+            provenance.append("snippet_only")
+            snapshot_refs.append("")
     positive_count = len(fragments)
     counter_n = 0
     for source in card.get("counter_sources") or []:
@@ -83,9 +100,18 @@ def _fragment_bundle(card: dict, full: bool = True) -> tuple[list[str], list[str
         name = str(source.get("name") or "").strip()
         fragments.append(f"КОНТРПОИСК: {name}. {snippet}".strip(". "))
         urls.append(str(source.get("url") or ""))
+        provenance.append("countersearch")
+        snapshot_refs.append("")
         counter_n += 1
         if counter_n >= COUNTER_FRAGMENT_CAP:
             break
+    return fragments, urls, positive_count, verified_indices, provenance, snapshot_refs
+
+
+def _fragment_bundle(card: dict, full: bool = True) -> tuple[list[str], list[str], int]:
+    fragments, urls, positive_count, _verified, _provenance, _snapshots = (
+        _fragment_bundle_details(card, full=full)
+    )
     return fragments, urls, positive_count
 
 
@@ -185,15 +211,52 @@ def _uncited_verified(out: dict, fragments: list[str], positive_count: int | Non
     return missing
 
 
-def _cited_fragments(out: dict, fragments: list[str], urls: list[str]) -> list[dict]:
+def _cap_unpreserved_verified(out: dict, positive_count: int, verified_indices: set[int]):
+    """A search snippet or non-primary body can support, but never verify, a claim."""
+    effective = copy.deepcopy(out)
+    capped = []
+
+    def should_cap(why: object) -> bool:
+        cited = {
+            int(raw) for raw in _FRAGMENT_REF.findall(str(why or ""))
+            if 1 <= int(raw) <= positive_count
+        }
+        return bool(cited) and not bool(cited & verified_indices)
+
+    for feature in effective.get("features") or []:
+        if (
+            isinstance(feature, dict)
+            and feature.get("status") == "verified"
+            and should_cap(feature.get("why"))
+        ):
+            feature["status"] = "supported"
+            capped.append(str(feature.get("code") or "UNKNOWN"))
+    transition = effective.get("transition")
+    if (
+        isinstance(transition, dict)
+        and transition.get("status") == "verified"
+        and should_cap(transition.get("why"))
+    ):
+        transition["status"] = "supported"
+        capped.append("TR")
+    return effective, capped
+
+
+def _cited_fragments(
+    out: dict,
+    fragments: list[str],
+    urls: list[str],
+    provenance: list[str] | None = None,
+    snapshot_refs: list[str] | None = None,
+) -> list[dict]:
     """Persist bounded authoritative excerpts actually cited by verified decisions."""
     indices: set[int] = set()
     claims = [
         row for row in (out.get("features") or [])
-        if isinstance(row, dict) and row.get("status") == "verified"
+        if isinstance(row, dict) and row.get("status") in {"verified", "supported"}
     ]
     transition = out.get("transition")
-    if isinstance(transition, dict) and transition.get("status") == "verified":
+    if isinstance(transition, dict) and transition.get("status") in {"verified", "supported"}:
         claims.append(transition)
     claims.extend(
         row for row in (out.get("counters") or [])
@@ -204,14 +267,28 @@ def _cited_fragments(out: dict, fragments: list[str], urls: list[str]) -> list[d
             index = int(raw_index)
             if 1 <= index <= len(fragments):
                 indices.add(index)
-    return [
-        {
+    rows = []
+    for index in sorted(indices):
+        row = {
             "fragment": index,
             "text": str(fragments[index - 1])[:300],
             "url": str(urls[index - 1]) if index - 1 < len(urls) else "",
         }
-        for index in sorted(indices)
-    ]
+        source_provenance = (
+            provenance[index - 1]
+            if provenance is not None and index - 1 < len(provenance)
+            else "snippet_only"
+        )
+        row["provenance"] = source_provenance
+        snapshot_ref = (
+            snapshot_refs[index - 1]
+            if snapshot_refs is not None and index - 1 < len(snapshot_refs)
+            else ""
+        )
+        if snapshot_ref:
+            row["snapshot_ref"] = snapshot_ref
+        rows.append(row)
+    return rows
 
 
 def _mark(row: dict, status: str, meta: dict | None = None) -> None:
@@ -262,7 +339,9 @@ def _checklist_invalid(row: dict, meta: dict | None = None) -> dict:
 
 def score_card(card: dict, reader, rules: dict) -> dict:
     row = dict(card)
-    fragments, _urls, positive_count = _fragment_bundle(row)
+    fragments, _urls, positive_count, verified_indices, provenance, snapshot_refs = (
+        _fragment_bundle_details(row)
+    )
     if positive_count == 0:
         _mark(row, "no_fragment")
         row["policy_reason"] = "no_source_text"
@@ -282,12 +361,17 @@ def score_card(card: dict, reader, rules: dict) -> dict:
         validate_scoring_output(read["output"])
     except (TypeError, ValueError):
         return _checklist_invalid(row, meta)
-    missing = _uncited_verified(read["output"], fragments, positive_count)
+    effective_output, provenance_capped = _cap_unpreserved_verified(
+        read["output"], positive_count, verified_indices,
+    )
+    missing = _uncited_verified(effective_output, fragments, positive_count)
     if missing:
         return _evidence_invalid(row, missing, meta)
-    row["evidence_fragments"] = _cited_fragments(read["output"], fragments, _urls)
+    row["evidence_fragments"] = _cited_fragments(
+        effective_output, fragments, _urls, provenance, snapshot_refs,
+    )
     try:
-        fv = vector_for(row, read["output"])
+        fv = vector_for(row, effective_output)
         result = score(fv, rules)
     except Exception as exc:  # noqa: BLE001 — malformed reader behavior fails this card closed
         return _reader_failed(row, type(exc).__name__)
@@ -296,8 +380,10 @@ def score_card(card: dict, reader, rules: dict) -> dict:
     row["reason_codes"] = list(result.reason_codes)
     row["predictors"] = list(result.predictors)
     _mark(row, "scored", read.get("meta") if isinstance(read.get("meta"), dict) else {})
+    if provenance_capped:
+        row["checklist"]["provenance_capped"] = provenance_capped
     quote = _case_quote(
-        read["output"],
+        effective_output,
         fragments,
         _urls,
     )

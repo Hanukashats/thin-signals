@@ -156,4 +156,7 @@ def refetch_public_url(
         snippet=text[:500],
         source_type="paper" if doi else "web",
         doi=doi,
+        fetched_body=content,
+        fetched_text=text,
+        fetched_content_type=content_type,
     )

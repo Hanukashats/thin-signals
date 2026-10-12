@@ -59,6 +59,7 @@ def retrieval_fingerprint(
     source_timeout_seconds: float | None = None,
     wide_deadline_seconds: float | None = None,
     parent_fingerprint: str | None = None,
+    snapshot_limit: int | None = None,
 ) -> str:
     """Stable identity for retrieval settings that can change a run result."""
     payload = {
@@ -71,6 +72,7 @@ def retrieval_fingerprint(
         "source_timeout_seconds": source_timeout_seconds,
         "wide_deadline_seconds": wide_deadline_seconds,
         "parent_fingerprint": parent_fingerprint,
+        "snapshot_limit": snapshot_limit,
     }
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
     return hashlib.sha256(encoded.encode()).hexdigest()[:16]
@@ -178,6 +180,7 @@ class Harness:
     since: str | None = None
     max_workers: int = 6
     deadline_seconds: float = 90.0
+    snapshot_limit: int = 24
 
     def run(
         self,
@@ -198,6 +201,7 @@ class Harness:
             since=self.since,
             max_workers=self.max_workers,
             deadline_seconds=self.deadline_seconds,
+            snapshot_limit=self.snapshot_limit,
         )
         key = hashlib.sha256(
             f"{query}|{self.corpus_version}|{rules['version']}|{RUN_CONTRACT_VERSION}|{fingerprint}".encode()
@@ -227,8 +231,8 @@ class Harness:
             discovery_successes += len(chain_sources) - len(extra_failures)
             hits.extend(hit for hit in extra if _on_topic(query, hit))
             failures.extend(extra_failures)
+        self._snapshot(hits, fetch_body, steps, deadline_at=deadline_at)
         sources = self._sources(hits)
-        self._snapshot(hits, fetch_body, steps)
         events = dedup(hits)
         steps.append({"name": "dedup", "status": "ok", "events": len(events),
                       "merged": sum(1 for e in events if e["dedup_status"] == "merged")})
@@ -411,6 +415,7 @@ class Harness:
                 "snippet": (hit.snippet or "")[:500],
                 **({"doi": hit.doi} if hit.doi else {}),
             }
+            card["evidence"] = dict(hit.evidence or {"status": "snippet_only"})
             if purpose:
                 card["purpose"] = purpose
             advisory = _advisory_provenance(hit.advisory_provenance)
@@ -419,22 +424,88 @@ class Harness:
             cards.append(card)
         return cards
 
-    def _snapshot(self, hits, fetch_body, steps) -> None:
+    def _snapshot(self, hits, fetch_body, steps, *, deadline_at: float) -> None:
+        """Preserve embedded bodies and a bounded primary-first set of source URLs."""
         saved = 0
-        if fetch_body is None:
-            steps.append({"name": "snapshot", "status": "skipped", "reason": "no fetcher"})
-            return
-        for hit in hits:
-            try:
-                body = fetch_body(hit.url)
-            except Exception as e:  # noqa: BLE001
-                steps.append({"name": "snapshot", "status": "failed", "url": hit.url, "error": type(e).__name__})
-                continue
+        attempted = 0
+        failed = 0
+        by_url: dict[str, dict] = {}
+
+        def preserve(hit: Hit, fetched) -> bool:
+            nonlocal saved
+            body = fetched.fetched_body if isinstance(fetched, Hit) else fetched
+            text = fetched.fetched_text if isinstance(fetched, Hit) else None
+            content_type = fetched.fetched_content_type if isinstance(fetched, Hit) else None
+            fetched_url = fetched.url if isinstance(fetched, Hit) else hit.url
             if isinstance(body, str):
                 body = body.encode()
-            save_snapshot(self.snapshot_dir, hit.url, body)
+            if not isinstance(body, bytes):
+                return False
+            if text is None:
+                text = body.decode("utf-8", errors="replace")
+            snapshot = save_snapshot(self.snapshot_dir, fetched_url, body)
+            hit.evidence = {
+                "status": "preserved",
+                "content_hash": snapshot["content_hash"],
+                "snapshot_ref": f"sha256:{snapshot['content_hash']}",
+                "fetched_url": fetched_url,
+                "content_type": content_type or "application/octet-stream",
+                "fragment": str(text).strip()[:1500],
+            }
+            by_url[hit.url] = dict(hit.evidence)
             saved += 1
-        steps.append({"name": "snapshot", "status": "ok", "saved": saved})
+            return True
+
+        for hit in hits:
+            if hit.evidence:
+                by_url.setdefault(hit.url, dict(hit.evidence))
+                continue
+            if hit.url in by_url:
+                hit.evidence = dict(by_url[hit.url])
+                continue
+            if hit.fetched_body is not None and preserve(hit, hit):
+                continue
+
+        candidates = []
+        queued_urls = set(by_url)
+        for index, hit in enumerate(hits):
+            if hit.evidence or hit.url in queued_urls:
+                continue
+            queued_urls.add(hit.url)
+            candidates.append((index, hit))
+        trust_rank = {"primary": 0, "professional": 1, "indicator": 2}
+        candidates.sort(key=lambda item: (
+            trust_rank.get(classify(item[1].url, item[1].source_type, self.trust_table), 3),
+            item[0],
+        ))
+        if fetch_body is not None:
+            for _index, hit in candidates[: max(0, self.snapshot_limit)]:
+                if monotonic() >= deadline_at:
+                    break
+                attempted += 1
+                token = _ACTIVE_SEARCH_DEADLINE.set(deadline_at)
+                try:
+                    fetched = fetch_body(hit.url)
+                    if not preserve(hit, fetched):
+                        failed += 1
+                except Exception:  # noqa: BLE001 - a source body must not abort retrieval
+                    failed += 1
+                finally:
+                    _ACTIVE_SEARCH_DEADLINE.reset(token)
+
+        for hit in hits:
+            if not hit.evidence:
+                hit.evidence = dict(by_url.get(hit.url) or {"status": "snippet_only"})
+        status = "ok" if saved else "skipped"
+        steps.append({
+            "name": "snapshot",
+            "status": status,
+            "saved": saved,
+            "attempted": attempted,
+            "failed": failed,
+            "limit": self.snapshot_limit,
+            **({"reason": "no fetcher"} if fetch_body is None and not saved else {}),
+        })
 
     def _extract(self, query, hits, observed, origins, counters, evidence, extractor, steps):
         events_n = len(observed)

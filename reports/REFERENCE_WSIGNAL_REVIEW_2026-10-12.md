@@ -106,8 +106,9 @@ This branch now implements the first safe subset:
   richer metadata survives repeated views, and child exclusions remain visible;
 - the safe funnel is shown in the existing explanation view without raw agent
   prompts or chain-of-thought;
-- `checklist-v17` requires positive discovery text and rejects positive claims
-  cited only to countersearch; countersearch remains a separate negative channel;
+- `checklist-v18` requires preserved primary discovery text for `verified`, caps
+  snippets/non-primary text to `supported`, and rejects positive claims cited
+  only to countersearch; countersearch remains a separate negative channel;
 - a connector result completed after the absolute deadline is discarded;
 - concurrent identical PostgreSQL writes serialize to one canonical run.
 
