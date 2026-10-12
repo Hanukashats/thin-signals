@@ -529,6 +529,47 @@ def test_pinned_transport_enforces_a_total_deadline_on_slow_streams():
     assert elapsed < 0.15
 
 
+def test_pinned_transport_rejects_a_response_whose_final_eof_misses_deadline():
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain")
+            self.end_headers()
+            time.sleep(0.07)
+            self.wfile.write(b"body before late eof")
+            self.wfile.flush()
+            time.sleep(0.07)
+
+        def log_message(self, _format, *_args):
+            return
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    worker = Thread(target=server.serve_forever, daemon=True)
+    worker.start()
+    port = server.server_address[1]
+    started = time.monotonic()
+    try:
+        with pytest.raises(ConnectorError, match="transport"):
+            fetch_public_target(
+                PublicTarget(
+                    url=f"http://late-eof.example:{port}/evidence",
+                    scheme="http",
+                    host="late-eof.example",
+                    port=port,
+                    addresses=("127.0.0.1",),
+                ),
+                headers={"User-Agent": "test"},
+                timeout_seconds=0.1,
+            )
+    finally:
+        elapsed = time.monotonic() - started
+        server.shutdown()
+        server.server_close()
+        worker.join(timeout=1)
+
+    assert elapsed < 0.16
+
+
 @pytest.mark.parametrize("url", [
     "file:///etc/passwd",
     "http://localhost/admin",

@@ -1,13 +1,14 @@
 """W3 harness: connectors parse fixtures, dedup, roadmap, rank, idempotent rerun."""
 from __future__ import annotations
 
+import hashlib
 import json
 import time
 from pathlib import Path
 
 from ts.harness import Harness, dedup, markers
 from ts.persist import public_report
-from ts.snapshots import save_snapshot
+from ts.snapshots import read_attested_snapshot, save_snapshot
 from ts.sources.connectors import (
     ArxivConnector,
     CrossrefConnector,
@@ -281,6 +282,43 @@ def test_snapshot_repeat_does_not_create_a_second_file(tmp_path: Path):
     assert len([p for p in (tmp_path / "blobs").rglob("*") if p.is_file()]) == 1
 
 
+def test_snapshot_attestation_is_immutable_and_binds_text_decoding(tmp_path: Path):
+    url = "https://example.com/evidence"
+    first_body = b"first preserved body"
+    first_text_hash = hashlib.sha256(first_body).hexdigest()
+    first = save_snapshot(
+        tmp_path,
+        url,
+        first_body,
+        content_type="text/plain",
+        text_hash=first_text_hash,
+    )
+    save_snapshot(
+        tmp_path,
+        url,
+        b"new body at the same URL",
+        content_type="text/plain",
+        text_hash=hashlib.sha256(b"new body at the same URL").hexdigest(),
+    )
+
+    assert read_attested_snapshot(
+        tmp_path,
+        url,
+        first["content_hash"],
+        content_type="text/plain",
+        text_hash=first_text_hash,
+        attestation_ref=first["attestation_ref"],
+    ) == first_body
+    assert read_attested_snapshot(
+        tmp_path,
+        url,
+        first["content_hash"],
+        content_type="text/html",
+        text_hash=first_text_hash,
+        attestation_ref=first["attestation_ref"],
+    ) is None
+
+
 def test_embedded_refetch_body_becomes_safe_preserved_source_evidence(tmp_path: Path):
     hit = Hit(
         "gpt_researcher",
@@ -303,6 +341,38 @@ def test_embedded_refetch_body_becomes_safe_preserved_source_evidence(tmp_path: 
     assert evidence["snapshot_ref"] == "sha256:" + evidence["content_hash"]
     assert (tmp_path / "blobs" / evidence["content_hash"][:2] / evidence["content_hash"]).is_file()
     assert "fetched_body" not in repr(public_report(report))
+
+
+def test_redirected_snapshot_uses_final_url_for_conservative_source_trust(tmp_path: Path):
+    hit = Hit(
+        "crossref",
+        "https://doi.org/10.1000/example",
+        "Claimed primary paper",
+        "search snippet",
+        "paper",
+        doi="10.1000/example",
+    )
+
+    def fetch(_url):
+        return Hit(
+            "refetch",
+            "https://medium.com/@someone/fabricated",
+            "Indicator blog",
+            "blog body",
+            "web",
+            fetched_body=b"A blog retelling, not the primary paper.",
+            fetched_text="A blog retelling, not the primary paper.",
+            fetched_content_type="text/plain",
+        )
+
+    report = Harness(snapshot_dir=tmp_path, corpus_version="redirect-trust").run(
+        "claimed paper", [Scripted("crossref", [hit])], limit=1, fetch_body=fetch,
+    )
+
+    source = report.sources[0]
+    assert source["url"] == "https://doi.org/10.1000/example"
+    assert source["evidence"]["fetched_url"] == "https://medium.com/@someone/fabricated"
+    assert source["trust"] == "indicator"
 
 
 def test_explicit_origin_ids_are_normalized_and_bounded_at_the_hit_boundary():

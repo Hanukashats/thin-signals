@@ -14,8 +14,11 @@ from ts.extract import to_feature_vector, validate_scoring_output
 from ts.fanout import _identity, explicit_origin_groups
 from ts.scale import fetch_abstract
 from ts.scoring.scorer import load_rules, score
+from ts.snapshots import read_attested_snapshot
+from ts.sources.refetch import extract_text
+from ts.sources.trust import classify
 
-CHECKLIST_VERSION = "checklist-v19"
+CHECKLIST_VERSION = "checklist-v20"
 TEXT_HUNT = 4
 # Four extra reads for each standing theme. One noisy theme must not spend the rest.
 BACKFILL_CAP = TEXT_HUNT * 13
@@ -31,11 +34,20 @@ _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
 def _preserved_evidence(evidence: object, snapshot_root: Path | None = None) -> bool:
     """Validate the internal snapshot attestation before granting verified provenance."""
-    if not isinstance(evidence, dict) or evidence.get("status") != "preserved":
+    if (
+        not isinstance(evidence, dict)
+        or evidence.get("version") != "snapshot-evidence-0.2"
+        or evidence.get("status") != "preserved"
+        or snapshot_root is None
+    ):
         return False
     fragment = str(evidence.get("fragment") or "").strip()
     content_hash = str(evidence.get("content_hash") or "")
     fragment_hash = str(evidence.get("fragment_hash") or "")
+    text_hash = str(evidence.get("text_hash") or "")
+    attestation_ref = str(evidence.get("attestation_ref") or "")
+    fetched_url = str(evidence.get("fetched_url") or "")
+    content_type = str(evidence.get("content_type") or "")
     if not fragment or not _SHA256.fullmatch(content_hash):
         return False
     if evidence.get("snapshot_ref") != f"sha256:{content_hash}":
@@ -44,14 +56,42 @@ def _preserved_evidence(evidence: object, snapshot_root: Path | None = None) -> 
         return False
     if hashlib.sha256(fragment.encode()).hexdigest() != fragment_hash:
         return False
-    if snapshot_root is None:
-        return True
-    blob = snapshot_root / "blobs" / content_hash[:2] / content_hash
-    try:
-        body = blob.read_bytes()
-    except (OSError, ValueError):
+    if not _SHA256.fullmatch(text_hash) or not fetched_url or not content_type:
         return False
-    return hashlib.sha256(body).hexdigest() == content_hash
+    body = read_attested_snapshot(
+        snapshot_root,
+        fetched_url,
+        content_hash,
+        content_type=content_type,
+        text_hash=text_hash,
+        attestation_ref=attestation_ref,
+    )
+    if body is None:
+        return False
+    try:
+        text, _title = extract_text(body, content_type)
+    except Exception:  # noqa: BLE001 - malformed stored content cannot attest a claim
+        return False
+    return (
+        hashlib.sha256(text.encode()).hexdigest() == text_hash
+        and fragment == text[:1500]
+    )
+
+
+def _effective_source_trust(source: dict, evidence: dict | None) -> str:
+    """A redirect can only preserve or lower the claimed URL's trust."""
+    declared = str(source.get("trust") or "indicator")
+    source_type = str(source.get("type") or "web")
+    claimed = classify(str(source.get("url") or ""), source_type)
+    fetched_url = str((evidence or {}).get("fetched_url") or "")
+    rank = {"indicator": 0, "professional": 1, "primary": 2}
+    levels = [declared, claimed]
+    if fetched_url:
+        levels.append(classify(
+            fetched_url,
+            str((evidence or {}).get("fetched_source_type") or source_type),
+        ))
+    return min(levels, key=lambda value: rank.get(value, 0))
 
 
 def _fuller(source: dict, snippet: str) -> str:
@@ -92,7 +132,7 @@ def _fragment_bundle_details(
         fragments.append(f"{name}. {snippet}".strip(". "))
         urls.append(str(source.get("url") or ""))
         attested = _preserved_evidence(evidence, snapshot_root)
-        if attested and source.get("trust") == "primary":
+        if attested and _effective_source_trust(source, evidence) == "primary":
             source_provenance = "preserved_primary"
             verified_indices.add(len(fragments))
         elif attested:

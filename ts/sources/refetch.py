@@ -222,9 +222,15 @@ def fetch_public_target(
                 remaining = deadline_at - monotonic()
                 if remaining <= 0:
                     raise TimeoutError("advisory re-fetch deadline exceeded")
-                if connection.sock is not None:
-                    connection.sock.settimeout(max(0.001, remaining))
+                read_socket = connection.sock
+                if read_socket is None:
+                    raw = getattr(getattr(response, "fp", None), "raw", None)
+                    read_socket = getattr(raw, "_sock", None)
+                if read_socket is not None:
+                    read_socket.settimeout(max(0.001, remaining))
                 chunk = read_chunk(min(65_536, max_body_bytes + 1 - len(body)))
+                if monotonic() >= deadline_at:
+                    raise TimeoutError("advisory re-fetch deadline exceeded")
                 if not chunk:
                     break
                 body.extend(chunk)
@@ -245,7 +251,8 @@ def fetch_public_target(
     raise ConnectorError("advisory re-fetch transport failed") from last_error
 
 
-def _text(content: bytes, content_type: str) -> tuple[str, str]:
+def extract_text(content: bytes, content_type: str) -> tuple[str, str]:
+    """Return the deterministic readable text used by snapshot attestations."""
     try:
         decoded = content.decode("utf-8", errors="replace")
     except (AttributeError, UnicodeError) as exc:
@@ -297,7 +304,7 @@ def refetch_public_url(
     content_type = str(response.headers.get("content-type") or "").lower().split(";", 1)[0]
     if not any(content_type.startswith(allowed) for allowed in _TEXT_TYPES):
         raise ConnectorError("advisory response content type is unsupported")
-    text, title = _text(content, content_type)
+    text, title = extract_text(content, content_type)
     if not text:
         raise ConnectorError("advisory response has no readable text")
     host = urlparse(current).hostname or current

@@ -94,6 +94,13 @@ containers, so live search no longer depends on backend VM101. Receipt:
   the inherited deadline, re-hashes the stored blob plus fragment attestation
   before `verified`, and joins short-title DOI/OpenAlex mirrors by shared Work
   identity. Production remains untouched pending a fresh independent verdict.
+- A second independent Astra pass over `4cccc20` found two deeper C02 bypasses
+  and a late-EOF transport edge. The current frozen candidate binds URL, raw
+  body, MIME type, canonical text and cited fragment through immutable SHA-256
+  attestations; redirect trust can only decrease; final EOF is inside the same
+  monotonic deadline. The complete suite is 332/332 on a disposable migrated
+  database. Production and feature flags remain unchanged pending another
+  independent verdict.
 - The default live path re-fetches a primary-first, configured maximum of source
   bodies inside the inherited deadline and stores immutable SHA-256 snapshots.
   Source cards distinguish `preserved` from `snippet_only`; verified features
@@ -172,7 +179,7 @@ containers, so live search no longer depends on backend VM101. Receipt:
    in a separately reviewed presentation rebuild rather than silently changing
    the sealed delivery package.
 6. **Evidence provenance release gate:** bounded source snapshots and
-   `checklist-v19` are implemented and tested on the branch. A frozen replay and
+   `checklist-v20` are implemented and tested on the branch. A frozen replay and
    canary must measure coverage/latency before production activation; saved
    historical runs remain immutable.
 7. **Release state:** bounded search, timings, safe funnel and configuration

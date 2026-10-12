@@ -138,7 +138,7 @@ def test_duplicate_predictor_code_cannot_inflate_an_axis():
     assert metrics["potential_index"] == 46.7
 
 
-def test_real_scored_watchlist_can_enter_high_potential_without_becoming_a_signal():
+def test_real_scored_watchlist_can_enter_high_potential_without_becoming_a_signal(tmp_path):
     from ts.checklist import score_card
     from ts.potential import rank_potential_cards
     from ts.scoring.scorer import load_rules
@@ -147,7 +147,10 @@ def test_real_scored_watchlist_can_enter_high_potential_without_becoming_a_signa
 
     output = _out(verified={"P01", "P02"}, transition="unknown")
     output["secondary_patterns"] = ["P02"]
-    judged = score_card(source_card(), lambda _: _read(output), load_rules())
+    judged = score_card(
+        source_card(snapshot_root=tmp_path), lambda _: _read(output), load_rules(),
+        snapshot_root=tmp_path,
+    )
     card = judged["card"]
     assert card["confidence"] == 0.5
     assert card["label"] == "watchlist"

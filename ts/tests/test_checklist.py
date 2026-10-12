@@ -23,15 +23,34 @@ def _card(
     url="https://arxiv.org/abs/2401.00001",
     snippet="A fragment about the cell.",
     preserved=True,
+    snapshot_root=None,
 ):
     fragment_hash = hashlib.sha256(snippet.encode()).hexdigest()
+    snapshot = (
+        save_snapshot(
+            snapshot_root,
+            url,
+            snippet.encode(),
+            content_type="text/plain",
+            text_hash=fragment_hash,
+        )
+        if preserved and snapshot_root else None
+    )
     evidence = (
         {
+            **({"version": "snapshot-evidence-0.2"} if snapshot else {}),
             "status": "preserved",
             "fragment": snippet,
-            "snapshot_ref": "sha256:" + "0" * 64,
-            "content_hash": "0" * 64,
+            "snapshot_ref": "sha256:" + (snapshot["content_hash"] if snapshot else "0" * 64),
+            **({"attestation_ref": snapshot["attestation_ref"]} if snapshot else {}),
+            "content_hash": snapshot["content_hash"] if snapshot else "0" * 64,
             "fragment_hash": fragment_hash,
+            **({
+                "text_hash": fragment_hash,
+                "fetched_url": url,
+                "content_type": "text/plain",
+                "fetched_source_type": "paper",
+            } if snapshot else {}),
         }
         if preserved else {"status": "snippet_only"}
     )
@@ -96,15 +115,15 @@ def _read(out, fragments=None, urls=None):
     }
 
 
-def test_scored_card_uses_rules_01_and_keeps_admission():
+def test_scored_card_uses_rules_01_and_keeps_admission(tmp_path):
     rules = _rules()
-    card = _card()
+    card = _card(snapshot_root=tmp_path)
     out = _out(verified={"P01"}, transition="supported")
 
     def reader(_card_in):
         return _read(out)
 
-    judged = score_card(card, reader, rules)
+    judged = score_card(card, reader, rules, snapshot_root=tmp_path)
     assert judged["keep"] is True
     assert judged["card"]["policy_action"] == "WATCHLIST"
     assert judged["card"]["checklist"]["status"] == "scored"
@@ -176,19 +195,27 @@ def test_unattested_preserved_label_cannot_make_a_claim_verified():
 def test_preserved_primary_fragment_can_remain_verified_and_carries_snapshot_ref(tmp_path):
     card = _card(snippet="search snippet")
     preserved = "Direct text from the preserved primary document."
+    text_hash = hashlib.sha256(preserved.encode()).hexdigest()
     snapshot = save_snapshot(
         tmp_path,
         "https://arxiv.org/abs/2401.00001",
         preserved.encode(),
+        content_type="text/plain",
+        text_hash=text_hash,
     )
     card["sources"][0].update({
         "trust": "primary",
         "evidence": {
+            "version": "snapshot-evidence-0.2",
             "status": "preserved",
             "fragment": preserved,
             "snapshot_ref": "sha256:" + snapshot["content_hash"],
+            "attestation_ref": snapshot["attestation_ref"],
             "content_hash": snapshot["content_hash"],
             "fragment_hash": hashlib.sha256(preserved.encode()).hexdigest(),
+            "text_hash": text_hash,
+            "fetched_url": "https://arxiv.org/abs/2401.00001",
+            "content_type": "text/plain",
         },
     })
     out = _out(verified={"P01"}, transition="verified")
@@ -208,6 +235,80 @@ def test_preserved_primary_fragment_can_remain_verified_and_carries_snapshot_ref
         "provenance": "preserved_primary",
         "snapshot_ref": "sha256:" + snapshot["content_hash"],
     }]
+
+
+def test_valid_blob_cannot_attest_an_independently_hashed_invented_fragment(tmp_path):
+    fetched_url = "https://arxiv.org/abs/2401.00001"
+    actual = "The preserved article says nothing about commercial deployment."
+    invented = "Independent factories verified this invented deployment claim."
+    actual_hash = hashlib.sha256(actual.encode()).hexdigest()
+    snapshot = save_snapshot(
+        tmp_path,
+        fetched_url,
+        actual.encode(),
+        content_type="text/plain",
+        text_hash=actual_hash,
+    )
+    card = _card(snippet="search snippet")
+    card["sources"][0]["evidence"] = {
+        "version": "snapshot-evidence-0.2",
+        "status": "preserved",
+        "fragment": invented,
+        "snapshot_ref": "sha256:" + snapshot["content_hash"],
+        "attestation_ref": snapshot["attestation_ref"],
+        "content_hash": snapshot["content_hash"],
+        "fragment_hash": hashlib.sha256(invented.encode()).hexdigest(),
+        "text_hash": actual_hash,
+        "fetched_url": fetched_url,
+        "content_type": "text/plain",
+    }
+
+    judged = score_card(
+        card,
+        lambda _card: _read(_out(verified={"P01"}, transition="verified")),
+        _rules(),
+        snapshot_root=tmp_path,
+    )
+
+    assert judged["card"]["checklist"]["provenance_capped"] == ["P01", "TR"]
+    assert judged["card"]["evidence_fragments"][0]["provenance"] == "snippet_only"
+
+
+def test_final_indicator_redirect_cannot_retain_declared_primary_trust(tmp_path):
+    final_url = "https://medium.com/@someone/fabricated"
+    text = "A preserved blog retelling, not a primary paper."
+    text_hash = hashlib.sha256(text.encode()).hexdigest()
+    snapshot = save_snapshot(
+        tmp_path,
+        final_url,
+        text.encode(),
+        content_type="text/plain",
+        text_hash=text_hash,
+    )
+    card = _card(snippet="search snippet")
+    card["sources"][0]["evidence"] = {
+        "version": "snapshot-evidence-0.2",
+        "status": "preserved",
+        "fragment": text,
+        "snapshot_ref": "sha256:" + snapshot["content_hash"],
+        "attestation_ref": snapshot["attestation_ref"],
+        "content_hash": snapshot["content_hash"],
+        "fragment_hash": text_hash,
+        "text_hash": text_hash,
+        "fetched_url": final_url,
+        "fetched_source_type": "web",
+        "content_type": "text/plain",
+    }
+
+    judged = score_card(
+        card,
+        lambda _card: _read(_out(verified={"P01"}, transition="verified")),
+        _rules(),
+        snapshot_root=tmp_path,
+    )
+
+    assert judged["card"]["checklist"]["provenance_capped"] == ["P01", "TR"]
+    assert judged["card"]["evidence_fragments"][0]["provenance"] == "preserved_non_primary"
 
 
 def test_missing_snapshot_blob_cannot_keep_verified_provenance(tmp_path):
@@ -425,35 +526,38 @@ def test_invalid_counts_scope_and_secondary_codes_fail_closed():
         assert judged["card"]["checklist"]["status"] == "checklist_invalid"
 
 
-def test_verified_evidence_with_any_in_range_reference_remains_scored():
+def test_verified_evidence_with_any_in_range_reference_remains_scored(tmp_path):
     out = _out(verified={"P01", "P02"}, transition="verified")
     for feature in out["features"]:
         if feature["code"] == "P02":
             feature["why"] = "неверная [9], но есть валидная [2]"
     out["transition"]["why"] = "переход подтверждён [2]"
 
-    card = _card()
-    card["sources"].append({
-        "name": "Paper 2",
-        "url": "https://example.test/second",
-        "snippet": "Второй реальный фрагмент.",
-    })
+    card = _card(snapshot_root=tmp_path)
+    second = _card(
+        url="https://arxiv.org/abs/second",
+        snippet="Второй реальный фрагмент.",
+        snapshot_root=tmp_path,
+    )["sources"][0]
+    second["name"] = "Paper 2"
+    card["sources"].append(second)
     judged = score_card(
         card,
         lambda _card: _read(out, fragments=["reader payload должен игнорироваться"]),
         _rules(),
+        snapshot_root=tmp_path,
     )
 
     assert judged["keep"] is True
     assert judged["card"]["checklist"]["status"] == "scored"
 
 
-def test_lone_find_capped_at_080_and_ignores_model_counts():
+def test_lone_find_capped_at_080_and_ignores_model_counts(tmp_path):
     rules = _rules()
-    card = _card()
+    card = _card(snapshot_root=tmp_path)
     verified = {f"P{index:02d}" for index in range(1, 19)}
     out = _out(verified=verified, transition="verified", events=10, actors=10)
-    judged = score_card(card, lambda _c: _read(out), rules)
+    judged = score_card(card, lambda _c: _read(out), rules, snapshot_root=tmp_path)
     ind = next(row for row in judged["card"]["predictors"] if row["code"] == "IND")
     assert ind["value"] == 0
     assert judged["card"]["confidence"] <= 0.80
@@ -528,11 +632,11 @@ def test_countersearch_does_not_suppress_primary_abstract_fallback(monkeypatch):
     ]
 
 
-def test_reader_m04_ignored():
+def test_reader_m04_ignored(tmp_path):
     rules = _rules()
-    card = _card()
+    card = _card(snapshot_root=tmp_path)
     out = _out(verified={"P01"}, counters={"M04": "только пересказ"}, transition="supported")
-    judged = score_card(card, lambda _c: _read(out), rules)
+    judged = score_card(card, lambda _c: _read(out), rules, snapshot_root=tmp_path)
     assert judged["keep"] is True
     assert judged["card"]["confidence"] is not None
     assert "M04" not in judged["card"]["reason_codes"]
@@ -567,7 +671,7 @@ def test_no_fragment_leaves_the_seat_without_llm_call():
     assert result["unread"][0]["confidence"] is None
 
 
-def test_same_theme_card_with_text_takes_the_empty_seat():
+def test_same_theme_card_with_text_takes_the_empty_seat(tmp_path):
     rules = _rules()
     calls = []
 
@@ -577,19 +681,19 @@ def test_same_theme_card_with_text_takes_the_empty_seat():
 
     empty = _card("poster", theme="a", url="https://example.test/poster", snippet="")
     silent = _card("also-empty", theme="a", url="https://example.test/empty", snippet="")
-    nxt = _card("with-text", theme="a", url="https://arxiv.org/abs/1")
+    nxt = _card("with-text", theme="a", url="https://arxiv.org/abs/1", snapshot_root=tmp_path)
     other = _card("other-theme", theme="b", url="https://arxiv.org/abs/2")
-    result = apply_checklist([empty], [silent, other, nxt], reader, rules)
+    result = apply_checklist([empty], [silent, other, nxt], reader, rules, snapshot_root=tmp_path)
     assert calls == ["with-text"]
     assert result["top"][0]["technology"] == "with-text"
     assert result["unread"][0]["seat_replaced"] is True
     assert [row["technology"] for row in result["overflow"]] == ["also-empty", "other-theme"]
 
 
-def test_reader_exception_stays_unevaluated_not_noise():
+def test_reader_exception_stays_unevaluated_not_noise(tmp_path):
     rules = _rules()
     calls = []
-    head = _card("head", theme="a", url="https://arxiv.org/abs/head")
+    head = _card("head", theme="a", url="https://arxiv.org/abs/head", snapshot_root=tmp_path)
     head["label"] = "watchlist"
 
     def reader(card):
@@ -598,8 +702,8 @@ def test_reader_exception_stays_unevaluated_not_noise():
             raise RuntimeError("down")
         return _read(_out(verified={"P01"}, transition="supported"))
 
-    later = _card("pass-later", theme="a", url="https://arxiv.org/abs/pass")
-    result = apply_checklist([head], [later], reader, rules)
+    later = _card("pass-later", theme="a", url="https://arxiv.org/abs/pass", snapshot_root=tmp_path)
+    result = apply_checklist([head], [later], reader, rules, snapshot_root=tmp_path)
     assert calls == ["head", "pass-later"]
     assert [row["technology"] for row in result["top"]] == ["pass-later"]
     failed = result["unread"][0]
@@ -714,7 +818,7 @@ def test_narrow_reader_keeps_the_typed_query(monkeypatch):
     assert _capture_reader(monkeypatch, "натриевая ячейка")["query"] == "натриевая ячейка"
 
 
-def test_backfill_same_theme_in_order():
+def test_backfill_same_theme_in_order(tmp_path):
     rules = _rules()
     calls = []
 
@@ -724,12 +828,12 @@ def test_backfill_same_theme_in_order():
             return _read(_out(counters={"M01": "лидеры"}))
         return _read(_out(verified={"P01"}, transition="supported"))
 
-    top = [_card("drop-me", theme="a", url="https://arxiv.org/abs/1")]
+    top = [_card("drop-me", theme="a", url="https://arxiv.org/abs/1", snapshot_root=tmp_path)]
     overflow = [
         _card("beta", theme="b", url="https://arxiv.org/abs/2"),
-        _card("alpha-next", theme="a", url="https://arxiv.org/abs/3"),
+        _card("alpha-next", theme="a", url="https://arxiv.org/abs/3", snapshot_root=tmp_path),
     ]
-    result = apply_checklist(top, overflow, reader, rules)
+    result = apply_checklist(top, overflow, reader, rules, snapshot_root=tmp_path)
     assert "beta" not in calls
     assert result["top"][0]["technology"] == "alpha-next"
     assert result["overflow"][0]["technology"] == "beta"
@@ -752,7 +856,7 @@ def test_backfill_cap_stops():
     assert len(result["overflow"]) == 2
 
 
-def test_failed_replacement_keeps_walking_the_same_theme():
+def test_failed_replacement_keeps_walking_the_same_theme(tmp_path):
     rules = _rules()
     calls = []
 
@@ -762,19 +866,19 @@ def test_failed_replacement_keeps_walking_the_same_theme():
             return _read(_out(counters={"M01": "лидеры"}))
         return _read(_out(verified={"P01"}, transition="supported"))
 
-    top = [_card("head", theme="a", url="https://arxiv.org/abs/head")]
+    top = [_card("head", theme="a", url="https://arxiv.org/abs/head", snapshot_root=tmp_path)]
     overflow = [
         _card("fail-next", theme="a", url="https://arxiv.org/abs/fail"),
-        _card("pass-later", theme="a", url="https://arxiv.org/abs/pass"),
+        _card("pass-later", theme="a", url="https://arxiv.org/abs/pass", snapshot_root=tmp_path),
         _card("other", theme="b", url="https://arxiv.org/abs/other"),
     ]
-    result = apply_checklist(top, overflow, reader, rules)
+    result = apply_checklist(top, overflow, reader, rules, snapshot_root=tmp_path)
     assert calls == ["head", "fail-next", "pass-later"]
     assert [row["technology"] for row in result["top"]] == ["pass-later"]
     assert [row["technology"] for row in result["overflow"]] == ["other"]
 
 
-def test_reader_failure_does_not_take_the_seat():
+def test_reader_failure_does_not_take_the_seat(tmp_path):
     rules = _rules()
     calls = []
 
@@ -786,21 +890,21 @@ def test_reader_failure_does_not_take_the_seat():
             return None
         return _read(_out(verified={"P01"}, transition="supported"))
 
-    top = [_card("head", theme="a", url="https://arxiv.org/abs/head")]
-    later = _card("pass-later", theme="a", url="https://arxiv.org/abs/pass")
+    top = [_card("head", theme="a", url="https://arxiv.org/abs/head", snapshot_root=tmp_path)]
+    later = _card("pass-later", theme="a", url="https://arxiv.org/abs/pass", snapshot_root=tmp_path)
     later["policy_reason"] = "theme_quota"
     overflow = [
         _card("blank", theme="a", url="https://arxiv.org/abs/blank"),
         later,
     ]
-    result = apply_checklist(top, overflow, reader, rules)
+    result = apply_checklist(top, overflow, reader, rules, snapshot_root=tmp_path)
     assert calls == ["head", "blank", "pass-later"]
     assert [row["technology"] for row in result["top"]] == ["pass-later"]
     assert result["top"][0]["policy_reason"] == "evidence_gates_passed"
     assert result["excluded"][-1]["checklist"]["status"] == "reader_failed"
 
 
-def test_one_theme_stops_after_four_reads():
+def test_one_theme_stops_after_four_reads(tmp_path):
     from ts.checklist import TEXT_HUNT
 
     calls = []
@@ -818,8 +922,8 @@ def test_one_theme_stops_after_four_reads():
         _card("head-b", theme="b", url="https://arxiv.org/abs/hb"),
     ]
     overflow = [_card(f"blank-{index}", theme="a", url=f"https://arxiv.org/abs/a{index}") for index in range(6)]
-    overflow.append(_card("keep-b", theme="b", url="https://arxiv.org/abs/kb"))
-    result = apply_checklist(top, overflow, reader, _rules())
+    overflow.append(_card("keep-b", theme="b", url="https://arxiv.org/abs/kb", snapshot_root=tmp_path))
+    result = apply_checklist(top, overflow, reader, _rules(), snapshot_root=tmp_path)
     assert sum(name.startswith("blank-") for name in calls) == TEXT_HUNT
     assert "keep-b" in calls
     assert [row["technology"] for row in result["top"]] == ["keep-b"]
@@ -836,7 +940,7 @@ def test_empty_seat_replacement_respects_cap_before_pop():
     assert result["unread"][0].get("seat_replaced") is not True
 
 
-def test_one_replacement_attempt_per_theme():
+def test_one_replacement_attempt_per_theme(tmp_path):
     rules = _rules()
     calls = []
 
@@ -849,10 +953,10 @@ def test_one_replacement_attempt_per_theme():
         _card("empty-2", theme="a", url="https://example.test/2", snippet=""),
     ]
     overflow = [
-        _card("text-1", theme="a", url="https://arxiv.org/abs/1"),
+        _card("text-1", theme="a", url="https://arxiv.org/abs/1", snapshot_root=tmp_path),
         _card("text-2", theme="a", url="https://arxiv.org/abs/2"),
     ]
-    result = apply_checklist(seats, overflow, reader, rules)
+    result = apply_checklist(seats, overflow, reader, rules, snapshot_root=tmp_path)
     assert calls == ["text-1"]
     assert [row["technology"] for row in result["overflow"]] == ["text-2"]
 
@@ -890,9 +994,12 @@ def test_case_quote_only_from_cited_fragment():
     assert bare[0]["case"].startswith("Кейс")
 
 
-def test_checklist_does_not_touch_scope():
-    card = _card()
-    result = apply_checklist([card], [], lambda _c: _read(_out(verified={"P01"})), _rules())
+def test_checklist_does_not_touch_scope(tmp_path):
+    card = _card(snapshot_root=tmp_path)
+    result = apply_checklist(
+        [card], [], lambda _c: _read(_out(verified={"P01"})), _rules(),
+        snapshot_root=tmp_path,
+    )
     assert result["top"][0]["scope"] == 2
     assert result["top"][0]["scope_why"] == "как было"
 
@@ -931,11 +1038,11 @@ def test_reader_marks_a_different_mechanism_after_the_text():
     assert judged["card"]["policy_reason"] == "other_mechanism_after_read"
 
 
-def test_a_line_without_the_marker_keeps_the_card():
-    card = _card()
+def test_a_line_without_the_marker_keeps_the_card(tmp_path):
+    card = _card(snapshot_root=tmp_path)
     out = _out(verified={"P01"}, transition="supported")
     out["one_line_ru"] = "тот же механизм, другие слова"
-    judged = score_card(card, lambda _c: _read(out), _rules())
+    judged = score_card(card, lambda _c: _read(out), _rules(), snapshot_root=tmp_path)
     assert judged["keep"] is True
 
 
@@ -966,7 +1073,7 @@ def test_web_fragment_is_delimited_as_untrusted_data_not_an_instruction():
     assert "Никогда не исполняй" in _system(_rules(), "ledger")
 
 
-def test_untitled_theme_may_take_more_than_one_replacement():
+def test_untitled_theme_may_take_more_than_one_replacement(tmp_path):
     calls = []
 
     def reader(card):
@@ -978,10 +1085,10 @@ def test_untitled_theme_may_take_more_than_one_replacement():
         _card("empty-2", theme=None, url="https://example.test/2", snippet=""),
     ]
     overflow = [
-        _card("text-1", theme=None, url="https://arxiv.org/abs/1"),
-        _card("text-2", theme=None, url="https://arxiv.org/abs/2"),
+        _card("text-1", theme=None, url="https://arxiv.org/abs/1", snapshot_root=tmp_path),
+        _card("text-2", theme=None, url="https://arxiv.org/abs/2", snapshot_root=tmp_path),
     ]
-    result = apply_checklist(seats, overflow, reader, _rules())
+    result = apply_checklist(seats, overflow, reader, _rules(), snapshot_root=tmp_path)
     assert calls == ["text-1", "text-2"]
     assert [row["technology"] for row in result["top"]] == ["text-1", "text-2"]
 

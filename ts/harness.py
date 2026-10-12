@@ -25,12 +25,14 @@ from ts.scoring.relevance import chain_link
 from ts.scoring.scorer import FeatureVector, load_rules, score
 from ts.snapshots import save_snapshot
 from ts.sources.connectors import Hit, normalise_work_id, script_of
+from ts.sources.refetch import extract_text
 from ts.sources.trust import classify, load_trust
 
 STEPS = ("search", "snapshot", "dedup", "countersearch", "score", "rank")
 TOP_N = 15
 RUN_CONTRACT_VERSION = "run-status-0.2"
-RETRIEVAL_CONTRACT_VERSION = "retrieval-0.4"
+RETRIEVAL_CONTRACT_VERSION = "retrieval-0.5"
+SNAPSHOT_EVIDENCE_VERSION = "snapshot-evidence-0.2"
 CHAIN_CONNECTORS = frozenset({"searxng", "openalex", "crossref", "sec"})
 _DEEP = frozenset({"arxiv", "openalex", "crossref", "europepmc", "doaj", "hal"})
 # Phrase lists such as "market leader" are not in the brief and are not dataset
@@ -487,6 +489,22 @@ class Harness:
     def _sources(self, hits: list[Hit], purpose: str | None = None) -> list[dict]:
         cards = []
         for hit in hits:
+            evidence = dict(hit.evidence or {"status": "snippet_only"})
+            fetched_url = str(evidence.get("fetched_url") or "")
+            claimed_trust = classify(hit.url, hit.source_type, self.trust_table)
+            fetched_trust = (
+                classify(
+                    fetched_url,
+                    str(evidence.get("fetched_source_type") or hit.source_type),
+                    self.trust_table,
+                )
+                if fetched_url else claimed_trust
+            )
+            trust_rank = {"indicator": 0, "professional": 1, "primary": 2}
+            effective_trust = min(
+                (claimed_trust, fetched_trust),
+                key=lambda value: trust_rank.get(value, 0),
+            )
             card = {
                 "name": hit.title,
                 "url": hit.url,
@@ -494,14 +512,14 @@ class Harness:
                 "date_unknown_reason": None if hit.published else "источник не указал дату",
                 "type": hit.source_type,
                 "language": hit.language,
-                "trust": classify(hit.url, hit.source_type, self.trust_table),
+                "trust": effective_trust,
                 "connector": hit.connector,
                 "snippet": (hit.snippet or "")[:500],
                 **({"doi": hit.doi} if hit.doi else {}),
                 **({"origin_ids": list(hit.origin_ids)} if hit.origin_ids else {}),
                 **({"work_id": hit.work_id} if hit.work_id else {}),
             }
-            card["evidence"] = dict(hit.evidence or {"status": "snippet_only"})
+            card["evidence"] = evidence
             if purpose:
                 card["purpose"] = purpose
             advisory = _advisory_provenance(hit.advisory_provenance)
@@ -524,25 +542,41 @@ class Harness:
         def preserve(hit: Hit, fetched) -> bool:
             nonlocal saved
             body = fetched.fetched_body if isinstance(fetched, Hit) else fetched
-            text = fetched.fetched_text if isinstance(fetched, Hit) else None
             content_type = fetched.fetched_content_type if isinstance(fetched, Hit) else None
             fetched_url = fetched.url if isinstance(fetched, Hit) else hit.url
+            fetched_source_type = fetched.source_type if isinstance(fetched, Hit) else hit.source_type
             if isinstance(body, str):
                 body = body.encode()
             if not isinstance(body, bytes):
                 return False
-            if text is None:
-                text = body.decode("utf-8", errors="replace")
-            snapshot = save_snapshot(self.snapshot_dir, fetched_url, body)
-            fragment = str(text).strip()[:1500]
+            content_type = content_type or "application/octet-stream"
+            try:
+                text, _title = extract_text(body, content_type)
+            except Exception:  # noqa: BLE001 - undecodable bodies are not evidence
+                return False
+            if not text:
+                return False
+            fragment = text[:1500]
+            text_hash = hashlib.sha256(text.encode()).hexdigest()
+            snapshot = save_snapshot(
+                self.snapshot_dir,
+                fetched_url,
+                body,
+                content_type=content_type,
+                text_hash=text_hash,
+            )
             hit.evidence = {
+                "version": SNAPSHOT_EVIDENCE_VERSION,
                 "status": "preserved",
                 "content_hash": snapshot["content_hash"],
                 "snapshot_ref": f"sha256:{snapshot['content_hash']}",
+                "attestation_ref": snapshot["attestation_ref"],
                 "fetched_url": fetched_url,
-                "content_type": content_type or "application/octet-stream",
+                "content_type": content_type,
+                "fetched_source_type": fetched_source_type,
                 "fragment": fragment,
                 "fragment_hash": hashlib.sha256(fragment.encode()).hexdigest(),
+                "text_hash": text_hash,
             }
             by_url[hit.url] = dict(hit.evidence)
             saved += 1
