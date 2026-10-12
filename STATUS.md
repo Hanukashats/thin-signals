@@ -42,7 +42,7 @@ containers, so live search no longer depends on backend VM101. Receipt:
 | W3-live | **in_progress** — live search exists; honest scored TOP-15 and durable per-step ledger remain incomplete |
 | W4-ui | **in_progress, deployed shell and verified typography** — three modules live; real-account authenticated production smoke remains unobserved |
 | Rules | `rules-0.1`, unchanged |
-| Checklist | branch `checklist-v18`; production remains unchanged; old persisted rows remain historical and are excluded from the active potential queue |
+| Checklist | branch `checklist-v18` + `technology-candidate-0.1`; production remains unchanged; old persisted rows remain historical and are excluded from the active potential queue |
 | Production delivery | VM232 public; PostgreSQL/API/UI/sing-box/research services active+enabled; SearXNG patch upgrade and controlled container restart recovered automatically |
 | Canonical Git | private SourceCraft `shats123/thin-signals`; public GitHub delivery snapshot `Hanukashats/thin-signals`, `main=0c1fdd3` verified |
 | Reliability branch | `feat/thin-signals-reliability-20261012`; not deployed; real Git timestamps retained |
@@ -59,13 +59,18 @@ containers, so live search no longer depends on backend VM101. Receipt:
 - `run-status-0.2` makes total discovery failure `failed`, partial discovery or
   countersearch failure `degraded`, and failed countersearch blocks admission.
   The latest-run endpoint now returns the newest finished run instead of hiding
-  failed/degraded outcomes. The complete suite now passes 308/308 against a fresh
+  failed/degraded outcomes. The complete suite now passes 312/312 against a fresh
   disposable migrated database; production data was not touched.
-- `live-w19` attaches matching countersearch records to each candidate as a
+- `live-w20` attaches matching countersearch records to each candidate as a
   separate evidence channel. `checklist-v18` now requires at least one positive
   discovery fragment and refuses verified positive claims/transitions cited only
   to countersearch. A cited M01/M02/M03/M05/M06 finding may still exclude the
   card. Countersearch output cannot score or admit a card by itself.
+- Wide theme results now form one versioned technology candidate per mechanism.
+  DOI/URL mirrors count as one document/event, while independent origins count
+  only explicit institution/lab identifiers. Distinct hosts without those IDs
+  remain `unknown` and contribute no independence score; raw event funnel counts
+  and cross-theme alias-bridge deduplication remain intact.
 - `retrieval-0.3` runs connector calls with bounded concurrency and one inherited
   absolute deadline. Results completing after that deadline are discarded;
   changed wide budgets or ordered theme plans cannot reuse a deadline-failed

@@ -193,6 +193,35 @@ def test_preserved_professional_fragment_is_still_at_most_supported():
     assert judged["card"]["checklist"]["provenance_capped"] == ["P01"]
 
 
+def test_independence_uses_explicit_origin_ids_not_source_hosts():
+    card = _card()
+    card["events"] = 3
+    card["sources"] = [
+        {
+            **card["sources"][0],
+            "url": "https://one.example/work",
+            "origin_ids": ["ror:lab-a"],
+        },
+        {
+            **card["sources"][0],
+            "url": "https://two.example/mirror",
+            "origin_ids": ["ror:lab-a"],
+        },
+        {
+            **card["sources"][0],
+            "url": "https://three.example/other",
+        },
+    ]
+    out = _out(verified={"P01"})
+
+    judged = score_card(card, lambda _card: _read(out), _rules())
+    independence = next(
+        item for item in judged["card"]["predictors"] if item["code"] == "IND"
+    )
+
+    assert independence["evidence"] == "events=3, origins=1"
+
+
 def test_countersearch_text_cannot_replace_missing_positive_source_text(monkeypatch):
     card = _card(snippet="")
     card["counter_sources"] = [{

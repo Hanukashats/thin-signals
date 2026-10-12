@@ -15,6 +15,7 @@ from ts.fanout import (
     _identity_groups,
     _identity_representative,
     _normalise_doi,
+    aggregate_theme_candidate,
     is_wide,
     load_theme_plan,
     merge_theme_reports,
@@ -58,7 +59,7 @@ from ts.sources.connectors import (
 from ts.sources.refetch import MAX_BODY_BYTES, RefetchResponse, refetch_public_url
 from ts.sources.researcher import GptResearcherConnector
 
-CORPUS = "live-w19"
+CORPUS = "live-w20"
 THEME_LOOKBACK_DAYS = 365
 
 
@@ -142,6 +143,75 @@ def _event_cards(report: dict) -> list[dict]:
             if count > 0:
                 cards.append(card)
     return cards
+
+
+def _aggregate_candidate_parts(
+    raw_parts: list[tuple[dict, list[dict]]],
+    event_groups: list[tuple[tuple, list[dict]]],
+) -> tuple[list[tuple[dict, list[dict]]], list[tuple[tuple, list[dict]]]]:
+    """Aggregate themes while carrying cross-theme event components forward.
+
+    An excluded bridge record may connect two admitted views of the same work.
+    Aggregation creates new dicts, so object identity alone cannot preserve that
+    relation; this explicit union transfers only the already-derived event groups.
+    """
+    event_identity = {
+        id(card): identity
+        for identity, members in event_groups
+        for card in members
+    }
+    entries: list[tuple[dict, set[tuple]]] = []
+    parts: list[tuple[dict, list[dict]]] = []
+    for theme, cards in raw_parts:
+        if not cards:
+            parts.append((theme, []))
+            continue
+        candidate = aggregate_theme_candidate(theme, cards)
+        identities = {
+            event_identity[id(card)]
+            for card in cards
+            if id(card) in event_identity
+        }
+        entries.append((candidate, identities))
+        parts.append((theme, [candidate]))
+    parents = list(range(len(entries)))
+
+    def find(index: int) -> int:
+        while parents[index] != index:
+            parents[index] = parents[parents[index]]
+            index = parents[index]
+        return index
+
+    def union(left: int, right: int) -> None:
+        left_root, right_root = find(left), find(right)
+        if left_root != right_root:
+            parents[max(left_root, right_root)] = min(left_root, right_root)
+
+    owner: dict[tuple, int] = {}
+    for index, (_candidate, identities) in enumerate(entries):
+        for identity in identities:
+            previous = owner.setdefault(identity, index)
+            union(index, previous)
+    grouped: dict[int, list[int]] = {}
+    for index in range(len(entries)):
+        grouped.setdefault(find(index), []).append(index)
+    inherited = []
+    for indices in grouped.values():
+        identities = sorted({
+            repr(identity)
+            for index in indices
+            for identity in entries[index][1]
+        })
+        if not identities:
+            identities = [
+                "candidate:" + str(entries[index][0]["candidate"]["key"])
+                for index in indices
+            ]
+        inherited.append((
+            ("global-event-components", *identities),
+            [entries[index][0] for index in indices],
+        ))
+    return parts, inherited
 
 
 def _source_rank(source: dict) -> tuple:
@@ -343,7 +413,7 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
     if stored is not None:
         stored["repeated"] = True
         return stored
-    parts = []
+    raw_parts = []
     theme_statuses = []
     theme_runs = []
     theme_steps = []
@@ -355,7 +425,7 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
     skipped_themes = []
     for theme in plan["themes"]:
         if monotonic() >= deadline_at:
-            parts.append((theme, []))
+            raw_parts.append((theme, []))
             theme_statuses.append("failed")
             skipped_themes.append(theme["id"])
             continue
@@ -366,7 +436,8 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
             _parent_retrieval_fingerprint=fingerprint,
             _fetch_body=fetch_body,
         )
-        parts.append((theme, list(report.get("top") or [])))
+        theme_cards = list(report.get("top") or [])
+        raw_parts.append((theme, theme_cards))
         theme_status = str(report.get("run_status") or "failed")
         theme_statuses.append(theme_status)
         theme_runs.append({
@@ -408,10 +479,11 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
                 continue
             discovered_source_records.append(dict(source))
     event_groups = _identity_groups(event_cards)
+    parts, candidate_identity_groups = _aggregate_candidate_parts(raw_parts, event_groups)
     merged = merge_theme_reports(
         parts,
         limit=TOP_N,
-        global_identity_groups=event_groups,
+        global_identity_groups=candidate_identity_groups,
     )
     # A theme query is not the operator's question. As one, it marks cross-theme papers ДРУГОЙ_МЕХАНИЗМ.
     checked = annotate_checklist(merged["top"], merged["overflow"], settings, query=None)

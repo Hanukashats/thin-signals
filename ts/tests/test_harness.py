@@ -155,6 +155,20 @@ def test_embedded_refetch_body_becomes_safe_preserved_source_evidence(tmp_path: 
     assert "fetched_body" not in repr(public_report(report))
 
 
+def test_explicit_origin_ids_are_normalized_and_bounded_at_the_hit_boundary():
+    hit = Hit(
+        "openalex",
+        "https://openalex.org/W1",
+        "New memory mechanism",
+        "experiment",
+        "paper",
+        origin_ids=(" ROR:LAB-A ", "ror:lab-a", "x" * 257),
+    )
+
+    assert hit.origin_ids == ("ror:lab-a",)
+    assert Harness()._sources([hit])[0]["origin_ids"] == ["ror:lab-a"]
+
+
 def test_snapshot_fetch_limit_is_bounded_and_unfetched_sources_are_explicit(tmp_path: Path):
     hits = [
         Hit("arxiv", f"https://arxiv.org/abs/{index}", f"New mechanism {index}", "snippet", "paper")

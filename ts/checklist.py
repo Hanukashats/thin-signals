@@ -7,10 +7,9 @@ from __future__ import annotations
 
 import copy
 import re
-from urllib.parse import urlparse
 
 from ts.extract import to_feature_vector, validate_scoring_output
-from ts.fanout import _identity
+from ts.fanout import _identity, explicit_origin_groups
 from ts.scale import fetch_abstract
 from ts.scoring.scorer import load_rules, score
 
@@ -25,10 +24,6 @@ SOURCE_FRAGMENT_CAP = 6
 COUNTER_FRAGMENT_CAP = 2
 _FULL: dict[tuple[str, str], str] = {}
 _FRAGMENT_REF = re.compile(r"\[(\d+)\]")
-
-
-def _host(url: str) -> str:
-    return (urlparse(url).hostname or "").lower().removeprefix("www.")
 
 
 def _fuller(source: dict, snippet: str) -> str:
@@ -120,17 +115,6 @@ def _fragments(card: dict, full: bool = True) -> tuple[list[str], list[str]]:
     return fragments, urls
 
 
-def _hosts(card: dict) -> int:
-    hosts = set()
-    for source in card.get("sources") or []:
-        if not isinstance(source, dict):
-            continue
-        url = str(source.get("url") or "")
-        if url:
-            hosts.add(_host(url) or url)
-    return len(hosts)
-
-
 def vector_for(card: dict, out: dict):
     """Ledger vector, with event counts taken from the find, not from the model."""
     fv = to_feature_vector(out, "ledger")
@@ -143,7 +127,7 @@ def vector_for(card: dict, out: dict):
         events = 0
     evidence_events = max(0, events - planned_n)
     fv.evidence_events = evidence_events
-    fv.independent_origins = min(_hosts(card), evidence_events)
+    fv.independent_origins = min(len(explicit_origin_groups([card])), evidence_events)
     return fv
 
 

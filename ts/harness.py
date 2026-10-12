@@ -254,7 +254,7 @@ class Harness:
             counters["M04"] = True
             counter_evidence["M04"] = "все найденные источники — индикаторы, первичных нет"
         observed = [e for e in events if e["type"] != "planned_for"]
-        origins = len({_host(h.url) for h in hits})
+        origins = len(_explicit_hit_origins(hits))
         if extractor is None and events:
             cards, model_id, provider = self._score_events(
                 query, hits, events, counter_hits, rules, budget_exhausted,
@@ -308,7 +308,7 @@ class Harness:
                 counters["M04"] = True
                 evidence["M04"] = "у этой находки только пересказы, первоисточника нет"
             observed = [] if event["type"] == "planned_for" else [event]
-            origins = len({_host(hit.url) for hit in group})
+            origins = len(_explicit_hit_origins(group))
             fv = FeatureVector(
                 primary_pattern="P04", features={}, counters=counters,
                 evidence_events=len(observed), independent_origins=origins,
@@ -414,6 +414,7 @@ class Harness:
                 "connector": hit.connector,
                 "snippet": (hit.snippet or "")[:500],
                 **({"doi": hit.doi} if hit.doi else {}),
+                **({"origin_ids": list(hit.origin_ids)} if hit.origin_ids else {}),
             }
             card["evidence"] = dict(hit.evidence or {"status": "snippet_only"})
             if purpose:
@@ -747,6 +748,11 @@ def _host(url: str) -> str:
     from urllib.parse import urlparse
     host = (urlparse(url).hostname or "").lower()
     return host.removeprefix("www.")
+
+
+def _explicit_hit_origins(hits: list[Hit]) -> set[str]:
+    """Explicit upstream institution/lab IDs only; domains never prove independence."""
+    return {origin for hit in hits for origin in hit.origin_ids}
 
 
 def _contract(fv: FeatureVector, result, counters: dict, budget_exhausted: bool, countersearch_done: bool) -> dict:

@@ -5,7 +5,13 @@ import pytest
 from sqlalchemy import delete, select
 
 from ts.db.models import Candidate, Decision, Run
-from ts.fanout import is_wide, load_theme_plan, merge_theme_reports
+from ts.fanout import (
+    aggregate_theme_candidate,
+    explicit_origin_groups,
+    is_wide,
+    load_theme_plan,
+    merge_theme_reports,
+)
 from ts.scale import apply_reader
 from ts.scoring.scorer import load_rules
 from ts.sources.connectors import Hit
@@ -132,6 +138,72 @@ def test_same_url_with_conflicting_explicit_dois_remains_two_events():
 
     assert len(groups) == 2
     assert len(merged["top"]) == 2
+
+
+def test_theme_documents_and_events_form_one_typed_candidate_without_mirror_inflation():
+    theme = {"id": "memory", "title": "Memory", "query": "new memory mechanism"}
+    cards = [
+        {
+            "technology": "Work A via OpenAlex",
+            "events": 1,
+            "sources": [{
+                "url": "https://api.openalex.org/W1", "doi": "10.1000/a",
+                "origin_ids": ["ror:lab-a"], "snippet": "first",
+            }],
+            "counter_sources": [],
+        },
+        {
+            "technology": "Work A publisher mirror",
+            "events": 1,
+            "sources": [{
+                "url": "https://doi.org/10.1000/a", "doi": "10.1000/a",
+                "origin_ids": ["ror:lab-a"], "snippet": "first mirror",
+            }],
+            "counter_sources": [],
+        },
+        {
+            "technology": "Work B",
+            "events": 1,
+            "sources": [{
+                "url": "https://doi.org/10.1000/b", "doi": "10.1000/b",
+                "origin_ids": ["ror:lab-b"], "snippet": "second",
+            }],
+            "counter_sources": [],
+        },
+    ]
+
+    candidate = aggregate_theme_candidate(theme, cards)
+    reversed_candidate = aggregate_theme_candidate(theme, list(reversed(cards)))
+
+    assert candidate["technology"] == "new memory mechanism"
+    assert candidate["candidate"] == {
+        "version": "technology-candidate-0.1",
+        "kind": "technology",
+        "key": candidate["candidate"]["key"],
+        "mechanism": "new memory mechanism",
+        "document_groups": 2,
+        "event_groups": 2,
+        "origin_groups": ["ror:lab-a", "ror:lab-b"],
+        "independence": "explicit",
+    }
+    assert candidate["candidate"] == reversed_candidate["candidate"]
+    assert candidate["sources"] == reversed_candidate["sources"]
+    assert candidate["events"] == 2
+
+
+def test_multiple_hosts_without_explicit_origin_ids_do_not_invent_independence():
+    cards = [{
+        "technology": "mirrored work",
+        "sources": [
+            {"url": "https://one.example/work", "doi": "10.1000/a"},
+            {"url": "https://two.example/work", "doi": "10.1000/a"},
+        ],
+    }]
+
+    assert explicit_origin_groups(cards) == []
+    assert aggregate_theme_candidate(
+        {"id": "a", "title": "A", "query": "same mechanism"}, cards,
+    )["candidate"]["independence"] == "unknown"
 
 
 def test_doi_less_view_does_not_bridge_conflicting_doi_anchors():
@@ -365,8 +437,10 @@ def test_wide_query_searches_themes_and_a_repeat_does_not(monkeypatch):
         assert "zzfanout alpha battery cell" in searched
         assert "zzfanout beta turbine blade" in searched
         assert [row["theme"] for row in first["top"][:2]] == ["a", "b"]
-        assert len(first["top"]) == 4
-        assert first["shortfall"] == 11
+        assert len(first["top"]) == 2
+        assert first["shortfall"] == 13
+        assert all(row["candidate"]["version"] == "technology-candidate-0.1" for row in first["top"])
+        assert all(row["candidate"]["event_groups"] == 2 for row in first["top"])
         assert second["repeated"] is True
         assert echo.queries == searched
         assert first["retrieval"]["connectors"]

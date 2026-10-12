@@ -52,10 +52,10 @@ paths remain indicator; old runs remain immutable.
 
 ## Wave 2 — evidence retrieval
 
-State: **in progress**. Bounded fan-out, SHA-256 primary-source preservation and
-the default-off GPT Researcher advisory/refetch boundary are implemented on the
-reliability branch; typed grouping, OpenAlex enrichment and frozen replay remain
-open.
+State: **in progress**. Bounded fan-out, SHA-256 primary-source preservation,
+typed `technology-candidate-0.1` grouping and the default-off GPT Researcher
+advisory/refetch boundary are implemented on the reliability branch; OpenAlex
+enrichment and frozen replay remain open.
 
 - Bounded connector concurrency, per-call timing and one global deadline.
 - Persist a retrieval fingerprint and a safe source funnel; show structured

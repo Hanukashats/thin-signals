@@ -15,8 +15,10 @@ import yaml
 
 from ts.harness import TOP_N, _tokens
 from ts.scoring.order import _published_rank, scope_rank
+from ts.sources.connectors import normalise_origin_id
 
 PLAN_PATH = Path(__file__).resolve().parents[1] / "data" / "theme_plan.yaml"
+CANDIDATE_CONTRACT_VERSION = "technology-candidate-0.1"
 
 
 def load_theme_plan(path: Path = PLAN_PATH) -> dict:
@@ -44,6 +46,9 @@ def is_wide(query: str, plan: dict) -> bool:
 
 def _identity(card: dict) -> tuple:
     aliases = _identity_aliases(card)
+    candidates = tuple(value for kind, value in sorted(aliases) if kind == "candidate")
+    if candidates:
+        return ("candidate", *candidates)
     dois = tuple(value for kind, value in sorted(aliases) if kind == "doi")
     if dois:
         return ("doi", *dois)
@@ -64,6 +69,11 @@ def _normalise_doi(value: object) -> str:
 def _identity_aliases(card: dict) -> frozenset[tuple[str, str]]:
     """Return every stable source alias; repeats inside one card count once."""
     aliases: set[tuple[str, str]] = set()
+    candidate = card.get("candidate")
+    if isinstance(candidate, dict):
+        key = str(candidate.get("key") or "").strip()
+        if key:
+            aliases.add(("candidate", key))
     for source in card.get("sources") or []:
         if not isinstance(source, dict):
             continue
@@ -118,10 +128,14 @@ def _identity_groups(cards: list[dict]) -> list[tuple[tuple, list[dict]]]:
     # DOI, so its DOI aliases belong to one anchored component.
     doi_owner: dict[str, int] = {}
     title_owner: dict[str, int] = {}
+    candidate_owner: dict[str, int] = {}
     for index, aliases in enumerate(aliases_by_index):
         for kind, value in aliases:
             if kind == "doi":
                 previous = doi_owner.setdefault(value, index)
+                union(index, previous)
+            elif kind == "candidate":
+                previous = candidate_owner.setdefault(value, index)
                 union(index, previous)
             elif kind == "title":
                 previous = title_owner.setdefault(value, index)
@@ -188,6 +202,122 @@ def _identity_representative(cards: list[dict]) -> dict:
         len([source for source in card.get("sources") or [] if isinstance(source, dict)]),
         len(card.get("evidence_fragments") or []),
     ))
+
+
+def explicit_origin_groups(cards: list[dict]) -> list[str]:
+    """Return declared laboratory/institution groups without inferring independence."""
+    origins: set[str] = set()
+    for card in cards:
+        if not isinstance(card, dict):
+            continue
+        candidate = card.get("candidate")
+        if isinstance(candidate, dict):
+            values = candidate.get("origin_groups") or []
+            if isinstance(values, str):
+                values = [values]
+            for value in values if isinstance(values, (list, tuple, set)) else []:
+                if origin := normalise_origin_id(value):
+                    origins.add(origin)
+        for source in card.get("sources") or []:
+            if not isinstance(source, dict):
+                continue
+            values = source.get("origin_ids") or []
+            if isinstance(values, str):
+                values = [values]
+            for value in values if isinstance(values, (list, tuple, set)) else []:
+                if origin := normalise_origin_id(value):
+                    origins.add(origin)
+            if origin := normalise_origin_id(source.get("origin_id")):
+                origins.add(origin)
+    return sorted(origins)
+
+
+def _record_sort_key(record: dict) -> tuple:
+    """Stable source order independent of connector completion order."""
+    return (
+        _normalise_doi(record.get("doi")),
+        str(record.get("url") or "").strip(),
+        str(record.get("name") or "").casefold(),
+        json.dumps(record, sort_keys=True, ensure_ascii=True, default=str),
+    )
+
+
+def _stable_records(cards: list[dict], field: str) -> list[dict]:
+    unique: dict[str, dict] = {}
+    for card in cards:
+        for raw in card.get(field) or []:
+            if not isinstance(raw, dict):
+                continue
+            record = dict(raw)
+            key = json.dumps(record, sort_keys=True, ensure_ascii=True, default=str)
+            unique[key] = record
+    return sorted(unique.values(), key=_record_sort_key)
+
+
+def _stable_representative(cards: list[dict]) -> dict:
+    """Choose a rich base card deterministically even when inputs are reversed."""
+    return max(cards, key=lambda card: (
+        len([source for source in card.get("sources") or [] if isinstance(source, dict)]),
+        len(card.get("evidence_fragments") or []),
+        int(card.get("subject_hits") or 0),
+        json.dumps(card, sort_keys=True, ensure_ascii=True, default=str),
+    ))
+
+
+def aggregate_theme_candidate(theme: dict, cards: list[dict]) -> dict:
+    """Group one theme's work/event cards into one versioned technology candidate.
+
+    DOI/URL aliases collapse document mirrors. Origin independence is present only
+    when an upstream source explicitly supplies a stable institution/lab identifier.
+    """
+    if not cards:
+        raise ValueError("at least one card is required")
+    sources = _stable_records(cards, "sources")
+    counter_sources = _stable_records(cards, "counter_sources")
+    document_cards = [
+        {"technology": str(source.get("name") or ""), "sources": [source]}
+        for source in sources
+    ]
+    document_groups = len(_identity_groups(document_cards))
+    event_groups = len(_identity_groups(cards))
+    origins = explicit_origin_groups(cards)
+    mechanism = str(theme.get("query") or theme.get("title") or "").strip()
+    seed = json.dumps(
+        {
+            "theme": str(theme.get("id") or ""),
+            "mechanism": " ".join(mechanism.casefold().split()),
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=True,
+    )
+    key = hashlib.sha256(seed.encode()).hexdigest()[:16]
+    representative = _stable_representative(cards)
+    planned = sorted({
+        str(value)
+        for card in cards
+        for value in (card.get("planned_not_deployment") or [])
+        if str(value).strip()
+    })
+    return {
+        **representative,
+        "technology": mechanism,
+        "sources": sources,
+        "counter_sources": counter_sources,
+        "events": event_groups,
+        "planned_not_deployment": planned,
+        "subject_hits": max(int(card.get("subject_hits") or 0) for card in cards),
+        "candidate": {
+            "version": CANDIDATE_CONTRACT_VERSION,
+            "kind": "technology",
+            "key": key,
+            "mechanism": mechanism,
+            "document_groups": document_groups,
+            "event_groups": event_groups,
+            "origin_groups": origins,
+            "independence": "explicit" if origins else "unknown",
+        },
+    }
 
 
 def theme_plan_fingerprint(plan: dict) -> str:

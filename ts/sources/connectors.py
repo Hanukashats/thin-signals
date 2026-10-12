@@ -56,6 +56,12 @@ class ConnectorError(RuntimeError):
     pass
 
 
+def normalise_origin_id(value: object) -> str:
+    """Normalize an explicit, bounded institution/lab identifier from upstream."""
+    origin = " ".join(str(value or "").strip().casefold().split())
+    return origin if 0 < len(origin) <= 256 else ""
+
+
 @dataclass
 class Hit:
     connector: str
@@ -69,6 +75,7 @@ class Hit:
     planned_for: str | None = None
     deployment: bool = False
     advisory_provenance: dict | None = None
+    origin_ids: tuple[str, ...] = ()
     fetched_body: bytes | None = field(default=None, repr=False, compare=False)
     fetched_text: str | None = field(default=None, repr=False, compare=False)
     fetched_content_type: str | None = field(default=None, repr=False, compare=False)
@@ -77,6 +84,12 @@ class Hit:
     def __post_init__(self) -> None:
         self.language = _language(self.title + " " + self.snippet, self.language)
         self.planned_for, self.deployment = _roadmap(self.planned_for, self.deployment)
+        values = [self.origin_ids] if isinstance(self.origin_ids, str) else self.origin_ids
+        self.origin_ids = tuple(sorted({
+            origin
+            for value in values
+            if (origin := normalise_origin_id(value))
+        }))
 
 
 def _language(text: str, given: str) -> str:
