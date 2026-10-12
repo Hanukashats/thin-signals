@@ -2,7 +2,7 @@ name: thin-signals-research
 
 services:
   searxng:
-    image: searxng/searxng@sha256:31e3ca5e206ef71b148773e196cc575dc9c866d4f5047c8a7038a45c38bd4578
+    image: searxng/searxng:2026.10.11-ad46ebd7d@sha256:00ad29bb7d72d896ac3b3ff8b252d9ad9939da3e014828934363c61dba9b7e09
     restart: unless-stopped
     env_file:
       - ${SEARX_ENV_FILE:-/etc/thin-signals-research/searxng.env}

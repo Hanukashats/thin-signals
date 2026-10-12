@@ -1,4 +1,47 @@
-# CONTINUATION POINT — home VM232 recovery, 2026-10-12
+# CONTINUATION POINT — SearXNG upgrade audit, 2026-10-12
+
+This checkpoint was recorded before changing the SearXNG pin. It supersedes
+the operational state below while retaining that recovery evidence as history.
+
+## Verified pre-change state
+
+- Repository and VM232 are both at `0c1fdd37cd95`; the worktree was clean
+  before branch `chore/searxng-2026-10-11-audit` was created.
+- Product API, UI, research Compose, Docker and host sing-box are active.
+  PostgreSQL/API/UI data and scoring rules are outside this one-module change.
+- Live SearXNG is the official amd64 image
+  `2026.9.18-12df7aed6` / `sha256:31e3ca5e206ef71b148773e196cc575dc9c866d4f5047c8a7038a45c38bd4578`.
+- The upstream candidate is official tag `2026.10.11-ad46ebd7d`, commit
+  `ad46ebd7d87666edb5f116c5b274b47f689ac6cd`, amd64 digest
+  `sha256:00ad29bb7d72d896ac3b3ff8b252d9ad9939da3e014828934363c61dba9b7e09`,
+  still AGPL-3.0-or-later. It is 59 commits ahead and zero behind the live pin.
+- Trivy found no fixed HIGH or CRITICAL vulnerability in the candidate image.
+- An isolated VM232 canary on `127.0.0.1:28089` returned the same 20-result
+  JSON contract on three queries; the product `SearxConnector` parsed five
+  bounded results. The production container was not changed by the canary.
+- Baseline product verification is green: 231 safe tests passed, two live-DB
+  tests were deliberately excluded, ruff passed, and LivingSet links passed.
+- Home-PVE has sufficient `local-zfs` space and VM232 has a verified rollback
+  snapshot chain. A fresh named snapshot is still required immediately before
+  promotion.
+- GitHub device authorization remains an external gate. SourceCraft and the
+  existing SSH-authenticated repository history remain available.
+
+## Exact continuation
+
+1. Add a regression test that requires the laptop, production Compose and
+   installer pins to identify the same audited SearXNG build.
+2. Update only the SearXNG pin and its LivingSet evidence; keep GPT Researcher
+   v3.7.0 unchanged because it is still the latest stable release.
+3. Run focused RED/GREEN, the complete safe suite, Compose validation and the
+   multi-axis code-review checks. Independent acceptance remains a separate
+   gate.
+4. Commit and push the branch, fast-forward VM232 through Git, create a named
+   PVE snapshot, then promote only SearXNG. Verify direct JSON, connector,
+   GPT Researcher dependency, product API/UI/public health and restart recovery.
+5. Roll back the image pin and VM snapshot if any required check fails.
+
+# Historical checkpoint — home VM232 recovery, 2026-10-12
 
 This checkpoint records observed state before the local research-contour
 increment. It supersedes the operational parts of the older VM101/VM231

@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import yaml
+
 ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -28,3 +30,19 @@ def test_home_vm_runtime_overrides_keep_services_private_and_recoverable():
     assert "TS_PROFILE=home-vm" in env
     assert "TS_SEARXNG_URL=" in env
     assert "TS_OPENROUTER_KEY_FILE=.secrets/openrouter_key" in env
+
+
+def test_searxng_pins_are_one_audited_immutable_build():
+    tag = "2026.10.11-ad46ebd7d"
+    digest = "sha256:00ad29bb7d72d896ac3b3ff8b252d9ad9939da3e014828934363c61dba9b7e09"
+    expected = f"searxng/searxng:{tag}@{digest}"
+
+    laptop = yaml.safe_load((ROOT / "compose.yaml").read_text(encoding="utf-8"))
+    production = yaml.safe_load(
+        (ROOT / "deploy/research/compose.yaml").read_text(encoding="utf-8")
+    )
+    installer = (ROOT / "scripts/vm232-research-contour.sh").read_text(encoding="utf-8")
+
+    assert laptop["services"]["searxng"]["image"] == expected
+    assert production["services"]["searxng"]["image"] == expected
+    assert f'SEARX_IMAGE="{expected}"' in installer
