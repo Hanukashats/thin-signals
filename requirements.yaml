@@ -562,7 +562,7 @@ requirements:
     title: Bounded GPT Researcher and OpenAlex evidence adapter
     priority: P1
     owner: research/backend
-    state: planned
+    state: in_progress
     wave: W10-research-adapter
     acceptance: >
       product invokes local GPT Researcher through its verified synchronous API
@@ -572,6 +572,9 @@ requirements:
     evidence:
       - docs/adr/ADR-012-RELIABILITY-FIRST-RESEARCH-LOOP.md
       - reports/ASTRA_AUDIT_2026-10-12.md
+      - ts/sources/researcher.py
+      - ts/sources/refetch.py
+      - ts/tests/test_research_adapter.py
 
   - id: RS-06
     title: Bounded and observable retrieval contract

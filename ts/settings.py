@@ -63,6 +63,10 @@ class Settings:
     search_deadline_seconds: float = 90.0
     wide_search_deadline_seconds: float = 540.0
     source_timeout_seconds: float = 40.0
+    gpt_researcher_enabled: bool = False
+    gpt_researcher_url: str | None = None
+    gpt_researcher_max_cost_usd: float = 0.08
+    gpt_researcher_max_leads: int = 12
 
     @property
     def sqlalchemy_url(self) -> str:
@@ -101,4 +105,8 @@ def load(root: str | Path | None = None) -> Settings:
         search_deadline_seconds=float(g("TS_SEARCH_DEADLINE_SECONDS", "90")),
         wide_search_deadline_seconds=float(g("TS_WIDE_SEARCH_DEADLINE_SECONDS", "540")),
         source_timeout_seconds=float(g("TS_SOURCE_TIMEOUT_SECONDS", "40")),
+        gpt_researcher_enabled=g("TS_GPT_RESEARCHER_ENABLED", "false").lower() == "true",
+        gpt_researcher_url=g("TS_GPT_RESEARCHER_URL"),
+        gpt_researcher_max_cost_usd=float(g("TS_GPT_RESEARCHER_MAX_COST_USD", "0.08")),
+        gpt_researcher_max_leads=int(g("TS_GPT_RESEARCHER_MAX_LEADS", "12")),
     )

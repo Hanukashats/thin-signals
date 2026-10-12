@@ -68,6 +68,7 @@ class Hit:
     doi: str | None = None
     planned_for: str | None = None
     deployment: bool = False
+    advisory_provenance: dict | None = None
 
     def __post_init__(self) -> None:
         self.language = _language(self.title + " " + self.snippet, self.language)

@@ -52,6 +52,10 @@ paths remain indicator; old runs remain immutable.
 
 ## Wave 2 — evidence retrieval
 
+State: **in progress**. Bounded fan-out and the default-off GPT Researcher
+advisory/refetch boundary are implemented on the reliability branch; preserved
+primary fragments, typed grouping and OpenAlex enrichment remain open.
+
 - Bounded connector concurrency, per-call timing and one global deadline.
 - Persist a retrieval fingerprint and a safe source funnel; show structured
   activity without raw prompts or hidden model reasoning.

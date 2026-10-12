@@ -58,6 +58,14 @@ DOI у одной из копий и повтор URL внутри ответа 
 дочернее исключение сохраняется один раз, если это событие не представлено в
 итоговом списке/реестре читателя.
 
+GPT Researcher подключается только флагом, выключенным по умолчанию. Адаптер
+делает один синхронный запрос к pinned API в унаследованном дедлайне, отбрасывает
+сгенерированный отчёт и повторно скачивает его URL как недоверенные leads.
+Проверка запрещает non-HTTP, credentials, loopback/private DNS и приватные
+redirect-цели; текст/размер ограничены. Превышение заявленного post-run cost
+fail-closed до передачи lead в harness. Наружу выходят только research id,
+стоимость, счётчики и хеши artifact path; не prose, prompt или локальный путь.
+
 Не добавлять: Neo4j, S3, Procrastinate, Redis, Kafka, K8s, BERTopic, вторая vector DB, LoRA. Replacement matrix — `docs/plan/PLAN_7.2.md` §6.
 
 ## 3. Repo layout (целевой)

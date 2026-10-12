@@ -105,8 +105,17 @@ def public_report(report: RunReport) -> dict:
             for key in (
                 "name", "connector", "status", "error", "n",
                 "elapsed_ms", "queued_ms", "theme", "cached",
+                "research_id", "reported_cost_usd", "advisory_count", "validated_count",
+                "artifact_refs",
             )
-            if key in step and isinstance(step[key], (str, int, float, bool))
+            if key in step and (
+                isinstance(step[key], (str, int, float, bool))
+                or (
+                    key == "artifact_refs"
+                    and isinstance(step[key], list)
+                    and all(isinstance(item, str) for item in step[key])
+                )
+            )
         }
         for step in report.steps
         if step.get("name") in {"search", "chain", "countersearch"}

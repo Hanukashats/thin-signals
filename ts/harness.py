@@ -76,6 +76,66 @@ def retrieval_fingerprint(
     return hashlib.sha256(encoded.encode()).hexdigest()[:16]
 
 
+def connector_identity(connector) -> str:
+    """Versioned connector settings that can alter retrieval belong in run identity."""
+    return str(getattr(connector, "retrieval_identity", connector.name))
+
+
+def _stage_connectors(connectors, step: str):
+    """Some expensive discovery adapters intentionally do not run as falsifiers."""
+    return [
+        connector for connector in connectors
+        if step in getattr(connector, "search_stages", {step})
+    ]
+
+
+def _connector_metadata(connector) -> dict:
+    """Allowlist bounded adapter telemetry; never expose reports, prompts or paths."""
+    getter = getattr(connector, "public_metadata", None)
+    if not callable(getter):
+        return {}
+    raw = getter()
+    if not isinstance(raw, dict):
+        return {}
+    safe = {}
+    research_id = raw.get("research_id")
+    if isinstance(research_id, str) and 0 < len(research_id) <= 128:
+        safe["research_id"] = research_id
+    cost = raw.get("reported_cost_usd")
+    if isinstance(cost, (int, float)) and not isinstance(cost, bool) and 0 <= cost < 1000:
+        safe["reported_cost_usd"] = float(cost)
+    for key in ("advisory_count", "validated_count"):
+        value = raw.get(key)
+        if isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= 10_000:
+            safe[key] = value
+    artifacts = raw.get("artifact_refs")
+    if isinstance(artifacts, list):
+        safe["artifact_refs"] = [
+            value for value in artifacts[:8]
+            if isinstance(value, str) and re.fullmatch(r"[a-f0-9]{16}", value)
+        ]
+    return safe
+
+
+def _advisory_provenance(raw: object) -> dict | None:
+    if not isinstance(raw, dict) or raw.get("provider") != "gpt-researcher":
+        return None
+    safe = {"provider": "gpt-researcher"}
+    research_id = raw.get("research_id")
+    if isinstance(research_id, str) and 0 < len(research_id) <= 128:
+        safe["research_id"] = research_id
+    cost = raw.get("reported_cost_usd")
+    if isinstance(cost, (int, float)) and not isinstance(cost, bool) and 0 <= cost < 1000:
+        safe["reported_cost_usd"] = float(cost)
+    artifacts = raw.get("artifact_refs")
+    if isinstance(artifacts, list):
+        safe["artifact_refs"] = [
+            value for value in artifacts[:8]
+            if isinstance(value, str) and re.fullmatch(r"[a-f0-9]{16}", value)
+        ]
+    return safe
+
+
 class Searcher(Protocol):
     name: str
 
@@ -133,7 +193,7 @@ class Harness:
         connectors = list(connectors)
         rules = load_rules(self.rules_version)
         fingerprint = retrieval_fingerprint(
-            [connector.name for connector in connectors],
+            [connector_identity(connector) for connector in connectors],
             limit=limit,
             since=self.since,
             max_workers=self.max_workers,
@@ -150,11 +210,15 @@ class Harness:
             if deadline_at is not None
             else monotonic() + max(0.0, self.deadline_seconds)
         )
+        search_sources = _stage_connectors(connectors, "search")
         hits, failures = self._search(
-            connectors, query, limit, steps, deadline_at=deadline_at,
+            search_sources, query, limit, steps, deadline_at=deadline_at,
         )
-        discovery_successes = len(connectors) - len(failures)
-        chain_sources = [item for item in connectors if item.name in CHAIN_CONNECTORS]
+        discovery_successes = len(search_sources) - len(failures)
+        chain_sources = [
+            item for item in _stage_connectors(connectors, "chain")
+            if item.name in CHAIN_CONNECTORS
+        ]
         if chain_sources:
             extra, extra_failures = self._search(
                 chain_sources, _chain_query(query), limit, steps, step="chain",
@@ -168,11 +232,12 @@ class Harness:
         events = dedup(hits)
         steps.append({"name": "dedup", "status": "ok", "events": len(events),
                       "merged": sum(1 for e in events if e["dedup_status"] == "merged")})
+        counter_sources = _stage_connectors(connectors, "countersearch")
         counter_hits, counter_failures = self._search(
-            connectors, f"{query} mass adoption industry standard", limit, steps, step="countersearch",
+            counter_sources, f"{query} mass adoption industry standard", limit, steps, step="countersearch",
             deadline_at=deadline_at,
         )
-        countersearch_done = bool(connectors) and len(counter_failures) < len(connectors)
+        countersearch_done = bool(counter_sources) and len(counter_failures) < len(counter_sources)
         run_failures = failures + counter_failures
         if discovery_successes == 0:
             run_status = "failed"
@@ -281,19 +346,19 @@ class Harness:
             deadline_token = _ACTIVE_SEARCH_DEADLINE.set(deadline_at)
             try:
                 if monotonic() >= deadline_at:
-                    return [], "deadline_exceeded", round((monotonic() - started) * 1000), queued_ms
+                    return [], "deadline_exceeded", round((monotonic() - started) * 1000), queued_ms, {}
                 try:
                     depth = 8 if step == "search" and connector.name in _DEEP and limit < 8 else limit
                     dated = self.since and step in {"search", "chain"} and getattr(connector, "takes_since", False)
                     found = connector.search(query, limit=depth, **({"since": self.since} if dated else {}))
                     completed_at = monotonic()
                     if completed_at >= deadline_at:
-                        return [], "deadline_exceeded", round((completed_at - started) * 1000), queued_ms
-                    return found, None, round((completed_at - started) * 1000), queued_ms
+                        return [], "deadline_exceeded", round((completed_at - started) * 1000), queued_ms, _connector_metadata(connector)
+                    return found, None, round((completed_at - started) * 1000), queued_ms, _connector_metadata(connector)
                 except Exception as e:  # noqa: BLE001 — one dead source must not stop the run
                     completed_at = monotonic()
                     error = "deadline_exceeded" if completed_at >= deadline_at else type(e).__name__
-                    return [], error, round((completed_at - started) * 1000), queued_ms
+                    return [], error, round((completed_at - started) * 1000), queued_ms, _connector_metadata(connector)
             finally:
                 _ACTIVE_SEARCH_DEADLINE.reset(deadline_token)
 
@@ -313,18 +378,20 @@ class Harness:
                     "queued_ms": 0,
                 })
                 continue
-            found, error, elapsed_ms, queued_ms = future.result()
+            found, error, elapsed_ms, queued_ms, metadata = future.result()
             if error:
                 failures.append(connector.name)
                 steps.append({
                     "name": step, "connector": connector.name, "status": "failed",
                     "error": error, "elapsed_ms": elapsed_ms, "queued_ms": queued_ms,
+                    **metadata,
                 })
                 continue
             hits.extend(found)
             steps.append({
                 "name": step, "connector": connector.name, "status": "ok",
                 "n": len(found), "elapsed_ms": elapsed_ms, "queued_ms": queued_ms,
+                **metadata,
             })
         executor.shutdown(wait=False, cancel_futures=True)
         return hits, failures
@@ -346,6 +413,9 @@ class Harness:
             }
             if purpose:
                 card["purpose"] = purpose
+            advisory = _advisory_provenance(hit.advisory_provenance)
+            if advisory:
+                card["advisory_provenance"] = advisory
             cards.append(card)
         return cards
 

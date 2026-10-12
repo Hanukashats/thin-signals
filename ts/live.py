@@ -25,6 +25,7 @@ from ts.harness import (
     TOP_N,
     Harness,
     RunReport,
+    connector_identity,
     retrieval_fingerprint,
     transport_timeout,
 )
@@ -39,6 +40,7 @@ from ts.settings import Settings, load
 from ts.sources.connectors import (
     ArxivConnector,
     ClinicalTrialsConnector,
+    ConnectorError,
     CordisConnector,
     CrossrefConnector,
     DoajConnector,
@@ -53,6 +55,8 @@ from ts.sources.connectors import (
     SearxConnector,
     SecConnector,
 )
+from ts.sources.refetch import MAX_BODY_BYTES, RefetchResponse, refetch_public_url
+from ts.sources.researcher import GptResearcherConnector
 
 CORPUS = "live-w19"
 THEME_LOOKBACK_DAYS = 365
@@ -245,7 +249,7 @@ def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Se
     active_connectors = list(connectors) if connectors is not None else default_connectors(s)
     since = _since(day) if _theme else None
     fingerprint = retrieval_fingerprint(
-        [connector.name for connector in active_connectors],
+        [connector_identity(connector) for connector in active_connectors],
         limit=limit,
         since=since,
         max_workers=s.search_max_workers,
@@ -315,7 +319,7 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
     corpus = f"{CORPUS}+{plan['version']}+{CHECKLIST_VERSION}"
     active_connectors = list(connectors) if connectors is not None else default_connectors(settings)
     fingerprint = retrieval_fingerprint(
-        [connector.name for connector in active_connectors],
+        [connector_identity(connector) for connector in active_connectors],
         limit=limit,
         since=_since(day),
         max_workers=settings.search_max_workers,
@@ -382,6 +386,7 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
                     for key in (
                         "name", "connector", "status", "error", "n",
                         "elapsed_ms", "queued_ms",
+                        "research_id", "reported_cost_usd", "advisory_count", "validated_count",
                     )
                     if key in step and isinstance(step[key], (str, int, float, bool))
                 }
@@ -514,6 +519,43 @@ def default_connectors(s: Settings):
     connectors = []
     if s.searxng_url:
         connectors.append(SearxConnector(s.searxng_url, get))
+    if getattr(s, "gpt_researcher_enabled", False):
+        researcher_url = getattr(s, "gpt_researcher_url", None)
+        if not researcher_url:
+            raise ValueError("TS_GPT_RESEARCHER_URL is required when GPT Researcher is enabled")
+
+        def request_lead(url: str):
+            try:
+                with httpx.stream(
+                    "GET",
+                    url,
+                    timeout=transport_timeout(getattr(s, "source_timeout_seconds", 40.0)),
+                    follow_redirects=False,
+                    headers=headers,
+                ) as response:
+                    declared = response.headers.get("content-length")
+                    if declared and declared.isdigit() and int(declared) > MAX_BODY_BYTES:
+                        raise ConnectorError("advisory response is too large")
+                    body = bytearray()
+                    for chunk in response.iter_bytes():
+                        body.extend(chunk)
+                        if len(body) > MAX_BODY_BYTES:
+                            raise ConnectorError("advisory response is too large")
+                    return RefetchResponse(
+                        response.status_code,
+                        dict(response.headers),
+                        bytes(body),
+                    )
+            except httpx.HTTPError as exc:
+                raise ConnectorError("advisory re-fetch transport failed") from exc
+
+        connectors.append(GptResearcherConnector(
+            researcher_url,
+            post,
+            lambda url: refetch_public_url(url, request_lead),
+            max_cost_usd=getattr(s, "gpt_researcher_max_cost_usd", 0.08),
+            max_leads=getattr(s, "gpt_researcher_max_leads", 12),
+        ))
     connectors += [
         ArxivConnector(get), OpenAlexConnector(get), CrossrefConnector(get), EuropePmcConnector(get),
         DoajConnector(get), HalConnector(get), OpenReviewConnector(get), GithubConnector(get),

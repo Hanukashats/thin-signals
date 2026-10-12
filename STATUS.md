@@ -50,13 +50,16 @@ containers, so live search no longer depends on backend VM101. Receipt:
 ## Verified in this increment
 
 - Astra independently audited the product path, live research containers and
-  resource envelope. GPT Researcher uses local SearXNG, but Thin Signals does
-  not yet call GPT Researcher; OpenAlex is present but lacks graph/retraction/
+  resource envelope. The branch now contains a default-off GPT Researcher
+  adapter for its pinned synchronous API. Generated prose is discarded; only
+  bounded public URLs that pass a second SSRF-guarded fetch can become hits.
+  Reported cost, validation counts and hashed artifact references are exposed
+  without prompts or local paths. OpenAlex still lacks graph/retraction/
   affiliation enrichment. Full findings: `reports/ASTRA_AUDIT_2026-10-12.md`.
 - `run-status-0.2` makes total discovery failure `failed`, partial discovery or
   countersearch failure `degraded`, and failed countersearch blocks admission.
   The latest-run endpoint now returns the newest finished run instead of hiding
-  failed/degraded outcomes. The complete suite now passes 285/285 against a fresh
+  failed/degraded outcomes. The complete suite now passes 303/303 against a fresh
   disposable migrated database; production data was not touched.
 - `live-w19` attaches matching countersearch records to each candidate as a
   separate evidence channel. `checklist-v17` now requires at least one positive
@@ -133,8 +136,9 @@ containers, so live search no longer depends on backend VM101. Receipt:
 1. **Rules change required:** score can be non-monotonic when adding a positive secondary feature because primary reassignment changes weights. Do not hotfix; create a new rules version, eval and independent acceptance.
 2. **Persistence:** canonical step/evidence ledgers are not fully populated for existing live runs; JSON payloads are not a substitute for the intended durable ledger.
 3. **Research integration:** GPT Researcher and SearXNG work together inside the
-   research service, but the Thin Signals live path does not yet invoke that
-   service. The bounded adapter is planned in W10.
+   research service. The Thin Signals adapter is implemented and wired behind
+   `TS_GPT_RESEARCHER_ENABLED=false`; it remains inactive until preserved-source
+   provenance, OpenAlex enrichment and a frozen canary are independently accepted.
 4. **Research scope:** New Life is a reproducible archive search, not new live web research. Its 15 hypotheses have no completed commercial/legal diligence.
 5. **Build-only dependencies:** the 2026-10-12 Trivy scan reports 13 HIGH and
    6 MEDIUM findings in presentation-only pins `Pillow==11.3.0` and
@@ -146,10 +150,9 @@ containers, so live search no longer depends on backend VM101. Receipt:
    or API snippet. Version the provenance rule and evaluate saved cases before
    changing labels.
 7. **Release state:** bounded search, timings, safe funnel and configuration
-   fingerprint are implemented and tested on the reliability branch. Astra's
-   first frozen review found four P1 defects; the second confirmed those fixes
-   and found two P2 wide-accounting/plan-cache defects. All six now have
-   RED/GREEN regressions and await final independent review before deployment.
+   fingerprint are implemented and tested on the reliability branch. Astra
+   independently verified baseline SHA `5798a4f` after 285 tests on a fresh
+   migrated database. W10 continues in later commits and is not deployed.
    Full original finding: `reports/LOGIC_AUDIT_2026-10-12.md`.
 8. **Bounded-worker residue:** Python cannot forcibly stop an already running
    thread. Late results are rejected and HTTP calls inherit a remaining-time
@@ -161,7 +164,7 @@ containers, so live search no longer depends on backend VM101. Receipt:
 - tested: `TZ-04`, `TZ-06`, `LLM-01`, `SC-12`, `TS-INV-02`, `TS-INV-03`
 - implemented: `LP-01…07`, `DN-01`, `RM-01`, `TZ-03`, `TZ-07`, `SC-06`, `SC-07`, `RS-01`
 - tested: `RS-02`, `RS-03`, `RS-04`, `RS-06`
-- planned and feature-off: `RS-05`, `AR-01`
+- in progress and feature-off: `RS-05`; planned and feature-off: `AR-01`
 - implemented: `TZ-14` (15-slide editable PPTX/PDF and complete render/visual checks; personal team fields still require factual input)
 - tested: `TZ-15` (public GitHub default branch resolves to exact delivery SHA)
 - removed to lineage: `SC-01`, `SC-04`, `SC-05`, `SC-08`, `SC-10`, `TS-AG-01…16`, `TS-AG-18`
