@@ -56,7 +56,7 @@ containers, so live search no longer depends on backend VM101. Receipt:
 - `run-status-0.2` makes total discovery failure `failed`, partial discovery or
   countersearch failure `degraded`, and failed countersearch blocks admission.
   The latest-run endpoint now returns the newest finished run instead of hiding
-  failed/degraded outcomes. The complete suite now passes 280/280 against a fresh
+  failed/degraded outcomes. The complete suite now passes 281/281 against a fresh
   disposable migrated database; production data was not touched.
 - `live-w19` attaches matching countersearch records to each candidate as a
   separate evidence channel. `checklist-v17` now requires at least one positive

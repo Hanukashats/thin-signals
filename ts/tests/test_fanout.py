@@ -607,6 +607,106 @@ def test_wide_funnel_deduplicates_theme_events_and_keeps_child_exclusion(
         )
 
 
+def test_primary_alias_bridge_removes_child_m04_in_every_theme_order(monkeypatch):
+    from contextlib import nullcontext
+    from pathlib import Path
+    from time import monotonic
+    from types import SimpleNamespace
+
+    from ts import live
+    from ts.checklist import apply_checklist
+    from ts.persist import public_report
+    from ts.tests.test_checklist import _out, _read
+
+    settings = SimpleNamespace(
+        rules_version="rules-0.1",
+        search_max_workers=2,
+        search_deadline_seconds=90,
+        source_timeout_seconds=40,
+        wide_search_deadline_seconds=540,
+        snapshot_dir=Path("/dev/null"),
+    )
+
+    class AliasBridge:
+        name = "test-alias-bridge"
+
+        def search(self, query: str, *, limit: int = 1):
+            if "mass adoption" in query:
+                return []
+            theme = query.split()[0]
+            url = (
+                "https://untrusted.example/same"
+                if theme == "alpha"
+                else "https://github.com/example/same"
+            )
+            return [Hit(
+                self.name,
+                url,
+                "Alpha beta gamma battery study",
+                "Battery experiment reported.",
+                "repository" if theme == "gamma" else "web",
+                doi=None if theme == "gamma" else "10.1000/same",
+            )]
+
+    def reader(_card):
+        return _read(_out(
+            verified={"P01", "P02", "P03"}, transition="verified",
+        ))
+    outcomes = []
+    event_keys = []
+    monkeypatch.setattr(live, "load_report", lambda _session, _key: None)
+    monkeypatch.setattr(live, "_near_miss", lambda *_args, **_kwargs: [])
+    monkeypatch.setattr(live, "_potential", lambda *_args, **_kwargs: [])
+    monkeypatch.setattr(live, "annotate_scopes", lambda cards, _settings: cards)
+    monkeypatch.setattr(live, "annotate_reach", lambda cards, _settings: cards)
+    monkeypatch.setattr(
+        live,
+        "annotate_checklist",
+        lambda top, overflow, _settings, query=None: apply_checklist(
+            top, overflow, reader, load_rules()
+        ),
+    )
+
+    for order in (("alpha", "beta", "gamma"), ("beta", "alpha", "gamma")):
+        plan = {
+            "version": "alias-bridge-order",
+            "frame": [],
+            "themes": [
+                {"id": value, "title": value, "query": f"{value} battery"}
+                for value in order
+            ],
+        }
+        saved = []
+        monkeypatch.setattr(
+            live,
+            "save_report",
+            lambda _session, report, saved=saved: saved.append((
+                public_report(report), report.events,
+            )),
+        )
+        outcomes.append(live._run_wide(
+            "audit mission",
+            plan,
+            limit=1,
+            extract=False,
+            settings=settings,
+            connectors=[AliasBridge()],
+            session_factory=lambda: nullcontext(None),
+            day="2026-10-12",
+            deadline_at=monotonic() + 10,
+        ))
+        event_keys.append(saved[-1][1])
+
+    for out in outcomes:
+        funnel = out["retrieval"]["funnel"]
+        assert funnel["deduplicated_events"] == 1
+        assert funnel["admitted"] == 1
+        assert funnel["excluded"] == 0
+        assert out["fanout"]["child_exclusion_observations"] == 2
+        assert out["fanout"]["unique_child_exclusions"] == 1
+    assert event_keys[0] == event_keys[1]
+
+
 class _DatedEcho(_Echo):
     takes_since = True
 

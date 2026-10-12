@@ -366,22 +366,19 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
     unread = list(checked.get("unread") or [])
     event_groups = _identity_groups(event_cards)
     child_exclusion_groups = _identity_groups(child_exclusion_cards)
-    unique_child_exclusions = [
-        _identity_representative(members)
-        for _identity, members in child_exclusion_groups
-    ]
     represented_cards = [
         item for item in [*top, *registry, *unread] if isinstance(item, dict)
     ]
     represented_ids = {id(item) for item in represented_cards}
-    child_ids = {id(item) for item in unique_child_exclusions}
+    child_ids = {id(item) for item in child_exclusion_cards}
     for _identity_key, members in _identity_groups([
-        *represented_cards, *unique_child_exclusions,
+        *represented_cards, *child_exclusion_cards,
     ]):
         if any(id(item) in represented_ids for item in members):
             continue
-        child_card = next(item for item in members if id(item) in child_ids)
-        registry.append(child_card)
+        child_members = [item for item in members if id(item) in child_ids]
+        if child_members:
+            registry.append(_identity_representative(child_members))
     card = dict(top[0]) if top else _empty_card(
         rules["version"],
         registry,

@@ -596,6 +596,7 @@ requirements:
       - ts/tests/test_harness.py::test_retrieval_configuration_is_part_of_repeat_identity
       - ts/tests/test_fanout.py::test_plan_revision_does_not_reuse_a_failed_theme_run
       - ts/tests/test_fanout.py::test_wide_funnel_deduplicates_theme_events_and_keeps_child_exclusion
+      - ts/tests/test_fanout.py::test_primary_alias_bridge_removes_child_m04_in_every_theme_order
       - ts/tests/test_desk.py::test_reasoning_shows_safe_retrieval_funnel_without_raw_agent_prompts
       - reports/REFERENCE_WSIGNAL_REVIEW_2026-10-12.md
 
