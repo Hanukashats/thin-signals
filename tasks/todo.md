@@ -9,6 +9,6 @@
 - [x] Run bounded SearXNG, GPT Researcher and Thin Signals canaries.
 - [x] Prove controlled restart and VM reboot recovery; preserve rollback path.
 - [x] Run full repository quality gates and review the diff.
-- [ ] Push the reviewed branch to SourceCraft.
+- [x] Push the reviewed branch to SourceCraft.
 - [ ] Mirror to GitHub after the exact destination and credential are confirmed.
 - [ ] Implement adversarial review after the operator's separate command.
