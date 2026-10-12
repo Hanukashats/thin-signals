@@ -45,7 +45,7 @@ there was no public or production cutover. Receipt: `docs/ops/VM231.md`.
 
 ## Verified in this increment
 
-- VM231 recovery is reproducible and private: three PVE rollback snapshots,
+- VM231 recovery is reproducible and private: four PVE rollback snapshots,
   checksum-recorded PostgreSQL 16 backup, 148/148 restored runs, persistent
   API/UI/egress services, and loopback-only application listeners. NetBird is
   installed but awaits an operator setup-key.
