@@ -1,0 +1,20 @@
+[Unit]
+Description=AGI host split internet egress via sing-box
+After=network-online.target docker.service
+Wants=network-online.target docker.service
+ConditionPathExists=/etc/agi-sing-box/config.json
+
+[Service]
+Type=simple
+ExecStartPre=/usr/bin/docker network inspect agi-sing-box-edge
+ExecStartPre=/usr/local/lib/sing-box-1.13.16/sing-box check -c /etc/agi-sing-box/config.json
+ExecStart=/usr/local/lib/sing-box-1.13.16/sing-box run -c /etc/agi-sing-box/config.json
+StateDirectory=agi-sing-box
+StateDirectoryMode=0700
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=15
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

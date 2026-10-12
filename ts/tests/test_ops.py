@@ -14,3 +14,17 @@ def test_vm_bootstrap_defaults_to_private_services_and_validates_sshd():
     assert "sudo usermod -aG docker ubuntu" not in script
     assert "/etc/ssh/sshd_config.d/99-thin-signals.conf" in script
     assert "sudo sshd -t" in script
+
+
+def test_home_vm_runtime_overrides_keep_services_private_and_recoverable():
+    drop_in = (ROOT / "deploy/systemd/thin-signals-api-home-vm.conf").read_text(encoding="utf-8")
+    egress_unit = (ROOT / "deploy/systemd/agi-sing-box.service").read_text(encoding="utf-8")
+    env = (ROOT / "deploy/env/home-vm.env.example").read_text(encoding="utf-8")
+
+    assert "Environment=TS_PROFILE=home-vm" in drop_in
+    assert "Environment=TS_SEARXNG_URL=" in drop_in
+    assert "StateDirectory=agi-sing-box" in egress_unit
+    assert "After=network-online.target docker.service" in egress_unit
+    assert "TS_PROFILE=home-vm" in env
+    assert "TS_SEARXNG_URL=" in env
+    assert "TS_OPENROUTER_KEY_FILE=.secrets/openrouter_key" in env
