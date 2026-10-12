@@ -7,7 +7,8 @@
 #     ENABLE_SING_BOX_REDIRECT=1 bash scripts/vm230-bootstrap.sh
 #
 # VM231 private staging:
-#   VM_HOSTNAME=agi-thin-signals-v2 bash scripts/vm230-bootstrap.sh
+#   VM_HOSTNAME=agi-thin-signals-v2 ENABLE_SING_BOX_REDIRECT=1 \
+#     bash scripts/vm230-bootstrap.sh
 set -euo pipefail
 
 AGENT_USER="${AGENT_USER:-agent}"
