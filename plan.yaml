@@ -1,10 +1,10 @@
-# plan.yaml — Thin Signals LivingSet v7.6
-# Machine-readable waves. Human narrative: docs/plan/PLAN_7.6.md and its parent plans.
-# 7.6 hardens evidence/provider integrity and the evidence-first operator UI; rules-0.1 is unchanged.
+# plan.yaml — Thin Signals LivingSet v7.7
+# Machine-readable waves. Human narrative: docs/plan/PLAN_7.7.md and its parent plans.
+# 7.7 restores a self-contained VM232 research contour; rules-0.1 is unchanged.
 
-plan_revision: "7.6"
-parent_revision: "7.5"
-date: "2026-10-01"
+plan_revision: "7.7"
+parent_revision: "7.6"
+date: "2026-10-12"
 deadline: "2026-09-29T23:59:00+03:00"
 operator_stop: "2026-09-28T11:00:00+03:00"
 status: active
@@ -52,6 +52,8 @@ execution:
     7.3 adds screens, public name tsignal.aispaces.ru, and the empty-loop rules above.
     7.6 adds fail-closed evidence references, non-overridable ZDR policy, honest per-card UI semantics,
     Figma three-module v4 and persistent loopback-only services. Scoring weights and thresholds stay unchanged.
+    7.7 moves production to Ubuntu 26.04.1 VM232 and owns SearXNG/GPT Researcher locally.
+    Adversarial review remains a proposed, disabled operator-gated experiment (ADR-011).
     The chief architect may close a card only after another hat re-runs the check.
     The implementer hat still cannot verify the increment it just wrote.
     Those rules live in this file. They are not a second controller inside the product.
@@ -117,7 +119,7 @@ phases:
   - id: P3
     name: LivePath
     window: ["2026-09-24", "2026-09-26"]
-    goal: Query -> TOP-15 with citations end-to-end on VM101 services
+    goal: Query -> TOP-15 with citations end-to-end on VM232 services
     waves:
       - id: W3-live
         status: in_progress
@@ -207,6 +209,32 @@ phases:
         deliverables: ["upload before 2026-09-29 23:59 MSK"]
         requirements: [ADM-01]
         forks: []
+
+  - id: P6
+    name: DisasterRecovery77
+    window: ["2026-10-12", "2026-10-12"]
+    goal: Restore self-contained Thin Signals production after storage failure
+    waves:
+      - id: W7-local-research
+        status: implemented
+        owner: infra/research
+        deliverables:
+          - "Ubuntu 26.04.1 VM232 production with local SearXNG and GPT Researcher"
+          - "loopback-only research listeners and host sing-box egress"
+          - "systemd/Docker reboot recovery and live canary receipt"
+        requirements: [RS-01]
+        forks: [backend.reuse]
+        note: "Objective self-tests pass; independent acceptance is still required."
+      - id: W8-adversarial-review
+        status: planned
+        owner: AI/domain
+        deliverables:
+          - "typed researcher/critic/defender/control-critic contracts"
+          - "deterministic arbiter, replay evaluation and timing/cost metrics"
+        requirements: [AR-01]
+        forks: [adversarial.review]
+        operator_gate: true
+        note: "No schema, prompt, code or activation before a separate authenticated operator command."
 
 wave_routing:
   CONTINUE: proceed within phase

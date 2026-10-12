@@ -1,7 +1,7 @@
 # ADR-010 — Local research contour on VM232
 
-Status: **accepted for deployment**  
-Date: 2026-10-12  
+Status: **implemented and self-tested; independent acceptance pending**
+Date: 2026-10-12
 Decision class: major operational boundary change
 
 ## Context
@@ -63,9 +63,16 @@ Rollback disables/stops that unit, removes its containers without deleting
 the `/srv` data, restores the API drop-in with an empty SearXNG URL, and
 restarts only `thin-signals-api`. PostgreSQL is not changed.
 
+## Verification
+
+The deployment and reboot evidence is recorded in
+`reports/VM232_RESEARCH_2026-10-12.md`. A real GPT Researcher query and a real
+Thin Signals candidate run completed; controlled service restart and full VM
+reboot recovered without intervention. All research ports remained loopback
+only. This is implementation evidence, not independent acceptance.
+
 ## Consequences
 
 The restored product no longer depends on VM101 for web metasearch or deep
 research. It still depends on public search engines and direct OpenRouter; the
 word “local” describes service ownership, not fully offline inference.
-

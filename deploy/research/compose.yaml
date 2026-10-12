@@ -106,4 +106,3 @@ services:
 secrets:
   openrouter_key:
     file: ${OPENROUTER_KEY_FILE:-/opt/thin-signals/.secrets/openrouter_key}
-

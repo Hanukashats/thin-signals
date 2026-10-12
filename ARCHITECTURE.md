@@ -1,13 +1,14 @@
 # ARCHITECTURE.md — Thin Signals
 
-Revision: **7.6** · Date: **2026-10-01** · Living contract
-Основа: ADR-009 (harness-first, сжатый стек, reuse VM101); контракт объектов: `docs/PROCESSING_CONTRACT.md`; методика: `docs/METHODOLOGY.md`.
+Revision: **7.7** · Date: **2026-10-12** · Living contract
+Основа: ADR-009 (harness-first) + ADR-010 (локальный research contour); контракт объектов: `docs/PROCESSING_CONTRACT.md`; методика: `docs/METHODOLOGY.md`.
 
 ## 1. Обзор
 
 ```
 [Запрос RU] -> словарь механизма + негативные термины
-  -> Discovery: SearXNG (+ arXiv / OpenAlex / Crossref / GitHub REST / Google Patents via SearXNG)
+  -> Discovery: локальный SearXNG (+ arXiv / OpenAlex / Crossref / GitHub REST)
+  -> Deep research (опционально): локальный GPT Researcher -> advisory artifact
   -> Ingest: snapshot (sha256, snapshots/) + Docling -> Document / Fragment
   -> Extract (LLM allowlisted, JSON schema): Entity / EvidenceEvent / Claim
   -> Dedup: TEI bge-m3 -> pgvector + правила (один анонс = одно событие)
@@ -31,11 +32,12 @@ Revision: **7.6** · Date: **2026-10-01** · Living contract
 | Snapshots | `snapshots/<sha256>` на диске + `documents.blob_ref` | immutable; бэкап tar |
 | LLM | OpenRouter, режим ZDR (см. §7), модели только из списка ТЗ | `provider` + `model_id` логируются в каждом ответе |
 | Embeddings | TEI bge-m3 через LiteLLM `embedding-local` (VM101) | dim pinned; laptop-профиль: FTS без векторов |
-| Search | SearXNG (VM101 :28088 или локальный контейнер) | JSON API; engines pinned |
+| Search | SearXNG на VM232 `127.0.0.1:28088` | immutable image digest; JSON API; наружу не опубликован |
+| Deep research | GPT Researcher v3.7.0 на VM232 `127.0.0.1:28000` | advisory only; exact upstream commit; OpenRouter ZDR request policy |
 | Ingest | Docling Serve (VM101 :5001); fallback trafilatura/pdfminer | text + metadata + language |
 | Browser fallback | Playwright MCP (VM101) | только при блокировке fetch |
 | UI | Streamlit (RU) | три модуля: живые сигналы, отдельный рейтинг потенциала, поиск по архиву старых технологий; факты/гипотезы/проверки/источники |
-| Ops | PostgreSQL в Compose; API/UI в persistent systemd; Caddy TLS; вход через host accounts | разные DynamicUser, LoadCredential, loopback, без OIDC/tenant |
+| Ops | PostgreSQL в Compose; API/UI и research contour в persistent systemd; Caddy TLS на VM105 | loopback для app/research; только private ingress `VM232:18443` |
 | Git | SourceCraft (канон) + GitHub mirror (сдача) | секреты только в `.secrets/` |
 
 Не добавлять: Neo4j, S3, Procrastinate, Redis, Kafka, K8s, BERTopic, вторая vector DB, LoRA. Replacement matrix — `docs/plan/PLAN_7.2.md` §6.
@@ -62,7 +64,12 @@ reports/            eval_<date>.md, live-run receipts
 
 ## 5. Сеть и reuse (ADR 007 бэкенда)
 
-На VM101 сервисы вызываются по loopback/Docker DNS (`http://127.0.0.1:28088`, `:5001`, `:4000`, `:8080`). С ноутбука — только через NetBird или laptop-профиль с локальными аналогами. Продуктовый API не получает operator-права backend и Docker socket.
+На VM232 продукт обращается к SearXNG по loopback, а GPT Researcher — к нему
+по Docker DNS. Сервисы одного хоста не ходят через NetBird/OpenWrt. Исходящий
+трафик контейнеров использует один host sing-box; проверенный IP совпадает с
+host egress. Публичный путь: домашний edge → Caddy на VM105 → приватный
+`VM232:18443` → loopback UI. NetBird hub VM233 остаётся отдельным control plane
+и не участвует в этом reverse-proxy пути.
 
 ## 6. Открытые развилки
 

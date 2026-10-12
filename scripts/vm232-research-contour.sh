@@ -40,7 +40,7 @@ status() {
   curl -fsS --max-time 8 'http://127.0.0.1:28088/search?q=health&format=json' \
     | jq '{results: (.results | length)}'
   curl -fsS --max-time 8 'http://127.0.0.1:28000/.well-known/agent-discovery.json' \
-    | jq '{name, url, version}'
+    | jq '{domain, services: [.services[].name]}'
 }
 
 rollback() {

@@ -88,7 +88,6 @@ Build order: `local-search` → `deep-research` → `release-evidence`.
 ## Open operator gates
 
 - Exact GitHub repository URL and repository-scoped credential.
-- Whether “9 September” in the voice transcript means 2026-09-09 or the
-  canonical organizer deadline 2026-09-29. Neither changes real commit times.
+- The organizer deadline is confirmed as 2026-09-29. It is recorded as the
+  delivery cutoff; implementation, test and Git timestamps remain factual.
 - Separate command to implement and activate `adversarial-review`.
-

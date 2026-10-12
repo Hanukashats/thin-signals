@@ -1,6 +1,6 @@
 # STATUS.md — Thin Signals LivingSet
 
-Delivery package date: **2026-09-29** (operator reports organizer authorization) · Plan revision: **7.6** (parent 7.5)
+Delivery package deadline: **2026-09-29 23:59 MSK** · Plan revision: **7.7** (parent 7.6) · Recovery work performed: **2026-10-12**
 
 Delivery verified: production runs the released three-module UI, including the
 `86b6840` caption and finalized typography/presentation. The replacement package
@@ -21,34 +21,51 @@ See `reports/SEARCH_TIMING_2026-09-29.md`.
 
 7.6 continuation: evidence and provider boundaries are hardened without changing `rules-0.1`, weights, thresholds or P01–P18. `checklist-v15` validates reader structure and rejects verified features/transitions or fired exclusion counters without an actual `[n]` fragment; off-topic rejection precedes below-watchlist return. Mandatory OpenRouter ZDR fields cannot be weakened; returned model and cached response provenance are checked. Three modules share the evidence-first shell: live signals, a separate potential queue over current scored observations, and search over the sealed 29.09 old-technology archive. Facts/hypotheses/checks/sources and run provenance stay separate. Figma v4 is node `41:178`; transparent logo/favicon are versioned. API/UI run as persistent DynamicUser units, active and enabled.
 
-The public route is `https://tsignal.aispaces.ru` through the home proxy to VM101. Account hashes and provider/database credentials remain only in host `.secrets/`. GOAL queue ownership remains `project=thin-signals`, `agent=cursor-bk2`; this Codex continuation did not create, claim or take its card.
+The public route is `https://tsignal.aispaces.ru` through Caddy on VM105 to
+VM232's private `:18443` listener. Account hashes and provider/database
+credentials remain only in host `.secrets/`. GOAL queue ownership remains
+`project=thin-signals`, `agent=cursor-bk2`; this Codex continuation did not
+create, claim or take its card.
 
-On 2026-10-12 a separate private recovery stand was created as Home-PVE VM231
-on `local-zfs`: Ubuntu 24.04, 4 vCPU, 12 GB RAM and a 120 GB disk. It was cloned
-from canonical SourceCraft `main` and restored on branch
-`chore/home-pve-vm231-rebuild-20261012`. All 148 saved runs were recovered and
-the 233-test VM gate passed. Its database, API and UI bind only to loopback;
-there was no public or production cutover. Receipt: `docs/ops/VM231.md`.
+On 2026-10-12 recovery was completed on Home-PVE VM232: Ubuntu 26.04.1, 4
+vCPU, 12 GB RAM and a 120 GB disk. All 148 saved runs were recovered before
+the public cutover. SearXNG and GPT Researcher now run locally in private
+containers, so live search no longer depends on backend VM101. Receipt:
+`docs/ops/VM232.md` and `reports/VM232_RESEARCH_2026-10-12.md`.
 
 ## Current
 
 | Field | Value |
 |---|---|
-| Host of record | Georg VM101 `/opt/thin-signals` (`cursor-agent`) |
-| Phase | **P3 LivePath / P4 AnalystUI** |
+| Host of record | Home-PVE VM232 `/opt/thin-signals` (`agent`) |
+| Phase | **P3 LivePath / P4 AnalystUI / P6 recovery** |
 | W3-live | **in_progress** — live search exists; honest scored TOP-15 and durable per-step ledger remain incomplete |
 | W4-ui | **in_progress, deployed shell and verified typography** — three modules live; real-account authenticated production smoke remains unobserved |
 | Rules | `rules-0.1`, unchanged |
 | Checklist | `checklist-v15`; old persisted rows remain historical and are excluded from the active potential queue |
-| Production delivery | Released three-module UI; API/UI persistent DynamicUser services, active+enabled, local/public health and actual fonts verified; package-date replacement does not change product code |
-| Canonical Git | private SourceCraft `shats123/thin-signals`; GitHub mirror required but not configured/verified on VM101 |
+| Production delivery | VM232 public; PostgreSQL/API/UI/sing-box/research services active+enabled; controlled container restart and full VM reboot recovered automatically |
+| Canonical Git | private SourceCraft `shats123/thin-signals`; GitHub mirror required but exact destination/auth are not configured |
 
 ## Verified in this increment
 
-- VM231 recovery is reproducible and private: four PVE rollback snapshots,
-  checksum-recorded PostgreSQL 16 backup, 148/148 restored runs, persistent
-  API/UI/egress services, and loopback-only application listeners. NetBird is
-  installed but awaits an operator setup-key.
+- The historical VM231 recovery checkpoint preserved four PVE snapshots, a
+  checksum-recorded PostgreSQL 16 backup and 148/148 restored runs; VM231 is no
+  longer present in the live inventory and that receipt is retained as lineage.
+- VM232 owns pinned SearXNG `2026.9.18-12df7aed6` and GPT Researcher v3.7.0
+  built from commit `0957c301`; both bind only to loopback and survive a full
+  VM reboot. The public site recovered automatically after the normal boot
+  window and returns HTTP 200.
+- GPT Researcher live canary completed in 80.76 s, discovered 14 unique source
+  URLs, wrote a 6,316-character report and reported $0.05347 cost. Its output
+  remains advisory.
+- Thin Signals live canary `f91b5e7d7676a800` read 24 sources, excluded 22,
+  produced one potential item and correctly returned `HOLD` with zero admitted
+  cards instead of filling the list.
+- VM233 NetBird hub memory is 2 GB and remains separate from OpenWrt. Its
+  dashboard is public and healthy, but initial NetBird setup is still required;
+  a rebuilt peer/policy mesh is not yet claimed.
+- VM104 `kingston-recovery` is stopped with `onboot=0`. VM105 OpenWrt/Caddy now
+  boots first (order 10), followed by VM233 (20) and VM232 (30).
 - Logout now clears the complete Streamlit session instead of retaining another
   user's filters, selections and draft query fields. The regression was RED
   before the fix and passes after it.
@@ -69,7 +86,9 @@ there was no public or production cutover. Receipt: `docs/ops/VM231.md`.
 1. **Rules change required:** score can be non-monotonic when adding a positive secondary feature because primary reassignment changes weights. Do not hotfix; create a new rules version, eval and independent acceptance.
 2. **Run contract:** all search connectors failing can still end as `succeeded`; define a versioned degraded/failed status contract before changing persisted/API semantics.
 3. **Persistence:** canonical step/evidence ledgers are not fully populated for existing live runs; JSON payloads are not a substitute for the intended durable ledger.
-4. **Release:** GitHub mirror identity/authentication is absent on VM101. SourceCraft remains canonical; do not claim dual push until the exact mirror and dedicated credential are verified.
+4. **Release:** the exact GitHub mirror and repository-scoped authentication
+   are absent. SourceCraft remains canonical; do not claim dual push until the
+   exact destination and dedicated credential are verified.
 5. **Research scope:** New Life is a reproducible archive search, not new live web research. Its 15 hypotheses have no completed commercial/legal diligence.
 6. **Build-only dependencies:** the 2026-10-12 Trivy scan reports 13 HIGH and
    6 MEDIUM findings in presentation-only pins `Pillow==11.3.0` and
@@ -80,25 +99,35 @@ there was no public or production cutover. Receipt: `docs/ops/VM231.md`.
 ## Requirements snapshot
 
 - tested: `TZ-04`, `TZ-06`, `LLM-01`, `SC-12`, `TS-INV-02`, `TS-INV-03`
-- implemented: `LP-01…07`, `DN-01`, `RM-01`, `TZ-03`, `TZ-07`, `SC-06`, `SC-07`
+- implemented: `LP-01…07`, `DN-01`, `RM-01`, `TZ-03`, `TZ-07`, `SC-06`, `SC-07`, `RS-01`
+- proposed/operator-gated: `AR-01`
 - implemented: `TZ-14` (15-slide editable PPTX/PDF and complete render/visual checks; personal team fields still require factual input)
 - release blocker: `TZ-15` (GitHub mirror not verified)
 - removed to lineage: `SC-01`, `SC-04`, `SC-05`, `SC-08`, `SC-10`, `TS-AG-01…16`, `TS-AG-18`
 
 ## Hosts
 
-- **VM101 is the current production host:** PostgreSQL at `127.0.0.1:55432`, API at `127.0.0.1:8095`, Streamlit at `127.0.0.1:8501`; public TLS terminates on the home proxy and reaches VM101 over the existing internal route.
-- **VM231 is private restored staging:** `192.168.5.231`, application ports
-  bound to loopback, SourceCraft feature branch, no public route. See
-  `docs/ops/VM231.md`.
-- VM230 remains a stale development/demo checkout and must not be treated as current production until it fast-forwards from SourceCraft and passes its own smoke tests.
+- **VM232 is production:** `192.168.5.232`; PostgreSQL `127.0.0.1:55432`, API
+  `127.0.0.1:8095`, Streamlit `127.0.0.1:8501`, SearXNG `127.0.0.1:28088`, GPT
+  Researcher `127.0.0.1:28000`; only private ingress `192.168.5.232:18443` is
+  reachable by VM105.
+- **VM233 is the separate NetBird control plane:** `192.168.5.233`, 2 GB RAM;
+  deployment is healthy but network enrollment/policies remain incomplete.
+- **VM104 is parked recovery tooling:** stopped, `onboot=0`.
+- **VM230 is historical:** stopped and not production. VM231 no longer appears
+  in the current PVE inventory; `docs/ops/VM231.md` is historical recovery
+  evidence, not a live-host claim.
 
 ## Next trigger
 
-1. Review and merge `chore/home-pve-vm231-rebuild-20261012` only after an
-   independent check; then fast-forward VM231 and repeat its health gate.
-2. Fill the factual personal team fields in slides 2–4 before external submission;
+1. Independently review and merge
+   `chore/vm232-local-research-1791810532`, then fast-forward VM232 and repeat
+   the documented health/reboot gate.
+2. Provide the exact GitHub repository URL and repository-scoped credential;
+   compare the pushed SHA before closing `TZ-15`.
+3. Issue a separate authenticated command before implementing or activating
+   ADR-011 adversarial review.
+4. Fill the factual personal team fields in slides 2–4 before external submission;
    observe a real-account authenticated production smoke when an authorized
    existing session is available. No accounts were read or changed for this release.
-3. Locate or create the exact GitHub mirror with dedicated repository-scoped authentication; push the identical SHA and close `TZ-15` only after comparing both refs.
-4. Open separate versioned work for connector-total-failure status, durable ledger population and score monotonicity; none may be hidden inside this UI increment.
+5. Open separate versioned work for connector-total-failure status, durable ledger population and score monotonicity; none may be hidden inside this recovery increment.

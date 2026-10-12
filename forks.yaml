@@ -3,8 +3,8 @@
 # Choice classes: BEST_FIT | MINIMAL | ALTERNATIVE
 # operator_gate: true → Architect must not auto-decide; stop for human.
 
-plan_revision: "7.6"
-date: "2026-10-01"
+plan_revision: "7.7"
+date: "2026-10-12"
 architect_policy:
   default_choice: BEST_FIT
   may_auto_decide: [open]
@@ -81,16 +81,18 @@ forks:
   - id: backend.reuse
     status: decided
     decision: BEST_FIT
-    chosen: extend_via_urls
+    chosen: self_contained_vm232_research
     alternatives:
+      - id: self_contained_vm232_research
+        summary: VM232 owns pinned SearXNG and exact-source GPT Researcher; backend VM101 is not required for live search
       - id: extend_via_urls
-        summary: Own compose (PG+pgvector, API, UI); VM101 SearXNG/Docling/TEI/LiteLLM/Playwright by URL; laptop profile swaps them
+        summary: Superseded after storage failure — VM101 SearXNG/Docling/TEI/LiteLLM/Playwright by URL
       - id: greenfield_in_workspace
         summary: Everything local — rejected for VM dev, kept as laptop profile
-    rationale: docker ps 2026-09-19; ADR-009 §C
+    rationale: Operator 2026-10-12; ADR-010; local contour removes the failed-host dependency without duplicating the product ledger
     operator_gate: false
-    related_waves: [W1-contract]
-    related_requirements: [TZ-11, TZ-12, RM-01]
+    related_waves: [W1-contract, W7-local-research]
+    related_requirements: [TZ-11, TZ-12, RM-01, RS-01]
 
   - id: graph.neo4j
     status: closed
@@ -198,6 +200,21 @@ forks:
     operator_gate: false
     related_waves: [W3-live]
 
+  - id: adversarial.review
+    status: open
+    decision: BEST_FIT
+    alternatives:
+      - id: evidence_gated_bounded_debate
+        summary: One researcher/critic/defender/control-critic round followed by a deterministic arbiter
+      - id: unrestricted_agent_debate
+        summary: Rejected — rhetoric, cost and loops can bypass evidence discipline
+      - id: current_checklist_only
+        summary: Baseline retained until the proposed method wins an independent evaluation
+    rationale: ADR-011; operator requires a separate command before implementation or activation
+    operator_gate: true
+    related_waves: [W8-adversarial-review]
+    related_requirements: [AR-01]
+
 decisions_log:
   - fork_id: implementation.path
     choice: logic_skills_plugins_frameworks
@@ -276,3 +293,10 @@ decisions_log:
     reason: TZ p.5 requires GitHub/GitLab
     at: "2026-09-22"
     autonomy: A1
+  - fork_id: backend.reuse
+    choice: self_contained_vm232_research
+    class: BEST_FIT
+    wave_id: W7-local-research
+    reason: Operator-approved post-failure independence; ADR-010
+    at: "2026-10-12"
+    autonomy: A3

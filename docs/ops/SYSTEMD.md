@@ -1,8 +1,10 @@
 # Persistent services
 
-## VM101 production
+## Persistent product services
 
-The public deployment is served from `/opt/thin-signals`. PostgreSQL stays in the existing Docker Compose service; API and UI use the versioned systemd units in `deploy/systemd/`.
+The public deployment is served from `/opt/thin-signals` on VM232. PostgreSQL
+stays in the product Docker Compose service; API and UI use the versioned
+systemd units in `deploy/systemd/`.
 
 Install or refresh after a verified fast-forward of `main`:
 
@@ -39,25 +41,28 @@ Rollback:
 2. Restart only `thin-signals-api.service` and `thin-signals-ui.service`.
 3. Re-run the local and public health checks above. PostgreSQL is not restarted for a UI/API rollback.
 
-## VM231 private staging
+## VM232 production research contour
 
-VM231 uses the same hardened API/UI units and a small API drop-in that selects
-the home-VM profile without the VM101 SearXNG endpoint. All three application
+VM232 uses the same hardened API/UI units and a small API drop-in that selects
+the home-VM profile with local SearXNG. Product and research application
 listeners remain on loopback.
 
 ```bash
 sudo install -m 0644 deploy/systemd/thin-signals-api.service /etc/systemd/system/
 sudo install -m 0644 deploy/systemd/thin-signals-ui.service /etc/systemd/system/
 sudo install -d -m 0755 /etc/systemd/system/thin-signals-api.service.d
-sudo install -m 0644 deploy/systemd/thin-signals-api-home-vm.conf \
-  /etc/systemd/system/thin-signals-api.service.d/10-home-vm.conf
 sudo systemctl daemon-reload
 sudo systemctl enable --now thin-signals-api.service thin-signals-ui.service
+./scripts/vm232-research-contour.sh install
 curl -fsS http://127.0.0.1:8095/ready
 curl -fsS http://127.0.0.1:8501/_stcore/health
 ```
 
-The host egress unit is `deploy/systemd/agi-sing-box.service`; its live config
+The installer verifies/builds the pinned upstream, creates host-only state,
+installs/enables the research unit and only then switches the API to local
+SearXNG. Inspect it later with `scripts/vm232-research-contour.sh status`.
+The host egress unit is
+`deploy/systemd/agi-sing-box.service`; its live config
 and route-set cache remain host-only under `/etc/agi-sing-box` and
-`/var/lib/agi-sing-box`. VM231 details and rollback points are recorded in
-`docs/ops/VM231.md`.
+`/var/lib/agi-sing-box`. VM232 details and rollback points are recorded in
+`docs/ops/VM232.md`; `docs/ops/VM231.md` is historical recovery evidence.

@@ -1,7 +1,7 @@
 # ADR-011 — Evidence-gated researcher/critic/defender review
 
-Status: **proposed; operator activation required**  
-Date: 2026-10-12  
+Status: **proposed; operator activation required**
+Date: 2026-10-12
 Decision class: major methodology and persistence change
 
 ## Problem
@@ -28,6 +28,42 @@ checklist and scoring must remain the authority.
 The defender can therefore cause promotion, but only indirectly: its new
 evidence must satisfy the same machine-checkable gates as any other evidence.
 
+## Typed role contracts
+
+Every role receives a bounded immutable bundle, never another role's hidden
+reasoning. Proposed records are:
+
+- `ReviewClaim`: claim ID, normalized statement, critical flag, evidence IDs,
+  current status and applicable P/M reason codes;
+- `Objection`: claim ID, failure-mode code, cited counterevidence IDs, severity,
+  and `verified|supported|unknown` status;
+- `Rebuttal`: objection ID, action `ADD_EVIDENCE|CORRECT|NARROW|CONCEDE`, new
+  evidence IDs, replacement claim and explicit changed fields;
+- `ControlFinding`: objection/rebuttal IDs, evidence validity, origin
+  independence and residual status;
+- `ArbiterDecision`: deterministic verdict, rule version, blocking IDs and the
+  exact ledger revision read.
+
+Free-form text is retained for explanation but never drives a state transition.
+Unknown fields remain unknown; parsing failure, timeout or missing citation
+becomes `HOLD`.
+
+## Bias and gaming controls
+
+- Researcher and defender cannot mark their own evidence valid; normal source,
+  fragment and origin-group validators do that before arbitration.
+- Critic and defender receive the same retrieval budget. A critic's unsupported
+  objection cannot reject a candidate, while a defender's unsupported answer
+  cannot resolve one.
+- A rebuttal cannot claim independence by citing a syndication, mirror or press
+  retelling from the same origin group.
+- The control critic sees the typed objection and rebuttal in randomized order
+  without role names, reducing authority and verbosity bias.
+- Exactly one rebuttal cycle is allowed. No role can call shell, database or
+  deployment tools; retrieved web content and model output remain untrusted.
+- Prompt/model/template hashes and rejected parser outputs are retained for
+  audit, but raw secrets and hidden chain-of-thought are never stored.
+
 ## Proposed decision rules
 
 - `REJECT`: verified fatal counterevidence, confirmed mass adoption, fabricated
@@ -41,6 +77,12 @@ evidence must satisfy the same machine-checkable gates as any other evidence.
   meets the current versioned score threshold.
 
 Deadline pressure never converts `UNKNOWN` into `PROMOTE`.
+
+The deterministic arbiter evaluates in this order: invalid/fabricated evidence
+→ `REJECT`; verified fatal objection → `REJECT`; valid narrower claim →
+`REFRAME`; any unresolved critical objection → `HOLD`; current policy/checklist
+failure → its existing non-promotion outcome; only then may the current score
+and origin-diversity rules produce `PROMOTE`.
 
 ## Ledger and metrics
 
@@ -79,9 +121,14 @@ Activation requires:
 - documented latency/cost accepted by the operator;
 - independent review of migrations, prompts and eval evidence.
 
+The experiment also includes ablations (without defender and without control
+critic), blinded human adjudication of disagreements, per-pattern error slices
+and repeated runs to measure verdict stability. The defender is useful only if
+it improves recall without worsening false promotion or evidence coverage. A
+single attractive canary is never sufficient to activate the method.
+
 ## Operator gate
 
 This ADR does not authorize schema changes, role prompts, production code or
 activation. A separate authenticated operator command is required before the
 implementation phase starts.
-

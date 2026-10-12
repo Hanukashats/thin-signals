@@ -1,10 +1,10 @@
-# requirements.yaml — Thin Signals LivingSet v7.6
+# requirements.yaml — Thin Signals LivingSet v7.7
 # Each requirement: state, owner, acceptance, wave, evidence[].
 # States: proposed | planned | implemented | tested | accepted | blocked | removed
 # TS-AG-01..18 (7.1 goal_control) moved to docs/lineage/baseline_v6_1/integration/acceptance.json; only TS-AG-17 kept.
 
-plan_revision: "7.6"
-date: "2026-10-01"
+plan_revision: "7.7"
+date: "2026-10-12"
 
 requirements:
   # --- Living plan meta ---
@@ -494,3 +494,36 @@ requirements:
     wave: W4e-integrity-ui
     acceptance: Integrity-checked 29.09 archive is searchable by name, barrier, product and buyers; sources and diligence holds visible; archive search never claimed as fresh web discovery
     evidence: [ts/old_tech.py, ts/tests/test_old_tech.py, ts/desk.py, ui/views.py]
+
+  # --- Post-failure self-contained runtime ---
+  - id: RS-01
+    title: VM232 owns a private local search and deep-research contour
+    priority: P1
+    owner: infra/research
+    state: implemented
+    wave: W7-local-research
+    forks: [backend.reuse]
+    acceptance: >
+      pinned SearXNG and exact-source GPT Researcher run on VM232 loopback;
+      Thin Signals uses local SearXNG; secrets stay host-only; live search,
+      controlled restart, VM reboot and public health have reproducible evidence
+    evidence:
+      - docs/adr/ADR-010-LOCAL-RESEARCH-CONTOUR.md
+      - docs/ops/VM232.md
+      - reports/VM232_RESEARCH_2026-10-12.md
+
+  - id: AR-01
+    title: Evidence-gated researcher critic defender methodology
+    priority: P1
+    owner: AI/domain
+    state: proposed
+    wave: W8-adversarial-review
+    forks: [adversarial.review]
+    acceptance: >
+      a defender can influence promotion only through new valid evidence or a
+      narrower corrected claim; unresolved critical objections HOLD; baseline
+      versus proposed evaluation has zero evidence-less promotions and records
+      latency, tokens, cost, model and provider
+    evidence:
+      - docs/adr/ADR-011-ADVERSARIAL-REVIEW-PROPOSAL.md
+      - docs/plan/PLAN_7.7.md

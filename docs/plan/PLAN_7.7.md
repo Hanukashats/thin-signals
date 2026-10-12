@@ -4,6 +4,9 @@ Date: **2026-10-12**. Parent: **7.6**. Class: major operational boundary
 change plus a gated methodology proposal. Existing scoring rules, thresholds,
 P01–P18 and production records remain unchanged.
 
+Organizer delivery cutoff: **2026-09-29 23:59 MSK**. Recovery work and Git
+history keep their real 2026-10-12 timestamps.
+
 ## Wave A — restore local research (authorized)
 
 1. Deploy pinned SearXNG and official-release GPT Researcher on VM232.
@@ -15,6 +18,9 @@ P01–P18 and production records remain unchanged.
 Acceptance: JSON metasearch succeeds, a bounded deep-research query returns
 cited sources, a Thin Signals query produces candidates, and API/UI/public
 health remain green before and after a controlled service restart.
+
+State: **implemented and self-tested**. Evidence is in
+`reports/VM232_RESEARCH_2026-10-12.md`; independent acceptance remains open.
 
 ## Wave B — evidence-gated debate (operator gate)
 
@@ -35,4 +41,3 @@ SourceCraft remains canonical. GitHub mirroring is blocked until the exact
 repository and scoped authentication are confirmed. Real commit and test times
 are preserved; an analytical `as_of` date may be supplied to a search, but is
 never represented as a fake implementation timestamp.
-
