@@ -1,7 +1,7 @@
 # ARCHITECTURE.md — Thin Signals
 
-Revision: **7.7** · Date: **2026-10-12** · Living contract
-Основа: ADR-009 (harness-first) + ADR-010 (локальный research contour); контракт объектов: `docs/PROCESSING_CONTRACT.md`; методика: `docs/METHODOLOGY.md`.
+Revision: **7.8** · Date: **2026-10-12** · Living contract
+Основа: ADR-009 (harness-first) + ADR-010 (локальный research contour) + ADR-012 (reliability-first research loop); контракт объектов: `docs/PROCESSING_CONTRACT.md`; методика: `docs/METHODOLOGY.md`.
 
 ## 1. Обзор
 
@@ -39,6 +39,12 @@ Revision: **7.7** · Date: **2026-10-12** · Living contract
 | UI | Streamlit (RU) | три модуля: живые сигналы, отдельный рейтинг потенциала, поиск по архиву старых технологий; факты/гипотезы/проверки/источники |
 | Ops | PostgreSQL в Compose; API/UI и research contour в persistent systemd; Caddy TLS на VM105 | loopback для app/research; только private ingress `VM232:18443` |
 | Git | SourceCraft (канон) + GitHub mirror (сдача) | секреты только в `.secrets/` |
+
+Статус прогона версионирован отдельно от метки сигнала: `succeeded`,
+`degraded`, `failed`. Последний завершённый прогон виден оператору даже при
+ошибке; отказ всех discovery-коннекторов даёт `failed`, частичный отказ или
+незавершённый countersearch — `degraded`. Ни один из этих статусов не является
+оценкой перспективности технологии.
 
 Не добавлять: Neo4j, S3, Procrastinate, Redis, Kafka, K8s, BERTopic, вторая vector DB, LoRA. Replacement matrix — `docs/plan/PLAN_7.2.md` §6.
 

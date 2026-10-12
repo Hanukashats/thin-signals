@@ -1,9 +1,9 @@
-# requirements.yaml — Thin Signals LivingSet v7.7
+# requirements.yaml — Thin Signals LivingSet v7.8
 # Each requirement: state, owner, acceptance, wave, evidence[].
 # States: proposed | planned | implemented | tested | accepted | blocked | removed
 # TS-AG-01..18 (7.1 goal_control) moved to docs/lineage/baseline_v6_1/integration/acceptance.json; only TS-AG-17 kept.
 
-plan_revision: "7.7"
+plan_revision: "7.8"
 date: "2026-10-12"
 
 requirements:
@@ -516,12 +516,66 @@ requirements:
       - docs/ops/VM232.md
       - reports/VM232_RESEARCH_2026-10-12.md
 
+  - id: RS-02
+    title: Versioned run status is truthful and visible
+    priority: P0
+    owner: backend
+    state: tested
+    wave: W9-run-contract
+    acceptance: >
+      all discovery connectors failing yields failed; partial connector or
+      countersearch failure yields degraded; latest API returns the newest
+      finished run instead of hiding degraded and failed outcomes
+    evidence:
+      - ts/harness.py
+      - ts/persist.py
+      - ts/tests/test_harness.py
+      - ts/tests/test_product.py::test_latest_finished_does_not_hide_a_failed_run
+
+  - id: RS-03
+    title: Source trust cannot be promoted by a DOI-shaped path
+    priority: P0
+    owner: data/security
+    state: tested
+    wave: W9-run-contract
+    acceptance: unknown host remains indicator regardless of URL path text
+    evidence:
+      - data/source_trust.yaml
+      - ts/sources/trust.py
+      - ts/tests/test_harness.py::test_trust_levels
+
+  - id: RS-04
+    title: Failed falsification cannot admit a candidate
+    priority: P0
+    owner: AI/domain
+    state: tested
+    wave: W9-run-contract
+    acceptance: all countersearch connectors failing sets countersearch_done false and prevents RANK_ELIGIBLE
+    evidence:
+      - ts/harness.py
+      - ts/tests/test_harness.py::test_failed_countersearch_degrades_and_blocks_admission
+
+  - id: RS-05
+    title: Bounded GPT Researcher and OpenAlex evidence adapter
+    priority: P1
+    owner: research/backend
+    state: planned
+    wave: W10-research-adapter
+    acceptance: >
+      product invokes local GPT Researcher through its verified synchronous API
+      under a global deadline; source URLs and artifacts are captured as advisory
+      provenance; OpenAlex adds prior-art, retraction and independence evidence;
+      no advisory text directly changes gates or scores
+    evidence:
+      - docs/adr/ADR-012-RELIABILITY-FIRST-RESEARCH-LOOP.md
+      - reports/ASTRA_AUDIT_2026-10-12.md
+
   - id: AR-01
     title: Evidence-gated researcher critic defender methodology
     priority: P1
     owner: AI/domain
-    state: proposed
-    wave: W8-adversarial-review
+    state: planned
+    wave: W11-adversarial-eval
     forks: [adversarial.review]
     acceptance: >
       a defender can influence promotion only through new valid evidence or a
@@ -530,4 +584,5 @@ requirements:
       latency, tokens, cost, model and provider
     evidence:
       - docs/adr/ADR-011-ADVERSARIAL-REVIEW-PROPOSAL.md
-      - docs/plan/PLAN_7.7.md
+      - docs/adr/ADR-012-RELIABILITY-FIRST-RESEARCH-LOOP.md
+      - docs/plan/PLAN_7.8.md

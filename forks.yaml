@@ -3,7 +3,7 @@
 # Choice classes: BEST_FIT | MINIMAL | ALTERNATIVE
 # operator_gate: true → Architect must not auto-decide; stop for human.
 
-plan_revision: "7.7"
+plan_revision: "7.8"
 date: "2026-10-12"
 architect_policy:
   default_choice: BEST_FIT
@@ -201,8 +201,9 @@ forks:
     related_waves: [W3-live]
 
   - id: adversarial.review
-    status: open
+    status: decided
     decision: BEST_FIT
+    chosen: evidence_gated_bounded_debate
     alternatives:
       - id: evidence_gated_bounded_debate
         summary: One researcher/critic/defender/control-critic round followed by a deterministic arbiter
@@ -210,9 +211,9 @@ forks:
         summary: Rejected — rhetoric, cost and loops can bypass evidence discipline
       - id: current_checklist_only
         summary: Baseline retained until the proposed method wins an independent evaluation
-    rationale: ADR-011; operator requires a separate command before implementation or activation
-    operator_gate: true
-    related_waves: [W8-adversarial-review]
+    rationale: ADR-012; operator authorized implementation on 2026-10-12, while activation remains evaluation/release gated
+    operator_gate: false
+    related_waves: [W8-adversarial-review, W11-adversarial-eval]
     related_requirements: [AR-01]
 
 decisions_log:

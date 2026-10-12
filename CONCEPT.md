@@ -1,7 +1,7 @@
 # CONCEPT.md — Thin Signals
 
-Revision: **7.7** · Date: **2026-10-12** · Status: living contract; deployment reality is in `STATUS.md`
-Parent: 7.6 · Plan: `docs/plan/PLAN_7.7.md`
+Revision: **7.8** · Date: **2026-10-12** · Status: living contract; deployment reality is in `STATUS.md`
+Parent: 7.7 · Plan: `docs/plan/PLAN_7.8.md`
 
 ## 1. Зачем
 
@@ -50,9 +50,13 @@ sing-box для исходящего трафика и не публикуютс
 не может сам изменить рейтинг. В PostgreSQL допускаются только проверенные
 фрагменты и типизированные события из основного harness.
 
-Предложенная схема researcher → critic → defender → control critic описана в
-ADR-011 и выключена. Отдельная команда оператора обязательна до появления её
-схемы, prompt-контрактов, кода или production-активации.
+Ограниченная схема researcher → critic → defender → control critic разрешена
+оператором к реализации и описана в ADR-012. Она остаётся выключенной до
+сравнения с baseline: роли могут влиять на результат только через новое
+проверяемое доказательство или более узкую исправленную гипотезу. GPT
+Researcher формирует advisory-пакет через локальный SearXNG; OpenAlex проверяет
+идентичность, prior art, ретракции, цитирование и независимость организаций.
+Риторика роли не меняет score или gate.
 
 ## 3.2 Публичный вход
 

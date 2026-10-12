@@ -1,6 +1,6 @@
 # STATUS.md — Thin Signals LivingSet
 
-Delivery package deadline: **2026-09-29 23:59 MSK** · Plan revision: **7.7** (parent 7.6) · Recovery work performed: **2026-10-12**
+Delivery package deadline: **2026-09-29 23:59 MSK** · Plan revision: **7.8** (parent 7.7) · Reliability work performed: **2026-10-12**
 
 Delivery verified: production runs the released three-module UI, including the
 `86b6840` caption and finalized typography/presentation. The replacement package
@@ -45,9 +45,19 @@ containers, so live search no longer depends on backend VM101. Receipt:
 | Checklist | `checklist-v15`; old persisted rows remain historical and are excluded from the active potential queue |
 | Production delivery | VM232 public; PostgreSQL/API/UI/sing-box/research services active+enabled; SearXNG patch upgrade and controlled container restart recovered automatically |
 | Canonical Git | private SourceCraft `shats123/thin-signals`; public GitHub delivery snapshot `Hanukashats/thin-signals`, `main=0c1fdd3` verified |
+| Reliability branch | `feat/thin-signals-reliability-20261012`; not deployed; real Git timestamps retained |
 
 ## Verified in this increment
 
+- Astra independently audited the product path, live research containers and
+  resource envelope. GPT Researcher uses local SearXNG, but Thin Signals does
+  not yet call GPT Researcher; OpenAlex is present but lacks graph/retraction/
+  affiliation enrichment. Full findings: `reports/ASTRA_AUDIT_2026-10-12.md`.
+- `run-status-0.2` makes total discovery failure `failed`, partial discovery or
+  countersearch failure `degraded`, and failed countersearch blocks admission.
+  The latest-run endpoint now returns the newest finished run instead of hiding
+  failed/degraded outcomes. The complete suite passes 254/254 against a fresh
+  disposable migrated database; production data was not touched.
 - Source trust is now hostname/type based: DOI-shaped text in an unknown URL
   path cannot promote an untrusted web page to `primary`. The regression was
   RED before the fix and the focused trust suite passes after it;
@@ -94,8 +104,10 @@ containers, so live search no longer depends on backend VM101. Receipt:
 ## Open audit findings
 
 1. **Rules change required:** score can be non-monotonic when adding a positive secondary feature because primary reassignment changes weights. Do not hotfix; create a new rules version, eval and independent acceptance.
-2. **Run contract:** all search connectors failing can still end as `succeeded`; define a versioned degraded/failed status contract before changing persisted/API semantics.
-3. **Persistence:** canonical step/evidence ledgers are not fully populated for existing live runs; JSON payloads are not a substitute for the intended durable ledger.
+2. **Persistence:** canonical step/evidence ledgers are not fully populated for existing live runs; JSON payloads are not a substitute for the intended durable ledger.
+3. **Research integration:** GPT Researcher and SearXNG work together inside the
+   research service, but the Thin Signals live path does not yet invoke that
+   service. The bounded adapter is planned in W10.
 4. **Research scope:** New Life is a reproducible archive search, not new live web research. Its 15 hypotheses have no completed commercial/legal diligence.
 5. **Build-only dependencies:** the 2026-10-12 Trivy scan reports 13 HIGH and
    6 MEDIUM findings in presentation-only pins `Pillow==11.3.0` and
@@ -115,7 +127,8 @@ containers, so live search no longer depends on backend VM101. Receipt:
 
 - tested: `TZ-04`, `TZ-06`, `LLM-01`, `SC-12`, `TS-INV-02`, `TS-INV-03`
 - implemented: `LP-01…07`, `DN-01`, `RM-01`, `TZ-03`, `TZ-07`, `SC-06`, `SC-07`, `RS-01`
-- proposed/operator-gated: `AR-01`
+- tested: `RS-02`, `RS-03`, `RS-04`
+- planned and feature-off: `RS-05`, `AR-01`
 - implemented: `TZ-14` (15-slide editable PPTX/PDF and complete render/visual checks; personal team fields still require factual input)
 - tested: `TZ-15` (public GitHub default branch resolves to exact delivery SHA)
 - removed to lineage: `SC-01`, `SC-04`, `SC-05`, `SC-08`, `SC-10`, `TS-AG-01…16`, `TS-AG-18`
@@ -135,12 +148,12 @@ containers, so live search no longer depends on backend VM101. Receipt:
 
 ## Next trigger
 
-1. Independently review and merge `chore/searxng-2026-10-11-audit`; VM232 is
-   already running its verified candidate and the rollback snapshot remains
-   available.
-2. Issue a separate authenticated command before implementing or activating
-   ADR-011 adversarial review.
+1. Complete W9 on `feat/thin-signals-reliability-20261012`, then publish the
+   same verified SHA to SourceCraft and GitHub feature branches.
+2. Implement W10/W11 behind disabled flags; do not activate the role loop until
+   frozen replay, holdout, ablation and rollback criteria pass.
 3. Fill the factual personal team fields in slides 2–4 before external submission;
    observe a real-account authenticated production smoke when an authorized
    existing session is available. No accounts were read or changed for this release.
-4. Open separate versioned work for connector-total-failure status, durable ledger population and score monotonicity; none may be hidden inside this recovery increment.
+4. Continue separate versioned work for durable ledger population, bounded
+   retrieval and score monotonicity; none may be hidden inside a recovery-only change.

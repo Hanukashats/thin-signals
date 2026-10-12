@@ -1,9 +1,9 @@
-# plan.yaml — Thin Signals LivingSet v7.7
-# Machine-readable waves. Human narrative: docs/plan/PLAN_7.7.md and its parent plans.
-# 7.7 restores a self-contained VM232 research contour; rules-0.1 is unchanged.
+# plan.yaml — Thin Signals LivingSet v7.8
+# Machine-readable waves. Human narrative: docs/plan/PLAN_7.8.md and its parent plans.
+# 7.8 repairs run truthfulness and authorizes a bounded research experiment; rules-0.1 is unchanged.
 
-plan_revision: "7.7"
-parent_revision: "7.6"
+plan_revision: "7.8"
+parent_revision: "7.7"
 date: "2026-10-12"
 deadline: "2026-09-29T23:59:00+03:00"
 operator_stop: "2026-09-28T11:00:00+03:00"
@@ -53,7 +53,8 @@ execution:
     7.6 adds fail-closed evidence references, non-overridable ZDR policy, honest per-card UI semantics,
     Figma three-module v4 and persistent loopback-only services. Scoring weights and thresholds stay unchanged.
     7.7 moves production to Ubuntu 26.04.1 VM232 and owns SearXNG/GPT Researcher locally.
-    Adversarial review remains a proposed, disabled operator-gated experiment (ADR-011).
+    7.8 fixes trust/run-state invariants and authorizes implementation of a bounded evidence-gated
+    research experiment (ADR-012). Activation remains evaluation and release gated.
     The chief architect may close a card only after another hat re-runs the check.
     The implementer hat still cannot verify the increment it just wrote.
     Those rules live in this file. They are not a second controller inside the product.
@@ -226,15 +227,47 @@ phases:
         forks: [backend.reuse]
         note: "Objective self-tests pass; independent acceptance is still required."
       - id: W8-adversarial-review
-        status: planned
+        status: in_progress
         owner: AI/domain
         deliverables:
           - "typed researcher/critic/defender/control-critic contracts"
           - "deterministic arbiter, replay evaluation and timing/cost metrics"
         requirements: [AR-01]
         forks: [adversarial.review]
+        operator_gate: false
+        note: "Implementation was authorized 2026-10-12; production activation still requires W11 evaluation and W12 release gate."
+
+  - id: P7
+    name: ReliabilityAndResearch78
+    window: ["2026-10-12", null]
+    goal: Make retrieval truthful, bounded and evidence-gated before activating role review
+    waves:
+      - id: W9-run-contract
+        status: in_progress
+        owner: backend
+        deliverables: ["versioned run status", "truthful latest-run API", "countersearch failure gate", "trust regression"]
+        requirements: [RS-02, RS-03, RS-04]
+        forks: []
+      - id: W10-research-adapter
+        status: planned
+        owner: research/backend
+        deliverables: ["bounded GPT Researcher adapter", "OpenAlex evidence enrichment", "provenance snapshots", "global deadline"]
+        requirements: [RS-05]
+        forks: [runtime.adapter]
+      - id: W11-adversarial-eval
+        status: planned
+        owner: AI/evaluation
+        deliverables: ["typed role contracts", "frozen replay", "holdout", "ablation", "latency/token/cost report", "qualified-signal count"]
+        requirements: [AR-01]
+        forks: [adversarial.review]
+      - id: W12-release
+        status: planned
+        owner: release/infra
+        autonomy: A3
+        deliverables: ["backup/snapshot", "canary", "rollback proof", "SourceCraft and GitHub feature branches", "production decision"]
+        requirements: [TZ-15]
+        forks: [hosting.sourcecraft]
         operator_gate: true
-        note: "No schema, prompt, code or activation before a separate authenticated operator command."
 
 wave_routing:
   CONTINUE: proceed within phase
