@@ -22,11 +22,12 @@ log() { printf '\n== %s\n' "$*"; }
 
 wait_http() {
   local url="$1" tries="${2:-60}"
-  local i
-  for i in $(seq 1 "$tries"); do
+  local remaining="$tries"
+  while ((remaining > 0)); do
     if curl -fsS --max-time 8 "$url" >/dev/null; then
       return 0
     fi
+    remaining=$((remaining - 1))
     sleep 2
   done
   printf 'error: timed out waiting for %s\n' "$url" >&2
@@ -140,4 +141,3 @@ case "$ACTION" in
   rollback) rollback ;;
   *) printf 'usage: %s [install|status|rollback]\n' "$0" >&2; exit 2 ;;
 esac
-
