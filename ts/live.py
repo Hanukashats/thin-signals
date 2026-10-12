@@ -14,6 +14,7 @@ from ts.desk import near_miss_cards
 from ts.fanout import (
     _identity_groups,
     _identity_representative,
+    _normalise_doi,
     is_wide,
     load_theme_plan,
     merge_theme_reports,
@@ -137,6 +138,50 @@ def _event_cards(report: dict) -> list[dict]:
             if count > 0:
                 cards.append(card)
     return cards
+
+
+def _source_rank(source: dict) -> tuple:
+    """Prefer richer metadata deterministically for repeated views of one URL."""
+    trust_rank = {"primary": 3, "professional": 2, "indicator": 1}
+    return (
+        bool(_normalise_doi(source.get("doi"))),
+        trust_rank.get(str(source.get("trust") or ""), 0),
+        bool(source.get("date")),
+        len(str(source.get("snippet") or "")),
+        sum(value not in (None, "", [], {}) for value in source.values()),
+        repr(sorted((str(key), repr(value)) for key, value in source.items())),
+    )
+
+
+def _deduplicate_sources(records: list[dict]) -> list[dict]:
+    """Collapse exact URL views, but retain explicit DOI conflicts as separate records."""
+    by_url: dict[tuple[str, str], list[dict]] = {}
+    for source in records:
+        if not isinstance(source, dict):
+            continue
+        url = str(source.get("url") or "").strip()
+        key = ("url", url) if url else ("record", repr(sorted(source.items())))
+        by_url.setdefault(key, []).append(dict(source))
+    selected = []
+    for key in sorted(by_url, key=repr):
+        sources = by_url[key]
+        dois = sorted({
+            _normalise_doi(source.get("doi"))
+            for source in sources
+            if _normalise_doi(source.get("doi"))
+        })
+        if len(dois) > 1:
+            for doi in dois:
+                selected.append(max(
+                    (
+                        source for source in sources
+                        if _normalise_doi(source.get("doi")) == doi
+                    ),
+                    key=_source_rank,
+                ))
+        else:
+            selected.append(max(sources, key=_source_rank))
+    return selected
 
 
 def _empty_card(rules_version: str, registry=None, unread=None) -> dict:
@@ -292,8 +337,7 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
     theme_statuses = []
     theme_runs = []
     theme_steps = []
-    discovered_sources = []
-    discovered_source_urls = set()
+    discovered_source_records = []
     event_cards: list[dict] = []
     theme_event_observations = 0
     child_exclusion_cards: list[dict] = []
@@ -350,13 +394,13 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
         for source in report.get("sources") or []:
             if not isinstance(source, dict):
                 continue
-            url = str(source.get("url") or "")
-            identity = url or repr(sorted(source.items()))
-            if identity in discovered_source_urls:
-                continue
-            discovered_source_urls.add(identity)
-            discovered_sources.append(dict(source))
-    merged = merge_theme_reports(parts, limit=TOP_N)
+            discovered_source_records.append(dict(source))
+    event_groups = _identity_groups(event_cards)
+    merged = merge_theme_reports(
+        parts,
+        limit=TOP_N,
+        global_identity_groups=event_groups,
+    )
     # A theme query is not the operator's question. As one, it marks cross-theme papers ДРУГОЙ_МЕХАНИЗМ.
     checked = annotate_checklist(merged["top"], merged["overflow"], settings, query=None)
     top = sorted(annotate_scopes(checked["top"], settings), key=scope_rank, reverse=True)
@@ -364,7 +408,6 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
     checklist_model, checklist_provider = _checklist_route(checked)
     registry = list(checked["excluded"]) + list(checked["overflow"])
     unread = list(checked.get("unread") or [])
-    event_groups = _identity_groups(event_cards)
     child_exclusion_groups = _identity_groups(child_exclusion_cards)
     represented_cards = [
         item for item in [*top, *registry, *unread] if isinstance(item, dict)
@@ -385,14 +428,12 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
         checked.get("unread"),
     )
     card.setdefault("rules_version", rules["version"])
-    sources = list(discovered_sources)
-    seen = {str(source.get("url") or "") for source in sources}
+    source_records = list(discovered_source_records)
     for item in top:
         for source in item.get("sources") or []:
-            url = source.get("url")
-            if url and url not in seen:
-                seen.add(url)
-                sources.append(source)
+            if isinstance(source, dict):
+                source_records.append(source)
+    sources = _deduplicate_sources(source_records)
     report = RunReport(
         id=key[:16],
         query=query,

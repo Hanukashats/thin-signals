@@ -80,10 +80,12 @@ def _identity_aliases(card: dict) -> frozenset[tuple[str, str]]:
 
 
 def _identity_groups(cards: list[dict]) -> list[tuple[tuple, list[dict]]]:
-    """Partition cards by intersecting DOI/URL aliases, including transitive bridges.
+    """Partition cards by DOI/URL aliases without merging conflicting DOI anchors.
 
     A DOI-bearing record and a DOI-less record for the same URL are one event.
-    The canonical group key contains the union of aliases and is input-order invariant.
+    Explicitly different DOI records stay separate even if a URL conflicts. A
+    DOI-less URL component joins an anchored component only when that anchor is
+    unambiguous. The canonical key is therefore input-order invariant.
     """
     if not cards:
         return []
@@ -103,14 +105,58 @@ def _identity_groups(cards: list[dict]) -> list[tuple[tuple, list[dict]]]:
         parents[max(left_root, right_root)] = min(left_root, right_root)
 
     aliases_by_index = [_identity_aliases(card) for card in cards]
-    owner: dict[tuple[str, str], int] = {}
+    dois_by_index = [
+        {value for kind, value in aliases if kind == "doi"}
+        for aliases in aliases_by_index
+    ]
+    urls_by_index = [
+        {value for kind, value in aliases if kind == "url"}
+        for aliases in aliases_by_index
+    ]
+
+    # DOI is the strong anchor. A card may deliberately carry more than one
+    # DOI, so its DOI aliases belong to one anchored component.
+    doi_owner: dict[str, int] = {}
+    title_owner: dict[str, int] = {}
     for index, aliases in enumerate(aliases_by_index):
-        for alias in aliases:
-            previous = owner.get(alias)
-            if previous is None:
-                owner[alias] = index
-            else:
+        for kind, value in aliases:
+            if kind == "doi":
+                previous = doi_owner.setdefault(value, index)
                 union(index, previous)
+            elif kind == "title":
+                previous = title_owner.setdefault(value, index)
+                union(index, previous)
+
+    # First connect URL-only observations to each other. Their full component
+    # is considered before it is allowed to join a DOI anchor.
+    url_only_owner: dict[str, int] = {}
+    for index, urls in enumerate(urls_by_index):
+        if dois_by_index[index]:
+            continue
+        for url in urls:
+            previous = url_only_owner.setdefault(url, index)
+            union(index, previous)
+
+    anchored_by_url: dict[str, set[int]] = {}
+    for index, urls in enumerate(urls_by_index):
+        if not dois_by_index[index]:
+            continue
+        for url in urls:
+            anchored_by_url.setdefault(url, set()).add(find(index))
+
+    unanchored_urls: dict[int, set[str]] = {}
+    for index, urls in enumerate(urls_by_index):
+        if dois_by_index[index]:
+            continue
+        unanchored_urls.setdefault(find(index), set()).update(urls)
+    for root, urls in sorted(unanchored_urls.items()):
+        anchors = {
+            find(anchor)
+            for url in urls
+            for anchor in anchored_by_url.get(url, set())
+        }
+        if len(anchors) == 1:
+            union(root, next(iter(anchors)))
 
     members_by_root: dict[int, list[int]] = {}
     for index in range(len(cards)):
@@ -176,19 +222,33 @@ def _newer_first(cards: list[dict]) -> list[dict]:
     return sorted(cards, key=key)
 
 
-def merge_theme_reports(parts: list[tuple[dict, list[dict]]], *, limit: int = TOP_N) -> dict:
+def merge_theme_reports(
+    parts: list[tuple[dict, list[dict]]],
+    *,
+    limit: int = TOP_N,
+    global_identity_groups: list[tuple[tuple, list[dict]]] | None = None,
+) -> dict:
     """parts are (theme, already admitted cards in that theme's own order)."""
     queues: list[list[dict]] = []
+    inherited = {
+        id(card): identity
+        for identity, members in (global_identity_groups or [])
+        for card in members
+    }
+    identities: dict[int, tuple] = {}
     notes = []
     for theme, cards in parts:
         tagged = []
         for card in _newer_first(cards):
-            tagged.append({
+            tagged_card = {
                 **card,
                 "theme": theme.get("id"),
                 "theme_title": theme.get("title"),
                 "theme_query": theme.get("query"),
-            })
+            }
+            tagged.append(tagged_card)
+            if id(card) in inherited:
+                identities[id(tagged_card)] = inherited[id(card)]
         queues.append(tagged)
         notes.append({
             "id": theme.get("id"),
@@ -197,7 +257,10 @@ def merge_theme_reports(parts: list[tuple[dict, list[dict]]], *, limit: int = TO
             "admitted": len(tagged),
             "taken": 0,
         })
-    identities = _identity_map([card for queue in queues for card in queue])
+    tagged_cards = [card for queue in queues for card in queue]
+    fallback = _identity_map(tagged_cards)
+    for card in tagged_cards:
+        identities.setdefault(id(card), fallback[id(card)])
     picked: list[dict] = []
     overflow: list[dict] = []
     seen: set[tuple] = set()

@@ -251,7 +251,7 @@ phases:
       - id: W10-research-adapter
         status: in_progress
         owner: research/backend
-        deliverables: ["bounded GPT Researcher adapter", "OpenAlex evidence enrichment", "provenance snapshots", "global deadline", "retrieval-0.3 plan-aware fingerprint", "DOI/URL-alias-deduplicated safe funnel with retained child exclusions"]
+        deliverables: ["bounded GPT Researcher adapter", "OpenAlex evidence enrichment", "provenance snapshots", "global deadline", "retrieval-0.3 plan-aware fingerprint", "conflict-aware DOI/URL-alias safe funnel with retained child exclusions"]
         requirements: [RS-05, RS-06]
         forks: [runtime.adapter]
       - id: W11-adversarial-eval

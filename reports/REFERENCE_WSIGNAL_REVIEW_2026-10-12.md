@@ -102,7 +102,8 @@ This branch now implements the first safe subset:
   events → countersearch → admitted/excluded/unread, with theme failures,
   deadline skips and cached/executed work distinguished; DOI and URL are joint
   aliases, so duplicate observations across themes count once despite incomplete
-  DOI metadata or repeated URLs, and source-backed child exclusions remain visible;
+  DOI metadata or repeated URLs; conflicting explicit DOIs remain separate,
+  richer metadata survives repeated views, and child exclusions remain visible;
 - the safe funnel is shown in the existing explanation view without raw agent
   prompts or chain-of-thought;
 - `checklist-v17` requires positive discovery text and rejects positive claims

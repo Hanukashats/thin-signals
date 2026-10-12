@@ -585,8 +585,9 @@ requirements:
       funnel counters and a retrieval fingerprint are persisted; changed limits,
       budgets or ordered theme plans cannot reuse an incompatible child run;
       the same DOI/source found by several themes counts once globally despite
-      incomplete DOI metadata or a repeated URL, and a source-backed child
-      exclusion remains visible exactly once
+      incomplete DOI metadata or a repeated URL; conflicting explicit DOIs stay
+      separate; richer repeated-source metadata is retained; and a source-backed
+      child exclusion remains visible exactly once
     evidence:
       - ts/harness.py
       - ts/persist.py
@@ -596,7 +597,9 @@ requirements:
       - ts/tests/test_harness.py::test_retrieval_configuration_is_part_of_repeat_identity
       - ts/tests/test_fanout.py::test_plan_revision_does_not_reuse_a_failed_theme_run
       - ts/tests/test_fanout.py::test_wide_funnel_deduplicates_theme_events_and_keeps_child_exclusion
-      - ts/tests/test_fanout.py::test_primary_alias_bridge_removes_child_m04_in_every_theme_order
+      - ts/tests/test_fanout.py::test_global_alias_bridge_deduplicates_admission_in_every_theme_order
+      - ts/tests/test_fanout.py::test_same_url_with_conflicting_explicit_dois_remains_two_events
+      - ts/tests/test_fanout.py::test_source_metadata_prefers_doi_and_preserves_explicit_conflicts
       - ts/tests/test_desk.py::test_reasoning_shows_safe_retrieval_funnel_without_raw_agent_prompts
       - reports/REFERENCE_WSIGNAL_REVIEW_2026-10-12.md
 

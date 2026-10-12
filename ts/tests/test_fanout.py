@@ -110,6 +110,70 @@ def test_theme_merge_uses_doi_and_url_as_joint_aliases_without_false_merges():
     assert merged["overflow"] == []
 
 
+def test_same_url_with_conflicting_explicit_dois_remains_two_events():
+    from ts.fanout import _identity_groups
+
+    cards = [
+        {
+            "technology": "first work",
+            "sources": [{"url": "https://source.test/shared", "doi": "10.1000/first"}],
+        },
+        {
+            "technology": "second work",
+            "sources": [{"url": "https://source.test/shared", "doi": "10.1000/second"}],
+        },
+    ]
+
+    groups = _identity_groups(cards)
+    merged = merge_theme_reports(
+        [({"id": "a", "title": "Alpha", "query": "alpha"}, cards)],
+        limit=10,
+    )
+
+    assert len(groups) == 2
+    assert len(merged["top"]) == 2
+
+
+def test_doi_less_view_does_not_bridge_conflicting_doi_anchors():
+    from ts.fanout import _identity_groups
+
+    cards = [
+        {"technology": "first", "sources": [{
+            "url": "https://source.test/shared", "doi": "10.1000/first",
+        }]},
+        {"technology": "ambiguous", "sources": [{
+            "url": "https://source.test/shared",
+        }]},
+        {"technology": "second", "sources": [{
+            "url": "https://source.test/shared", "doi": "10.1000/second",
+        }]},
+    ]
+
+    forward = sorted((identity for identity, _members in _identity_groups(cards)), key=repr)
+    reverse = sorted((
+        identity for identity, _members in _identity_groups(list(reversed(cards)))
+    ), key=repr)
+
+    assert len(forward) == 3
+    assert forward == reverse
+
+
+def test_source_metadata_prefers_doi_and_preserves_explicit_conflicts():
+    from ts.live import _deduplicate_sources
+
+    records = [
+        {"url": "https://source.test/work", "name": "without DOI"},
+        {"url": "https://source.test/work", "name": "second", "doi": "10.1000/b"},
+        {"url": "https://source.test/work", "name": "first", "doi": "10.1000/a"},
+    ]
+
+    selected = _deduplicate_sources(records)
+    reversed_selected = _deduplicate_sources(list(reversed(records)))
+
+    assert [source["doi"] for source in selected] == ["10.1000/a", "10.1000/b"]
+    assert selected == reversed_selected
+
+
 def test_checklist_route_keeps_model_and_provider_from_the_same_card():
     from ts.live import _checklist_route
 
@@ -603,11 +667,38 @@ def test_wide_funnel_deduplicates_theme_events_and_keeps_child_exclusion(
     if any(doi_by_theme.values()):
         assert any(
             source.get("doi") == "10.1000/same"
+            for source in out["sources"]
+        )
+        assert any(
+            source.get("doi") == "10.1000/same"
             for source in exclusion["sources"]
         )
 
 
-def test_primary_alias_bridge_removes_child_m04_in_every_theme_order(monkeypatch):
+@pytest.mark.parametrize(
+    ("records", "expected_child_observations"),
+    [
+        (
+            {
+                "alpha": ("https://untrusted.example/same", "web", "10.1000/same"),
+                "beta": ("https://github.com/example/same", "web", "10.1000/same"),
+                "gamma": ("https://github.com/example/same", "repository", None),
+            },
+            2,
+        ),
+        (
+            {
+                "alpha": ("https://arxiv.org/abs/2601.01234", "web", "10.1000/same"),
+                "beta": ("https://github.com/example/same", "repository", None),
+                "gamma": ("https://github.com/example/same", "web", "10.1000/same"),
+            },
+            1,
+        ),
+    ],
+)
+def test_global_alias_bridge_deduplicates_admission_in_every_theme_order(
+    monkeypatch, records, expected_child_observations,
+):
     from contextlib import nullcontext
     from pathlib import Path
     from time import monotonic
@@ -634,18 +725,14 @@ def test_primary_alias_bridge_removes_child_m04_in_every_theme_order(monkeypatch
             if "mass adoption" in query:
                 return []
             theme = query.split()[0]
-            url = (
-                "https://untrusted.example/same"
-                if theme == "alpha"
-                else "https://github.com/example/same"
-            )
+            url, source_type, doi = records[theme]
             return [Hit(
                 self.name,
                 url,
                 "Alpha beta gamma battery study",
                 "Battery experiment reported.",
-                "repository" if theme == "gamma" else "web",
-                doi=None if theme == "gamma" else "10.1000/same",
+                source_type,
+                doi=doi,
             )]
 
     def reader(_card):
@@ -702,7 +789,7 @@ def test_primary_alias_bridge_removes_child_m04_in_every_theme_order(monkeypatch
         assert funnel["deduplicated_events"] == 1
         assert funnel["admitted"] == 1
         assert funnel["excluded"] == 0
-        assert out["fanout"]["child_exclusion_observations"] == 2
+        assert out["fanout"]["child_exclusion_observations"] == expected_child_observations
         assert out["fanout"]["unique_child_exclusions"] == 1
     assert event_keys[0] == event_keys[1]
 

@@ -63,8 +63,9 @@ paths remain indicator; old runs remain immutable.
 
 Acceptance: deterministic ordering under concurrency; timeout/cancel tests;
 snippet-only claims cannot be verified; joint DOI/URL aliases make duplicate
-views count once despite missing DOI metadata or repeated URLs; GPT-R failure
-is explicit degradation and never direct evidence.
+views count once despite missing DOI metadata or repeated URLs, while conflicting
+explicit DOIs stay separate; GPT-R failure is explicit degradation and never
+direct evidence.
 
 Reference benchmark and donor decision:
 `reports/REFERENCE_WSIGNAL_REVIEW_2026-10-12.md`.
