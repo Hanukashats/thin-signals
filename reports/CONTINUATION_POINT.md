@@ -1,79 +1,87 @@
-# CONTINUATION POINT — verified delivery package 2026-09-29
+# CONTINUATION POINT — home VM232 recovery, 2026-10-12
 
-## Verified delivery continuation
+This checkpoint records observed state before the local research-contour
+increment. It supersedes the operational parts of the older VM101/VM231
+checkpoint without rewriting historical release evidence.
 
-- SourceCraft/writer/production shared the verified product delivery, including
-  the `86b6840` caption. The package-date replacement preserves product code;
-  the final rewritten ref and parity checks are recorded in the current outbox.
-- API/UI are now persistent, active and enabled; local API health/readiness and
-  Streamlit health succeed. Public login renders with the transparent brand.
-- The four previously untracked production evidence paths remain untouched.
-- Before this delivery, production browser inspection confirmed that the requested `Source Sans 3` / `Source Serif 4`
-  were not registered; only Streamlit's differently named `Source Sans` /
-  `Source Serif` faces existed. The delivery candidate now passes real glyph
-  inspection with local official fonts, 16 px controls, independent ACCEPT and
-  all 223 product tests. The following older checkpoints are historical.
-- Delivery complete: native local fonts are verified on production's public
-  login, the 15-slide official-template PPTX/PDF is in Git, and SourceCraft and
-  production share the release. API readiness and local/public UI health pass;
-  mobile 390 px has no horizontal overflow and the browser reports no errors.
-  Remaining external gates: factual team fields, exact GitHub mirror/access,
-  and observation of a real-account authenticated production session.
-- Current Git contains no old presentation PPTX/PDF to remove. The two tracked
-  PDFs are organizer requirements and must remain. Historical outboxes are
-  evidence, not current delivery artifacts.
-- Delivery package date is 2026-09-29. The operator reports organizer permission
-  to use that date and omit actual integration/generation/verification dates
-  from the delivery text and metadata. Replacement of the two delivery commits
-  with an explicit `force-with-lease` is authorized. The package date does not
-  assert when checks occurred. GOAL ownership remains unchanged.
-- Search latency comparisons require request logs: database timestamps measure
-  saving, not full research duration. Do not infer latency from those columns.
+## Verified reality
 
-## Historical 2026-10-01 candidate checkpoint
+- Canonical product history is SourceCraft `shats123/thin-signals`; local
+  `main` is `e53cf9502c89140b6fe4c1a8358eac62fb3c6ede`.
+- The recovered deployment is VM232 `agi-thin-signals-v2-u2604`, Ubuntu
+  26.04.1 LTS, `192.168.5.232`, 4 vCPU, 12 GiB RAM and a 120 GiB
+  `local-zfs` disk. It is enabled for Proxmox autostart.
+- VM232 runs branch `chore/home-pve-vm232-ubuntu26-20261012` at
+  `6c3c05dffad966fa2c90057bff92bca6ac7733d2`; the branch name differs from
+  SourceCraft's historical VM231 branch but the commit is identical.
+- PostgreSQL, API, UI and host sing-box are active and enabled. Listeners are
+  loopback-only: PostgreSQL `55432`, API `8095`, UI `8501`.
+- Public `https://tsignal.aispaces.ru/` is served through Caddy on OpenWrt and
+  reached the VM232 application at the start of this increment.
+- The application talks directly to OpenRouter using a host-only key file and
+  enforces the approved ZDR/data-collection policy. VM232 has its own sing-box
+  egress; it does not depend on VM101 LiteLLM.
+- `TS_SEARXNG_URL` is configured as `http://127.0.0.1:28088`, but nothing was
+  listening there. GPT Researcher was also absent. Those two facts are the
+  exact continuation point for this increment.
+- VM104 `kingston-recovery` is stopped and `onboot=0`; it consumes no running
+  CPU or RAM. VM233 NetBird was reduced from 4 GiB to 2 GiB and its dashboard
+  and API recovered after the isolated guest reboot.
 
-- The final design is three-module Deep Space Figma frame `41:178`; the logo and favicon are transparent PNGs, without a dark plate.
-- `checklist-v15` adds structural validation, evidence references for verified claims and fired exclusion counters, bounded cited excerpts, model/provider provenance and off-topic rejection before threshold returns. Cache reuse also validates mandatory policy and current routing.
-- Potential-v2 is a separate deterministic review priority: high-index scored watchlist [0.35, 0.60) and near-watchlist [0.25, 0.35), current checklist only. New Life searches the 15-card integrity-checked research archive from 29.09.2026.
-- Full isolated-DB test suite: 220 passed. Ruff, LivingSet links, diff and dependency consistency checks passed. Installer pip advisories remain a separate maintenance item; runtime packages had no known advisory in the audit.
-- Desktop/mobile screenshots and dependency audit are in `/srv/codex-operator/outbox/1305367840_1790893410/`.
-- Backup and restore verification: `/srv/thin-signals-backups/20261001-2230/database.dump`; 147 runs verified in a disposable restore database, subsequently removed.
-- At this historical checkpoint, independent review/integration/receipt were pending. Its earlier Git-date convention was superseded by the explicit operator instruction recorded above.
+## Repository state preserved
 
-Status before implementation:
+- `/opt/thin-signals` has four pre-existing untracked evidence paths. They are
+  operator-owned and remain untouched.
+- Work for this increment is isolated in branch
+  `chore/vm232-local-research-1791810532`, based on the verified VM recovery
+  commit `6c3c05d`.
+- GitHub authentication and the exact Thin Signals mirror are not available on
+  VM101. No GitHub repository is created or pushed until the operator confirms
+  the exact destination and a repository-scoped credential exists.
+- Git/system timestamps will not be falsified. The canonical organizer
+  deadline in `00_START_HERE_HANDOFF_RU.md` is 2026-09-29 23:59 MSK; the latest
+  voice transcript may have said 9 September and therefore cannot override
+  that exact written value without clarification.
 
-- Canonical checkout `/opt/thin-signals`, `main` / SourceCraft `origin/main` at `66581d0`.
-- This increment runs in isolated worktree `/srv/codex-operator/worktrees/1305367840_1790887573/thin-signals`, branch `fix/thin-signals-evidence-ui-1790887573`.
-- The canonical checkout has four pre-existing untracked evidence paths (`docs/lineage/intake-2026-10-01/`, `reports/eval/2026-09-27-registry-7/`, `reports/eval/2026-09-27/`, `reports/goal/screen-c03.txt`). They are operator-owned and must not be changed or committed by this increment.
-- SourceCraft is the configured canonical remote. The mandatory GitHub mirror is declared in `forks.yaml`, but no GitHub remote is configured in this checkout and the `gh` CLI is absent; mirror identity/authentication must be verified without exposing credentials before any push.
-- Public UI `https://tsignal.aispaces.ru`, local API `127.0.0.1:8095`, local Streamlit `127.0.0.1:8501`, and PostgreSQL were healthy at audit start. API and UI are transient systemd units with `Restart=no`; deployment must preserve rollback and then verify process and public health.
-- Current UI has the dusk theme and compact AGI Space favicon, but its semantics still overstate the result: a mixed weak-signal/watchlist list is titled “Официальный ТОП-15”, source totals refer only to selected cards, date fields are query prose rather than typed filters, and one card is used as the verdict for the whole run.
-- Independent read-only audit reproduced two integrity defects: an LLM can mark a feature `verified` with a missing or out-of-range fragment reference and still score; provider policy extras can override mandatory ZDR fields and a response model is not rechecked against the allowlist.
-- Score monotonicity and empty persistence ledgers remain method-level issues. They require a versioned rules/contract change and independent eval, so they are audit findings rather than silent hotfixes in this increment.
-- GOAL ownership remains `project=thin-signals agent=cursor-bk2`; this Codex run does not create, claim, bind, or take that card.
+## Upstream audit snapshot
 
-Design source:
+- SearXNG: official image `searxng/searxng`, version
+  `2026.9.18-12df7aed6`, revision
+  `12df7aed60b2705c00f42d805d8d36fd43a846c2`, amd64 digest
+  `sha256:31e3ca5e206ef71b148773e196cc575dc9c866d4f5047c8a7038a45c38bd4578`,
+  AGPL-3.0-or-later.
+- GPT Researcher: official repository
+  `https://github.com/assafelovic/gpt-researcher`, release `v3.7.0`, commit
+  `0957c301ed06c2a5857b834358c7227c739041d4`, Apache-2.0 repository license.
+  The Docker Hub `latest` image was inspected and rejected: it is an old
+  0.12.8 build from 2025-03-13 despite its mutable tag. The release source must
+  be built locally and tagged immutably.
+- Upstream GPT Researcher has no lockfile and its Dockerfile installs ranged
+  dependencies. The exact source commit and resulting local image ID/digest
+  must both be recorded after the build; this residual dependency risk is not
+  hidden.
+- The local prompt-injection scanner timed out while scanning upstream text.
+  Upstream content remains untrusted data; only the operator-authorized,
+  typed deployment actions below may be performed.
 
-- Figma file: `https://www.figma.com/design/RbbhSTdppIVib4AUkGKvia`.
-- Existing editable concept nodes: `30:97` (evidence-first desktop) and `32:136` (automation pipeline).
-- Operator supplied a new metallic AGI Space lockup in `/srv/codex-operator/inbox/1305367840/1790887573_photo.jpg`.
-- Chosen application: full metallic lockup on a dark plate for the login/brand moment; compact orbital mark for favicon and dense operational header. This preserves exact lettering and remains legible at both scales.
+## Authorized continuation
 
-Continuation increment:
+1. Add loopback-only SearXNG and GPT Researcher containers on VM232 with
+   restart-on-boot, bounded resources, host-only secrets and health checks.
+2. Point Thin Signals only to the local SearXNG instance and verify a live
+   candidate search. Keep GPT Researcher as a separate research adapter until
+   its promotion contract is approved.
+3. Specify the researcher/critic/defender method with a deterministic arbiter,
+   evidence ledger, timing/cost metrics and a disabled-by-default feature flag.
+   Do not implement or activate that method without the operator's separate
+   command.
+4. Commit and push the reviewed branch to SourceCraft. Treat the GitHub mirror
+   and any historical timestamp wording as explicit external gates.
 
-1. Add RED/GREEN tests and fail closed when any `verified` feature/transition lacks valid local evidence references.
-2. Make ZDR/data-collection policy non-overridable and reject a response model outside the configured allowlist.
-3. Update the operator UI to evidence-first, honest labels and explicit run provenance without changing weights, thresholds, ranking, or stored data.
-4. Add the supplied logo as a versioned asset and update the editable Figma concept to document the selected responsive use.
-5. Update the LivingSet status/requirements affected by the integrity and UI changes.
-6. Run focused tests first, then the safe non-mutating test profile, link checks, lint, and independent review.
-7. Reconcile with `main`, commit atomically, push SourceCraft and the verified GitHub mirror, deploy with rollback, and verify local/public health and screenshots.
+## Rollback boundary
 
-Acceptance evidence required:
-
-- Invalid/missing/out-of-range evidence references cannot produce a kept/scored card; valid `[1]` evidence still scores.
-- Hostile provider extras cannot change `zdr=true` or `data_collection=deny`; an unlisted returned model is rejected.
-- UI does not call a mixed list an official TOP-15 or infer a run-wide decision from the first card.
-- New logo assets exist, Figma node IDs are recorded, and desktop/mobile presentation remains readable.
-- No secret, operator-owned untracked artifact, score weight, threshold, donor file, or historical eval snapshot enters the diff.
-- SourceCraft/GitHub commit identities, production health, and rollback point are recorded in the final handoff.
+- Removing the local research Compose stack and restoring the previous API
+  drop-in returns VM232 to the pre-increment state; PostgreSQL data is not
+  touched.
+- Existing Thin Signals API/UI and public routing are verified before and after
+  the change. A failed research container must not take either service down.
