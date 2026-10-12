@@ -49,11 +49,11 @@ def default_runner(query: str, limit: int, extract: bool) -> dict:
 
 def default_latest() -> dict | None:
     from ts.db import session_factory
-    from ts.persist import latest_succeeded
+    from ts.persist import latest_finished
 
     factory = session_factory()
     with factory() as session:
-        return latest_succeeded(session)
+        return latest_finished(session)
 
 
 def default_ready() -> bool:

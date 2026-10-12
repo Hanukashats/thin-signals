@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from ts.api import create_app
 from ts.harness import Harness
 from ts.llm import ModelNotAllowed, OpenRouterClient
-from ts.persist import load_report, save_report
+from ts.persist import latest_finished, load_report, save_report
 from ts.sources.connectors import Hit
 from ts.tests.test_harness import Scripted
 from ts.tests.test_llm import make_client, settings
@@ -163,6 +163,28 @@ def test_latest_run_is_shown_without_scoring():
     assert body["run"]["run_status"] != body["run"]["signal_label"]
     empty = TestClient(create_app(lambda *args: {}, latest=lambda: None))
     assert empty.get("/v1/runs/latest").json()["run"] is None
+
+
+def test_latest_finished_does_not_hide_a_failed_run():
+    class Row:
+        def __init__(self):
+            self.id = "failed-latest"
+            self.status = "failed"
+            self.query = "новый поиск"
+            self.stats = {"signal_label": None, "top": []}
+
+    class Session:
+        def scalar(self, statement):
+            compiled = str(statement)
+            assert "WHERE runs.status" not in compiled
+            assert "runs.finished_at IS NOT NULL" in compiled
+            return Row()
+
+    loaded = latest_finished(Session())
+
+    assert loaded["run_id"] == "failed-latest"
+    assert loaded["run_status"] == "failed"
+    assert loaded["query"] == "новый поиск"
 
 
 def test_readiness_distinguishes_liveness_from_database_availability():

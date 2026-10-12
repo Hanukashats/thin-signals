@@ -62,10 +62,12 @@ def save_report(session: Session, report: RunReport) -> str:
     return report.id
 
 
-def latest_succeeded(session: Session) -> dict | None:
-    """Newest finished run, for the viewer. Does not score."""
+def latest_finished(session: Session) -> dict | None:
+    """Newest finished run, including explicit degraded/failed outcomes."""
     row = session.scalar(
-        select(Run).where(Run.status == "succeeded").order_by(Run.finished_at.desc(), Run.created_at.desc())
+        select(Run)
+        .where(Run.finished_at.is_not(None))
+        .order_by(Run.finished_at.desc(), Run.created_at.desc())
     )
     if row is None:
         return None
@@ -74,6 +76,11 @@ def latest_succeeded(session: Session) -> dict | None:
     stats.setdefault("run_status", row.status)
     stats.setdefault("query", row.query)
     return stats
+
+
+def latest_succeeded(session: Session) -> dict | None:
+    """Compatibility alias; callers now receive the newest finished run."""
+    return latest_finished(session)
 
 
 def load_report(session: Session, idempotency_key: str) -> dict | None:
