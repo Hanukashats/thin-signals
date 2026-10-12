@@ -7,6 +7,8 @@ Score weights are not touched.
 """
 from __future__ import annotations
 
+import hashlib
+import json
 from pathlib import Path
 
 import yaml
@@ -41,10 +43,36 @@ def is_wide(query: str, plan: dict) -> bool:
 
 
 def _identity(card: dict) -> tuple:
+    dois = tuple(sorted({
+        str(source.get("doi") or "").lower().removeprefix("https://doi.org/")
+        for source in card.get("sources") or []
+        if isinstance(source, dict) and source.get("doi")
+    }))
+    if dois:
+        return ("doi", *dois)
     urls = tuple(sorted(source.get("url") or "" for source in card.get("sources") or [] if source.get("url")))
     if urls:
-        return urls
+        return ("url", *urls)
     return ("title", str(card.get("technology") or "").lower())
+
+
+def theme_plan_fingerprint(plan: dict) -> str:
+    """Hash ordered theme semantics without putting raw queries in cache metadata."""
+    payload = {
+        "version": str(plan.get("version") or "themes-0"),
+        "themes": [
+            {
+                "id": str(theme.get("id") or ""),
+                "query_hash": hashlib.sha256(
+                    str(theme.get("query") or "").strip().encode()
+                ).hexdigest()[:16],
+            }
+            for theme in plan.get("themes") or []
+            if isinstance(theme, dict)
+        ],
+    }
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+    return hashlib.sha256(encoded.encode()).hexdigest()[:16]
 
 
 def _newer_first(cards: list[dict]) -> list[dict]:

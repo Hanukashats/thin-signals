@@ -24,8 +24,8 @@ inability to forcibly stop an already running worker thread.
 - `checklist-v17` builds one ordered evidence bundle, requires positive-channel
   text, and requires verified positive features/transitions to cite its positive
   prefix. Negative maturity counters may still cite countersearch fragments.
-- `retrieval-0.2` includes the stable parent retrieval fingerprint in child
-  identity; absolute monotonic timestamps are not keys.
+- `retrieval-0.3` includes a stable hash of the plan version, ordered theme IDs
+  and query hashes in child identity; absolute monotonic timestamps are not keys.
 - Wide telemetry copies only allowlisted scalar connector metadata, labels
   cached versus executed calls, aggregates sequential theme timing, and exposes
   failed/degraded/skipped themes. Missing connector metrics remain unknown
@@ -49,3 +49,10 @@ inability to forcibly stop an already running worker thread.
 
 This report records implementer evidence only. Promotion still requires a
 second independent review of the remediation commit.
+
+The second review of `444ba935` confirmed the four P1 remediations and the
+concurrent persistence race, then found two P2 accounting/cache defects: the
+same event was counted once per theme while child exclusions disappeared, and
+a failed child could cross a changed plan boundary. Both now have executable
+RED/GREEN regressions. The new implementer run is 276 passed on a fresh migrated
+disposable database; final review is still required on the new frozen SHA.

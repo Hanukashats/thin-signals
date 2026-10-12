@@ -38,6 +38,28 @@ def test_live_repeat_key_changes_with_retrieval_fingerprint():
     assert first != changed
 
 
+def test_theme_plan_fingerprint_tracks_version_order_and_query_without_exposing_query():
+    from ts.fanout import theme_plan_fingerprint
+
+    plan = {
+        "version": "one",
+        "themes": [
+            {"id": "a", "query": "alpha private phrase"},
+            {"id": "b", "query": "beta private phrase"},
+        ],
+    }
+    first = theme_plan_fingerprint(plan)
+    reordered = theme_plan_fingerprint({**plan, "themes": list(reversed(plan["themes"]))})
+    changed_version = theme_plan_fingerprint({**plan, "version": "two"})
+    changed_query = theme_plan_fingerprint({
+        **plan,
+        "themes": [{"id": "a", "query": "new phrase"}, plan["themes"][1]],
+    })
+
+    assert len({first, reordered, changed_version, changed_query}) == 4
+    assert "private" not in first and "phrase" not in first
+
+
 def test_themes_take_turns_and_a_read_wide_shift_goes_first():
     alpha = {"id": "a", "title": "Альфа", "query": "alpha cell"}
     beta = {"id": "b", "title": "Бета", "query": "beta blade"}
@@ -397,6 +419,143 @@ def test_changed_wide_budget_does_not_reuse_a_deadline_failed_theme(monkeypatch)
     assert calls_after_failure == 1
     assert second["repeated"] is False
     assert len(connector.queries) > calls_after_failure
+
+
+def test_plan_revision_does_not_reuse_a_failed_theme_run(monkeypatch):
+    import copy
+
+    from ts.live import run_query
+    from ts.persist import public_report
+    from ts.settings import load
+
+    plan = {
+        "version": "plan-one",
+        "frame": ["scientific", "discoveries", "technological", "changes"],
+        "themes": [{"id": "a", "title": "Alpha", "query": "zzplan alpha cell"}],
+    }
+    monkeypatch.setattr("ts.live.load_theme_plan", lambda: plan)
+    stored = {}
+
+    class Session:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+    monkeypatch.setattr(
+        "ts.live.load_report",
+        lambda _session, key: copy.deepcopy(stored.get(key)),
+    )
+    monkeypatch.setattr(
+        "ts.live.save_report",
+        lambda _session, report: stored.__setitem__(report.idempotency_key, public_report(report)),
+    )
+
+    class Fails:
+        name = "fails"
+
+        def __init__(self):
+            self.calls = 0
+
+        def search(self, query: str, *, limit: int = 5):
+            self.calls += 1
+            raise TimeoutError(query)
+
+    connector = Fails()
+    settings = load()
+    mission = "scientific discoveries technological changes zzplan"
+    first = run_query(
+        mission, limit=1, settings=settings, connectors=[connector],
+        session_factory=lambda: Session(),
+    )
+    calls_after_first = connector.calls
+    plan["version"] = "plan-two"
+    second = run_query(
+        mission, limit=1, settings=settings, connectors=[connector],
+        session_factory=lambda: Session(),
+    )
+
+    assert first["run_status"] == "failed"
+    assert second["run_status"] == "failed"
+    assert second["repeated"] is False
+    assert connector.calls > calls_after_first
+
+
+def test_wide_funnel_deduplicates_theme_events_and_keeps_child_exclusion(monkeypatch):
+    from contextlib import nullcontext
+    from pathlib import Path
+    from time import monotonic
+    from types import SimpleNamespace
+
+    from ts import live
+    from ts.persist import public_report
+
+    settings = SimpleNamespace(
+        rules_version="rules-0.1",
+        search_max_workers=2,
+        search_deadline_seconds=90,
+        source_timeout_seconds=40,
+        wide_search_deadline_seconds=540,
+        snapshot_dir=Path("/dev/null"),
+    )
+    plan = {
+        "version": "global-event-funnel",
+        "frame": [],
+        "themes": [
+            {"id": value, "title": value, "query": f"{value} battery"}
+            for value in ("alpha", "beta")
+        ],
+    }
+
+    class SameIndicator:
+        name = "test-indicator"
+
+        def search(self, query: str, *, limit: int = 1):
+            if "mass adoption" in query:
+                return []
+            return [Hit(
+                self.name,
+                "https://untrusted.example/same",
+                "Alpha beta battery study",
+                "Battery experiment reported.",
+                "web",
+                doi="10.1000/same",
+            )]
+
+    saved = []
+    monkeypatch.setattr(live, "load_report", lambda _session, _key: None)
+    monkeypatch.setattr(
+        live,
+        "save_report",
+        lambda _session, report: saved.append(public_report(report)),
+    )
+    monkeypatch.setattr(live, "_near_miss", lambda *_args, **_kwargs: [])
+    monkeypatch.setattr(live, "_potential", lambda *_args, **_kwargs: [])
+
+    out = live._run_wide(
+        "audit mission",
+        plan,
+        limit=1,
+        extract=False,
+        settings=settings,
+        connectors=[SameIndicator()],
+        session_factory=lambda: nullcontext(None),
+        day="2026-10-12",
+        deadline_at=monotonic() + 10,
+    )
+
+    funnel = out["retrieval"]["funnel"]
+    assert funnel["discovery_items"] == 2
+    assert funnel["unique_sources"] == 1
+    assert funnel["deduplicated_events"] == 1
+    assert funnel["excluded"] == 1
+    assert funnel["admitted"] == 0
+    assert funnel["unread"] == 0
+    assert len(out["exclusion_registry"]) == 1
+    exclusion = out["exclusion_registry"][0]
+    assert exclusion["reason_codes"] == ["M04"]
+    assert exclusion["sources"][0]["doi"] == "10.1000/same"
 
 
 class _DatedEcho(_Echo):

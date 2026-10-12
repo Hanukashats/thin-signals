@@ -56,19 +56,20 @@ containers, so live search no longer depends on backend VM101. Receipt:
 - `run-status-0.2` makes total discovery failure `failed`, partial discovery or
   countersearch failure `degraded`, and failed countersearch blocks admission.
   The latest-run endpoint now returns the newest finished run instead of hiding
-  failed/degraded outcomes. The complete suite now passes 273/273 against a fresh
+  failed/degraded outcomes. The complete suite now passes 276/276 against a fresh
   disposable migrated database; production data was not touched.
 - `live-w19` attaches matching countersearch records to each candidate as a
   separate evidence channel. `checklist-v17` now requires at least one positive
   discovery fragment and refuses verified positive claims/transitions cited only
   to countersearch. A cited M01/M02/M03/M05/M06 finding may still exclude the
   card. Countersearch output cannot score or admit a card by itself.
-- `retrieval-0.2` runs connector calls with bounded concurrency and one inherited
+- `retrieval-0.3` runs connector calls with bounded concurrency and one inherited
   absolute deadline. Results completing after that deadline are discarded;
-  changed wide budgets cannot reuse a deadline-failed child run. Per-call timing,
-  cached/executed counts, theme failures, skipped themes and the safe discovery
-  funnel are aggregated using allowlisted scalar metadata only. Raw prompts,
-  hidden reasoning and child payloads are not exposed.
+  changed wide budgets or ordered theme plans cannot reuse a deadline-failed
+  child run. The safe global funnel deduplicates the same DOI/source across
+  themes and retains a source-backed child exclusion exactly once. Per-call
+  timing, cached/executed counts, failures and skips use allowlisted scalar
+  metadata only; raw prompts and hidden reasoning are not exposed.
 - PostgreSQL persistence now serializes one live query with a transaction-scoped
   advisory lock. Concurrent identical saves return one canonical run instead of
   racing the unique constraints; the loser returns the stored result as a repeat.
@@ -76,6 +77,12 @@ containers, so live search no longer depends on backend VM101. Receipt:
   normalized corpus series, evidence-bearing refutation and activity accounting
   were adopted as donor patterns; high agent count and public raw reasoning were
   rejected. Evidence: `reports/REFERENCE_WSIGNAL_REVIEW_2026-10-12.md`.
+- Follow-up public runs showed unstable yield (64 agents/30 entries down to 56
+  agents/one insufficient entry) and complete OpenAlex failure in three newer
+  runs. Their breadth came mainly from corpus/query expansion plus web discovery.
+  This supports bounded hypothesis generation followed by primary-source
+  validation; it does not justify adding unbounded agents or treating HN/media
+  volume as evidence.
 - Source trust is now hostname/type based: DOI-shaped text in an unknown URL
   path cannot promote an untrusted web page to `primary`. The regression was
   RED before the fix and the focused trust suite passes after it;
@@ -138,8 +145,9 @@ containers, so live search no longer depends on backend VM101. Receipt:
    changing labels.
 7. **Release state:** bounded search, timings, safe funnel and configuration
    fingerprint are implemented and tested on the reliability branch. Astra's
-   first frozen review found four P1 defects; all four now have RED/GREEN
-   regressions and await a second independent review before deployment.
+   first frozen review found four P1 defects; the second confirmed those fixes
+   and found two P2 wide-accounting/plan-cache defects. All six now have
+   RED/GREEN regressions and await final independent review before deployment.
    Full original finding: `reports/LOGIC_AUDIT_2026-10-12.md`.
 8. **Bounded-worker residue:** Python cannot forcibly stop an already running
    thread. Late results are rejected and HTTP calls inherit a remaining-time

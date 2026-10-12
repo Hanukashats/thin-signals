@@ -11,7 +11,7 @@ import httpx
 
 from ts.checklist import CHECKLIST_VERSION, annotate_checklist
 from ts.desk import near_miss_cards
-from ts.fanout import is_wide, load_theme_plan, merge_theme_reports
+from ts.fanout import _identity, is_wide, load_theme_plan, merge_theme_reports, theme_plan_fingerprint
 from ts.harness import (
     RUN_CONTRACT_VERSION,
     TOP_N,
@@ -104,6 +104,32 @@ def _wide_status(statuses: list[str]) -> str:
     if any(status != "succeeded" for status in statuses):
         return "degraded"
     return "succeeded"
+
+
+def _tag_theme_card(card: dict, theme: dict) -> dict:
+    """Keep a child verdict attributable when it does not enter the global reader."""
+    return {
+        **card,
+        "theme": theme.get("id"),
+        "theme_title": theme.get("title"),
+        "theme_query": theme.get("query"),
+    }
+
+
+def _event_cards(report: dict) -> list[dict]:
+    """Theme Harness emits one card per event across these disjoint buckets."""
+    cards = []
+    for bucket in ("top", "exclusion_registry", "unread"):
+        for card in report.get(bucket) or []:
+            if not isinstance(card, dict):
+                continue
+            try:
+                count = int(card.get("events") or 0)
+            except (TypeError, ValueError):
+                count = 0
+            if count > 0:
+                cards.append(card)
+    return cards
 
 
 def _empty_card(rules_version: str, registry=None, unread=None) -> dict:
@@ -244,6 +270,7 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
         deadline_seconds=settings.search_deadline_seconds,
         source_timeout_seconds=settings.source_timeout_seconds,
         wide_deadline_seconds=settings.wide_search_deadline_seconds,
+        parent_fingerprint=f"theme-plan:{theme_plan_fingerprint(plan)}",
     )
     key = _key(
         query, rules["version"], corpus=corpus, day=day, retrieval=fingerprint,
@@ -260,7 +287,10 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
     theme_steps = []
     discovered_sources = []
     discovered_source_urls = set()
-    discovered_events = 0
+    event_identities: set[tuple] = set()
+    theme_event_observations = 0
+    child_exclusions: dict[tuple, dict] = {}
+    child_exclusion_observations = 0
     skipped_themes = []
     for theme in plan["themes"]:
         if monotonic() >= deadline_at:
@@ -282,10 +312,18 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
             "status": theme_status,
             "repeated": bool(report.get("repeated")),
         })
+        event_cards = _event_cards(report)
+        event_identities.update(_identity(card) for card in event_cards)
         try:
-            discovered_events += max(0, int(report.get("events") or 0))
+            theme_event_observations += max(0, int(report.get("events") or 0))
         except (TypeError, ValueError):
             pass
+        for child_card in report.get("exclusion_registry") or []:
+            if not isinstance(child_card, dict):
+                continue
+            child_exclusion_observations += 1
+            tagged = _tag_theme_card(child_card, theme)
+            child_exclusions.setdefault(_identity(tagged), tagged)
         retrieval = report.get("retrieval") if isinstance(report.get("retrieval"), dict) else {}
         for step in retrieval.get("connectors") or []:
             if isinstance(step, dict):
@@ -319,6 +357,17 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
     top = annotate_reach(top, settings)
     checklist_model, checklist_provider = _checklist_route(checked)
     registry = list(checked["excluded"]) + list(checked["overflow"])
+    unread = list(checked.get("unread") or [])
+    represented = {
+        _identity(item)
+        for item in [*top, *registry, *unread]
+        if isinstance(item, dict)
+    }
+    for identity, child_card in child_exclusions.items():
+        if identity in represented:
+            continue
+        registry.append(child_card)
+        represented.add(identity)
     card = dict(top[0]) if top else _empty_card(
         rules["version"],
         registry,
@@ -351,13 +400,16 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
             {"name": "checklist", "status": "ok", **checked["stats"]},
         ],
         sources=sources,
-        events=[{"key": item.get("technology")} for item in top],
+        events=[
+            {"key": hashlib.sha256(repr(identity).encode()).hexdigest()[:16]}
+            for identity in sorted(event_identities, key=repr)
+        ],
         card=card,
         top=top,
         shortfall=TOP_N - len(top),
         exclusion_registry=registry,
         status=_wide_status(theme_statuses),
-        unread=list(checked.get("unread") or []),
+        unread=unread,
         near_miss=_near_miss(registry, settings),
         potential=_potential(registry, settings, top),
         model_id=checklist_model or next((item.get("scope_model") for item in top if item.get("scope_model")), None),
@@ -371,7 +423,10 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
             "checklist": checked["stats"],
             "deadline_skipped": skipped_themes,
             "theme_runs": theme_runs,
-            "discovered_events": discovered_events,
+            "discovered_events": len(event_identities),
+            "theme_event_observations": theme_event_observations,
+            "child_exclusion_observations": child_exclusion_observations,
+            "unique_child_exclusions": len(child_exclusions),
         },
     )
     with factory() as session:

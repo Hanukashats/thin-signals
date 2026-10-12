@@ -95,17 +95,39 @@ This branch now implements the first safe subset:
 
 - bounded connector concurrency under one inherited absolute deadline;
 - per-connector latency and explicit deadline failures;
-- a `retrieval-0.2` fingerprint in run identity, including stable parent wide
-  context, so changed limits/budgets do not reuse an incompatible failed child;
+- a `retrieval-0.3` fingerprint in run identity, including the version and
+  ordered identity of the theme plan, so changed plans/limits/budgets do not
+  reuse an incompatible failed child;
 - a public, structured funnel for discovery → unique sources → deduplicated
   events → countersearch → admitted/excluded/unread, with theme failures,
-  deadline skips and cached/executed work distinguished;
+  deadline skips and cached/executed work distinguished; duplicate observations
+  across themes count once globally and source-backed child exclusions remain
+  visible;
 - the safe funnel is shown in the existing explanation view without raw agent
   prompts or chain-of-thought;
 - `checklist-v17` requires positive discovery text and rejects positive claims
   cited only to countersearch; countersearch remains a separate negative channel;
 - a connector result completed after the absolute deadline is discarded;
 - concurrent identical PostgreSQL writes serialize to one canonical run.
+
+## Follow-up runs observed through the public development UI
+
+The browser/API follow-up did not support “more agents = more findings”:
+
+- run 4: 64 agents → 30 entries;
+- run 5: 53 agents → 11 entries;
+- run 7: 35 agents → 16 entries;
+- run 8: 30 agents → 1 entry in 40 minutes at about $2.41;
+- run 9: 56 agents → 1 `insufficient` entry before the run was interrupted
+  after more than nine hours, at about $1.28.
+
+Runs 7–9 also showed 22/22, 36/36 and 37/37 failed OpenAlex calls. The useful
+breadth came mainly from a prebuilt corpus and broad discovery search, not from
+OpenAlex alone. HN/press/vendor pages produced many leads but are not independent
+primary evidence. Therefore Thin Signals should widen the hypothesis-generation
+stage, then re-fetch, deduplicate by origin and validate with its existing
+primary connectors. Adding an unbounded swarm or treating HN/media volume as
+evidence would reproduce the donor's failure modes.
 
 The already accepted ADR-012 remains the target for the larger adaptation:
 bounded researcher → critic → defender → blinded control critic, followed by a
