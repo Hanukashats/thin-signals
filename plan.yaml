@@ -185,6 +185,7 @@ phases:
           - "honest evidence-first Streamlit result shell"
           - "versioned systemd API/UI units"
           - "locally served Cyrillic typography with actual browser glyph verification"
+          - "logout clears the complete user-scoped Streamlit session, regression-tested"
         requirements: [LLM-01, TS-INV-02, TS-INV-03, TZ-04, TZ-06, SC-12, UI-POT-01, UI-OLD-01]
         forks: [llm.provider, ui.stack]
         note: "No scoring weight, threshold, registry, schema or historic eval snapshot changes. Completion requires independent review and production smoke."

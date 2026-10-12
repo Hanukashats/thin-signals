@@ -92,10 +92,7 @@ def require_login() -> None:
 def session_bar() -> None:
     st.write(f"Сейчас вошли как **{st.session_state['username']}**.")
     if st.button("Выйти"):
-        for key in (
-            "role", "username", "payload", "meta", "latest_checked", "latest_issue", "latest_loaded",
-        ):
-            st.session_state.pop(key, None)
+        st.session_state.clear()
         st.rerun()
 
 

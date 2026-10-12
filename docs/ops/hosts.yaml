@@ -1,4 +1,4 @@
-# Thin Signals hosts (2026-10-01). Canon for code: SourceCraft shats123/thin-signals.
+# Thin Signals hosts (2026-10-12). Canon for code: SourceCraft shats123/thin-signals.
 hosts:
   - id: vm101
     role: current production + Telegram operator (cursor-agent); PG/API/UI and reused backend services
@@ -18,9 +18,21 @@ hosts:
     archive: /opt/thin-signals-archive
     egress: agi-sing-box -> Amsterdam-1
     doc: docs/ops/VM230.md
+  - id: vm231
+    name: agi-thin-signals-v2
+    role: private restored staging; production remains VM101
+    hypervisor: Home-PVE 192.168.5.10 (NetBird 10.200.200.41), VMID 231
+    storage: local-zfs
+    lan: 192.168.5.231
+    netbird: installed; pending setup-key
+    checkout: /opt/thin-signals
+    archive: /opt/thin-signals-archive
+    listeners: [127.0.0.1:55432, 127.0.0.1:8095, 127.0.0.1:8501]
+    egress: agi-sing-box -> Amsterdam-1
+    doc: docs/ops/VM231.md
   - id: laptop
     role: jury demo (TS_PROFILE=laptop), Windows checkout D:\WORK\HAKATON\SLABYE_SIGGNALY
 rules:
   - edit -> git commit -> git push; other side git pull --ff-only; never scp code between checkouts
   - secrets/archives live outside git (.secrets/, /opt/thin-signals-archive); copy with rsync over ssh only
-  - qm snapshot 230 pre-<date> before large changes
+  - qm snapshot <vmid> pre-<date> before large changes on a home-PVE VM

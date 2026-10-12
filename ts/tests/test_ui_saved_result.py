@@ -114,16 +114,35 @@ def test_refresh_failure_preserves_visible_saved_cards(app, monkeypatch):
     assert any("недоступен" in item.value for item in app.warning)
 
 
-def test_logout_clears_saved_result_load_issue(app, monkeypatch):
+def test_logout_clears_all_user_scoped_state(app, monkeypatch):
     monkeypatch.setattr(httpx, "get", unavailable)
     app.run()
-    app.session_state["latest_loaded"] = True
+    user_state = {
+        "payload": {"private": "result"},
+        "meta": {"private": "query"},
+        "latest_checked": True,
+        "latest_issue": "old failure",
+        "latest_loaded": True,
+        "direction_input": "private direction",
+        "correction_input": "private correction",
+        "period_start": "2026-01-01",
+        "period_end": "2026-02-01",
+        "active_module": "Потенциал",
+        "potential_filter": "private filter",
+        "signal_selected": 2,
+        "potential_selected": 3,
+        "old_tech_query": "private archive query",
+        "old_tech_families": ["Энергетика"],
+        "old_selection_key": ("private archive query", ("Энергетика",)),
+        "old_selected": 4,
+    }
+    for key, value in user_state.items():
+        app.session_state[key] = value
     next(button for button in app.button if button.label == "Выйти").click().run()
 
     assert not app.exception
-    assert "latest_issue" not in app.session_state
-    assert "latest_loaded" not in app.session_state
-    assert "payload" not in app.session_state
+    for key in ("role", "username", *user_state):
+        assert key not in app.session_state
 
 
 def test_completed_empty_result_keeps_its_scientific_explanation(app, monkeypatch):

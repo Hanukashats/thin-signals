@@ -130,6 +130,7 @@ requirements:
       - ui/app.py
       - ts/desk.py candidate_views, score_story, saved_run_state
       - ts/tests/test_ui_shell.py
+      - ts/tests/test_ui_saved_result.py::test_logout_clears_all_user_scoped_state
       - docs/ui/EVIDENCE_FIRST_V3.md and Figma node 41:178
 
   - id: TZ-05
@@ -404,7 +405,9 @@ requirements:
     state: planned
     wave: W5-release
     acceptance: pg_dump + snapshots tar restore tested; run records rules/model/corpus versions
-    evidence: []
+    evidence:
+      - "2026-10-12: PostgreSQL 16 dump restored on VM231 with 148/148 runs; docs/ops/VM231.md"
+      - "Snapshot-tar restore remains untested because the source snapshots directory was empty"
 
   - id: SC-11
     title: Critical UNKNOWN not PASS by deadline

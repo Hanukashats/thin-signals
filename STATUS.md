@@ -23,6 +23,13 @@ See `reports/SEARCH_TIMING_2026-09-29.md`.
 
 The public route is `https://tsignal.aispaces.ru` through the home proxy to VM101. Account hashes and provider/database credentials remain only in host `.secrets/`. GOAL queue ownership remains `project=thin-signals`, `agent=cursor-bk2`; this Codex continuation did not create, claim or take its card.
 
+On 2026-10-12 a separate private recovery stand was created as Home-PVE VM231
+on `local-zfs`: Ubuntu 24.04, 4 vCPU, 12 GB RAM and a 120 GB disk. It was cloned
+from canonical SourceCraft `main` and restored on branch
+`chore/home-pve-vm231-rebuild-20261012`. All 148 saved runs were recovered and
+the 233-test VM gate passed. Its database, API and UI bind only to loopback;
+there was no public or production cutover. Receipt: `docs/ops/VM231.md`.
+
 ## Current
 
 | Field | Value |
@@ -38,6 +45,13 @@ The public route is `https://tsignal.aispaces.ru` through the home proxy to VM10
 
 ## Verified in this increment
 
+- VM231 recovery is reproducible and private: three PVE rollback snapshots,
+  checksum-recorded PostgreSQL 16 backup, 148/148 restored runs, persistent
+  API/UI/egress services, and loopback-only application listeners. NetBird is
+  installed but awaits an operator setup-key.
+- Logout now clears the complete Streamlit session instead of retaining another
+  user's filters, selections and draft query fields. The regression was RED
+  before the fix and passes after it.
 - UI saved-result recovery hotfix is tested, pending release verification: a failed initial load remains retryable in the same session; «Загрузить последний результат» reloads saved cards without starting a search; Potential displays loading issues; unloaded Signals no longer claim a completed empty search. Existing cards survive reload failure, and successful load/logout clears stale warnings. Eight deterministic AppTest cases cover these transitions (seven RED before the fix); scoped 15/15 and safe non-database suite 227/227 pass, with four database integration tests deliberately not run for this UI-only patch. No API, schema, scoring or stored-run changes.
 - Evidence-link and LLM-policy RED/GREEN tests reproduce the defects then pass after the fix.
 - UI view-model tests prove a `watchlist` card is never grouped as a weak signal.
@@ -57,6 +71,11 @@ The public route is `https://tsignal.aispaces.ru` through the home proxy to VM10
 3. **Persistence:** canonical step/evidence ledgers are not fully populated for existing live runs; JSON payloads are not a substitute for the intended durable ledger.
 4. **Release:** GitHub mirror identity/authentication is absent on VM101. SourceCraft remains canonical; do not claim dual push until the exact mirror and dedicated credential are verified.
 5. **Research scope:** New Life is a reproducible archive search, not new live web research. Its 15 hypotheses have no completed commercial/legal diligence.
+6. **Build-only dependencies:** the 2026-10-12 Trivy scan reports 13 HIGH and
+   6 MEDIUM findings in presentation-only pins `Pillow==11.3.0` and
+   `fonttools==4.60.0`. They are not imported by the API/UI runtime; update them
+   in a separately reviewed presentation rebuild rather than silently changing
+   the sealed delivery package.
 
 ## Requirements snapshot
 
@@ -69,12 +88,17 @@ The public route is `https://tsignal.aispaces.ru` through the home proxy to VM10
 ## Hosts
 
 - **VM101 is the current production host:** PostgreSQL at `127.0.0.1:55432`, API at `127.0.0.1:8095`, Streamlit at `127.0.0.1:8501`; public TLS terminates on the home proxy and reaches VM101 over the existing internal route.
+- **VM231 is private restored staging:** `192.168.5.231`, application ports
+  bound to loopback, SourceCraft feature branch, no public route. See
+  `docs/ops/VM231.md`.
 - VM230 remains a stale development/demo checkout and must not be treated as current production until it fast-forwards from SourceCraft and passes its own smoke tests.
 
 ## Next trigger
 
-1. Fill the factual personal team fields in slides 2–4 before external submission;
+1. Review and merge `chore/home-pve-vm231-rebuild-20261012` only after an
+   independent check; then fast-forward VM231 and repeat its health gate.
+2. Fill the factual personal team fields in slides 2–4 before external submission;
    observe a real-account authenticated production smoke when an authorized
    existing session is available. No accounts were read or changed for this release.
-2. Locate or create the exact GitHub mirror with dedicated repository-scoped authentication; push the identical SHA and close `TZ-15` only after comparing both refs.
-3. Open separate versioned work for connector-total-failure status, durable ledger population and score monotonicity; none may be hidden inside this UI increment.
+3. Locate or create the exact GitHub mirror with dedicated repository-scoped authentication; push the identical SHA and close `TZ-15` only after comparing both refs.
+4. Open separate versioned work for connector-total-failure status, durable ledger population and score monotonicity; none may be hidden inside this UI increment.
