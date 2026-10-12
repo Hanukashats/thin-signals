@@ -52,11 +52,14 @@ paths remain indicator; old runs remain immutable.
 
 ## Wave 2 — evidence retrieval
 
-State: **implementation complete, verification pending**. Bounded fan-out,
+State: **remediation complete, independent re-verification pending**. Bounded fan-out,
 SHA-256 primary-source preservation, typed `technology-candidate-0.1` grouping,
 the default-off GPT Researcher advisory/refetch boundary and versioned OpenAlex
-Work enrichment are implemented on the reliability branch; frozen replay and
-independent verification remain open.
+Work enrichment are implemented on the reliability branch. Astra rejected the
+first frozen candidate on DNS-rebinding, slow-stream, unattested-snapshot and
+short-title Work-mirror gaps; `retrieval-0.4`/`checklist-v19` close those exact
+findings with regressions. Frozen replay and a fresh independent verdict remain
+open.
 
 - Bounded connector concurrency, per-call timing and one global deadline.
 - Persist a retrieval fingerprint and a safe source funnel; show structured

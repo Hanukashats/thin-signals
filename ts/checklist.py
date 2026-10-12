@@ -6,14 +6,16 @@ This module does not sort and does not call Harness.run.
 from __future__ import annotations
 
 import copy
+import hashlib
 import re
+from pathlib import Path
 
 from ts.extract import to_feature_vector, validate_scoring_output
 from ts.fanout import _identity, explicit_origin_groups
 from ts.scale import fetch_abstract
 from ts.scoring.scorer import load_rules, score
 
-CHECKLIST_VERSION = "checklist-v18"
+CHECKLIST_VERSION = "checklist-v19"
 TEXT_HUNT = 4
 # Four extra reads for each standing theme. One noisy theme must not spend the rest.
 BACKFILL_CAP = TEXT_HUNT * 13
@@ -24,6 +26,32 @@ SOURCE_FRAGMENT_CAP = 6
 COUNTER_FRAGMENT_CAP = 2
 _FULL: dict[tuple[str, str], str] = {}
 _FRAGMENT_REF = re.compile(r"\[(\d+)\]")
+_SHA256 = re.compile(r"^[0-9a-f]{64}$")
+
+
+def _preserved_evidence(evidence: object, snapshot_root: Path | None = None) -> bool:
+    """Validate the internal snapshot attestation before granting verified provenance."""
+    if not isinstance(evidence, dict) or evidence.get("status") != "preserved":
+        return False
+    fragment = str(evidence.get("fragment") or "").strip()
+    content_hash = str(evidence.get("content_hash") or "")
+    fragment_hash = str(evidence.get("fragment_hash") or "")
+    if not fragment or not _SHA256.fullmatch(content_hash):
+        return False
+    if evidence.get("snapshot_ref") != f"sha256:{content_hash}":
+        return False
+    if not _SHA256.fullmatch(fragment_hash):
+        return False
+    if hashlib.sha256(fragment.encode()).hexdigest() != fragment_hash:
+        return False
+    if snapshot_root is None:
+        return True
+    blob = snapshot_root / "blobs" / content_hash[:2] / content_hash
+    try:
+        body = blob.read_bytes()
+    except (OSError, ValueError):
+        return False
+    return hashlib.sha256(body).hexdigest() == content_hash
 
 
 def _fuller(source: dict, snippet: str) -> str:
@@ -39,7 +67,11 @@ def _fuller(source: dict, snippet: str) -> str:
     return text if len(text) > len(snippet) else snippet
 
 
-def _fragment_bundle_details(card: dict, full: bool = True):
+def _fragment_bundle_details(
+    card: dict,
+    full: bool = True,
+    snapshot_root: Path | None = None,
+):
     """Build one ordered evidence bundle and keep positive evidence ahead of countersearch."""
     fragments: list[str] = []
     urls: list[str] = []
@@ -59,15 +91,18 @@ def _fragment_bundle_details(card: dict, full: bool = True):
         name = str(source.get("name") or "").strip()
         fragments.append(f"{name}. {snippet}".strip(". "))
         urls.append(str(source.get("url") or ""))
-        if evidence and evidence.get("status") == "preserved" and preserved and source.get("trust") == "primary":
+        attested = _preserved_evidence(evidence, snapshot_root)
+        if attested and source.get("trust") == "primary":
             source_provenance = "preserved_primary"
             verified_indices.add(len(fragments))
-        elif evidence and evidence.get("status") == "preserved" and preserved:
+        elif attested:
             source_provenance = "preserved_non_primary"
         else:
             source_provenance = "snippet_only"
         provenance.append(source_provenance)
-        snapshot_refs.append(str((evidence or {}).get("snapshot_ref") or ""))
+        snapshot_refs.append(
+            str((evidence or {}).get("snapshot_ref") or "") if attested else ""
+        )
         if len(fragments) >= SOURCE_FRAGMENT_CAP:
             break
     if not fragments:
@@ -321,10 +356,16 @@ def _checklist_invalid(row: dict, meta: dict | None = None) -> dict:
     return {"keep": False, "card": row}
 
 
-def score_card(card: dict, reader, rules: dict) -> dict:
+def score_card(
+    card: dict,
+    reader,
+    rules: dict,
+    *,
+    snapshot_root: Path | None = None,
+) -> dict:
     row = dict(card)
     fragments, _urls, positive_count, verified_indices, provenance, snapshot_refs = (
-        _fragment_bundle_details(row)
+        _fragment_bundle_details(row, snapshot_root=snapshot_root)
     )
     if positive_count == 0:
         _mark(row, "no_fragment")
@@ -406,7 +447,8 @@ def _peek_index(pool: list[dict], theme: str, used: set) -> int | None:
 
 
 def apply_checklist(top: list[dict], overflow: list[dict], reader, rules: dict, *,
-                    backfill_cap: int = BACKFILL_CAP) -> dict:
+                    backfill_cap: int = BACKFILL_CAP,
+                    snapshot_root: Path | None = None) -> dict:
     kept: list[dict] = []
     excluded: list[dict] = []
     unread: list[dict] = []
@@ -422,7 +464,7 @@ def apply_checklist(top: list[dict], overflow: list[dict], reader, rules: dict, 
         nonlocal read, scored, unevaluated
         if _fragments(card, full=False)[0]:
             read += 1
-        outcome = score_card(card, reader, rules)
+        outcome = score_card(card, reader, rules, snapshot_root=snapshot_root)
         status = (outcome["card"].get("checklist") or {}).get("status")
         if status == "scored":
             scored += 1
@@ -547,4 +589,10 @@ def annotate_checklist(top: list[dict], overflow: list[dict], settings, query: s
                 "unread": 0, "dropped": 0, "backfill": 0,
             },
         }
-    return apply_checklist(top, overflow, make_reader(settings, query), rules)
+    return apply_checklist(
+        top,
+        overflow,
+        make_reader(settings, query),
+        rules,
+        snapshot_root=Path(settings.snapshot_dir),
+    )

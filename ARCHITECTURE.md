@@ -46,7 +46,7 @@ Revision: **7.8** · Date: **2026-10-12** · Living contract
 незавершённый countersearch — `degraded`. Ни один из этих статусов не является
 оценкой перспективности технологии.
 
-Wide-run использует `retrieval-0.3`: хеш версии, порядка theme ID и хешей
+Wide-run использует `retrieval-0.4`: хеш версии, порядка theme ID и хешей
 запросов входит в родительский retrieval fingerprint без публикации исходных
 строк. DOI и URL служат совместными alias при глобальной склейке: отсутствие
 DOI у одной из копий и повтор URL внутри ответа не создают новое событие.
@@ -62,16 +62,19 @@ GPT Researcher подключается только флагом, выключ�
 делает один синхронный запрос к pinned API в унаследованном дедлайне, отбрасывает
 сгенерированный отчёт и повторно скачивает его URL как недоверенные leads.
 Проверка запрещает non-HTTP, credentials, loopback/private DNS и приватные
-redirect-цели; текст/размер ограничены. Превышение заявленного post-run cost
+redirect-цели; транспорт подключается к уже проверенному числовому IP без
+второго DNS lookup, а абсолютный дедлайн действует и на медленный stream.
+Текст/размер ограничены. Превышение заявленного post-run cost
 fail-closed до передачи lead в harness. Наружу выходят только research id,
 стоимость, счётчики и хеши artifact path; не prose, prompt или локальный путь.
 
 Обычный live path повторно получает не более `TS_EVIDENCE_FETCH_LIMIT`
 уникальных источников на тематический прогон, primary-first и внутри общего
 deadline. Raw body хранится только content-addressed snapshot; публичная карточка
-получает bounded fragment, content hash и `sha256:` reference. `checklist-v18`
-капит `verified` до `supported`, если ссылка ведёт лишь на snippet или
-non-primary fragment. Старые записи без нового provenance не переписываются.
+получает bounded fragment, content/fragment hash и `sha256:` reference.
+`checklist-v19` повторно хеширует сохранённый blob и капит `verified` до
+`supported`, если blob/attestation отсутствует либо ссылка ведёт лишь на snippet
+или non-primary fragment. Старые записи без нового provenance не переписываются.
 
 Не добавлять: Neo4j, S3, Procrastinate, Redis, Kafka, K8s, BERTopic, вторая vector DB, LoRA. Replacement matrix — `docs/plan/PLAN_7.2.md` §6.
 

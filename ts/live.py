@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import socket
 from collections import Counter
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
@@ -41,7 +42,6 @@ from ts.settings import Settings, load
 from ts.sources.connectors import (
     ArxivConnector,
     ClinicalTrialsConnector,
-    ConnectorError,
     CordisConnector,
     CrossrefConnector,
     DoajConnector,
@@ -56,10 +56,10 @@ from ts.sources.connectors import (
     SearxConnector,
     SecConnector,
 )
-from ts.sources.refetch import MAX_BODY_BYTES, RefetchResponse, refetch_public_url
+from ts.sources.refetch import fetch_public_target, refetch_public_url
 from ts.sources.researcher import GptResearcherConnector
 
-CORPUS = "live-w20"
+CORPUS = "live-w21"
 THEME_LOOKBACK_DAYS = 365
 
 
@@ -576,33 +576,17 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
     return public_report(report)
 
 
-def _public_refetcher(s: Settings, headers: dict):
-    def request_lead(url: str):
-        try:
-            with httpx.stream(
-                "GET",
-                url,
-                timeout=transport_timeout(getattr(s, "source_timeout_seconds", 40.0)),
-                follow_redirects=False,
-                headers=headers,
-            ) as response:
-                declared = response.headers.get("content-length")
-                if declared and declared.isdigit() and int(declared) > MAX_BODY_BYTES:
-                    raise ConnectorError("advisory response is too large")
-                body = bytearray()
-                for chunk in response.iter_bytes():
-                    body.extend(chunk)
-                    if len(body) > MAX_BODY_BYTES:
-                        raise ConnectorError("advisory response is too large")
-                return RefetchResponse(
-                    response.status_code,
-                    dict(response.headers),
-                    bytes(body),
-                )
-        except httpx.HTTPError as exc:
-            raise ConnectorError("advisory re-fetch transport failed") from exc
+def _public_refetcher(s: Settings, headers: dict, *, resolver=socket.getaddrinfo):
+    def request_lead(target):
+        return fetch_public_target(
+            target,
+            headers=headers,
+            timeout_seconds=transport_timeout(
+                getattr(s, "source_timeout_seconds", 40.0),
+            ),
+        )
 
-    return lambda url: refetch_public_url(url, request_lead)
+    return lambda url: refetch_public_url(url, request_lead, resolver=resolver)
 
 
 def default_evidence_fetcher(s: Settings):

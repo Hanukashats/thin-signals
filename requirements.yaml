@@ -456,10 +456,11 @@ requirements:
     forks: [goal.controller]
     acceptance: semantic validator rejects claim without fragment_id; structural rc=0 of donor validators is not a gate
     evidence:
-      - ts/checklist.py checklist-v18 preserved-primary boundary, structure, countersearch fragments, exclusion-counter references and off-topic ordering
+      - ts/checklist.py checklist-v19 blob-backed preserved-primary boundary, structure, countersearch fragments, exclusion-counter references and off-topic ordering
       - ts/tests/test_checklist.py invalid/missing/out-of-range fragment references fail closed
       - ts/tests/test_checklist.py countersearch cannot replace or be the sole citation for positive evidence
       - ts/tests/test_checklist.py snippet-only and non-primary verified claims are capped to supported
+      - ts/tests/test_checklist.py missing snapshot blob and malformed attestation are capped to supported
       - ts/tests/test_harness.py bounded SHA-256 snapshot provenance
 
   - id: TS-INV-03

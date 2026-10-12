@@ -253,6 +253,25 @@ def test_openalex_work_identity_merges_mirrors_but_not_distinct_works_with_same_
     ]
 
 
+def test_openalex_work_identity_bridges_a_doi_mirror_even_for_a_short_title():
+    events = dedup([
+        Hit(
+            "openalex", "https://doi.org/10.1000/a", "A short title",
+            "same work", "paper", doi="10.1000/a", work_id="W123",
+        ),
+        Hit(
+            "openalex", "https://openalex.org/W123", "A short title",
+            "same work", "paper", work_id="W123",
+        ),
+    ])
+
+    assert len(events) == 1
+    assert events[0]["dedup_status"] == "merged"
+    assert set(events[0]["urls"]) == {
+        "https://doi.org/10.1000/a", "https://openalex.org/W123",
+    }
+
+
 def test_snapshot_repeat_does_not_create_a_second_file(tmp_path: Path):
     body = b"same-bytes"
     first = save_snapshot(tmp_path, "https://example.com/a", body)
@@ -322,6 +341,38 @@ def test_snapshot_fetch_limit_is_bounded_and_unfetched_sources_are_explicit(tmp_
     assert len(calls) == 1
     assert sum(source["evidence"]["status"] == "preserved" for source in report.sources) == 1
     assert sum(source["evidence"]["status"] == "snippet_only" for source in report.sources) == 2
+
+
+def test_snapshot_fetch_cannot_outlive_the_inherited_global_deadline(tmp_path: Path):
+    hit = Hit(
+        "fixture", "https://arxiv.org/abs/2601.99999", "Deadline evidence",
+        "search snippet", "paper",
+    )
+
+    def slow_fetch(_url):
+        time.sleep(0.25)
+        return b"late primary body"
+
+    started = time.monotonic()
+    source = Scripted("fixture", [hit])
+    source.search_stages = frozenset({"search"})
+    report = Harness(
+        snapshot_dir=tmp_path,
+        corpus_version="snapshot-deadline",
+        deadline_seconds=0.05,
+    ).run(
+        "deadline evidence",
+        [source],
+        fetch_body=slow_fetch,
+    )
+    elapsed = time.monotonic() - started
+
+    assert elapsed < 0.15
+    assert report.status == "degraded"
+    assert report.sources[0]["evidence"]["status"] == "snippet_only"
+    snapshot = next(step for step in report.steps if step["name"] == "snapshot")
+    assert snapshot["failed"] == 1
+    assert snapshot["error"] == "deadline_exceeded"
 
 
 def test_failed_connector_does_not_abort_and_rerun_is_free(tmp_path: Path):

@@ -19,7 +19,7 @@ the immediately preceding equivalent staging's **8m51s**. Old pre-checklist
 production duration is unknown; search breadth/depth/thresholds were not weakened.
 See `reports/SEARCH_TIMING_2026-09-29.md`.
 
-7.8 continuation: evidence and provider boundaries are hardened without changing `rules-0.1`, weights, thresholds or P01–P18. `checklist-v18` validates reader structure and positive/counter evidence roles; only a preserved primary fragment can remain `verified`, while snippets and non-primary text are capped to `supported`. Off-topic rejection precedes below-watchlist return. Mandatory OpenRouter ZDR fields cannot be weakened; returned model and cached response provenance are checked. Three modules share the evidence-first shell: live signals, a separate potential queue over current scored observations, and search over the sealed 29.09 old-technology archive. Facts/hypotheses/checks/sources and run provenance stay separate. Figma v4 is node `41:178`; transparent logo/favicon are versioned. API/UI run as persistent DynamicUser units, active and enabled.
+7.8 continuation: evidence and provider boundaries are hardened without changing `rules-0.1`, weights, thresholds or P01–P18. `checklist-v19` validates reader structure and positive/counter evidence roles; only a blob-backed, SHA-256-attested primary fragment can remain `verified`, while snippets, missing/corrupt snapshots and non-primary text are capped to `supported`. Off-topic rejection precedes below-watchlist return. Mandatory OpenRouter ZDR fields cannot be weakened; returned model and cached response provenance are checked. Three modules share the evidence-first shell: live signals, a separate potential queue over current scored observations, and search over the sealed 29.09 old-technology archive. Facts/hypotheses/checks/sources and run provenance stay separate. Figma v4 is node `41:178`; transparent logo/favicon are versioned. API/UI run as persistent DynamicUser units, active and enabled.
 
 The public route is `https://tsignal.aispaces.ru` through Caddy on VM105 to
 VM232's private `:18443` listener. Account hashes and provider/database
@@ -42,7 +42,7 @@ containers, so live search no longer depends on backend VM101. Receipt:
 | W3-live | **in_progress** — live search exists; honest scored TOP-15 and durable per-step ledger remain incomplete |
 | W4-ui | **in_progress, deployed shell and verified typography** — three modules live; real-account authenticated production smoke remains unobserved |
 | Rules | `rules-0.1`, unchanged |
-| Checklist | branch `checklist-v18` + `technology-candidate-0.1`; production remains unchanged; old persisted rows remain historical and are excluded from the active potential queue |
+| Checklist | branch `checklist-v19` + `technology-candidate-0.1`; production remains unchanged; old persisted rows remain historical and are excluded from the active potential queue |
 | Production delivery | VM232 public; PostgreSQL/API/UI/sing-box/research services active+enabled; SearXNG patch upgrade and controlled container restart recovered automatically |
 | Canonical Git | private SourceCraft `shats123/thin-signals`; public GitHub delivery snapshot `Hanukashats/thin-signals`, `main=0c1fdd3` verified |
 | Reliability branch | `feat/thin-signals-reliability-20261012`; not deployed; real Git timestamps retained |
@@ -67,10 +67,10 @@ containers, so live search no longer depends on backend VM101. Receipt:
 - `run-status-0.2` makes total discovery failure `failed`, partial discovery or
   countersearch failure `degraded`, and failed countersearch blocks admission.
   The latest-run endpoint now returns the newest finished run instead of hiding
-  failed/degraded outcomes. The complete suite now passes 319/319 against a fresh
+  failed/degraded outcomes. The complete suite now passes 327/327 against a fresh
   disposable migrated database; production data was not touched.
-- `live-w20` attaches matching countersearch records to each candidate as a
-  separate evidence channel. `checklist-v18` now requires at least one positive
+- `live-w21` attaches matching countersearch records to each candidate as a
+  separate evidence channel. `checklist-v19` now requires at least one positive
   discovery fragment and refuses verified positive claims/transitions cited only
   to countersearch. A cited M01/M02/M03/M05/M06 finding may still exclude the
   card. Countersearch output cannot score or admit a card by itself.
@@ -79,7 +79,7 @@ containers, so live search no longer depends on backend VM101. Receipt:
   only explicit institution/lab identifiers. Distinct hosts without those IDs
   remain `unknown` and contribute no independence score; raw event funnel counts
   and cross-theme alias-bridge deduplication remain intact.
-- `retrieval-0.3` runs connector calls with bounded concurrency and one inherited
+- `retrieval-0.4` runs connector calls with bounded concurrency and one inherited
   absolute deadline. Results completing after that deadline are discarded;
   changed wide budgets or ordered theme plans cannot reuse a deadline-failed
   child run. The safe global funnel treats DOI and URL as joint aliases,
@@ -88,6 +88,12 @@ containers, so live search no longer depends on backend VM101. Receipt:
   repeated-source metadata, and retains a source-backed child exclusion exactly once.
   Per-call timing, cached/executed counts, failures and skips use allowlisted scalar
   metadata only; raw prompts and hidden reasoning are not exposed.
+- Independent Astra verification of `e006a36` correctly rejected four gaps.
+  The remediation candidate pins TCP to the already validated public IP (while
+  retaining the original Host/TLS SNI), prevents snapshot reads from outliving
+  the inherited deadline, re-hashes the stored blob plus fragment attestation
+  before `verified`, and joins short-title DOI/OpenAlex mirrors by shared Work
+  identity. Production remains untouched pending a fresh independent verdict.
 - The default live path re-fetches a primary-first, configured maximum of source
   bodies inside the inherited deadline and stores immutable SHA-256 snapshots.
   Source cards distinguish `preserved` from `snippet_only`; verified features
@@ -166,7 +172,7 @@ containers, so live search no longer depends on backend VM101. Receipt:
    in a separately reviewed presentation rebuild rather than silently changing
    the sealed delivery package.
 6. **Evidence provenance release gate:** bounded source snapshots and
-   `checklist-v18` are implemented and tested on the branch. A frozen replay and
+   `checklist-v19` are implemented and tested on the branch. A frozen replay and
    canary must measure coverage/latency before production activation; saved
    historical runs remain immutable.
 7. **Release state:** bounded search, timings, safe funnel and configuration

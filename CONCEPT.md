@@ -62,8 +62,9 @@ Researcher формирует advisory-пакет через локальный 
 передаёт Markdown в модель/скоринг: URL заново скачивается через публичный
 HTTP(S)-контур с запретом private/loopback redirect, и только прошедший проверку
 текст становится discovery hit. Основной live path также сохраняет bounded
-primary-first snapshot по SHA-256; `checklist-v18` оставляет `verified` только
-при ссылке на такой primary-фрагмент. Остальные тексты дают максимум `supported`.
+primary-first snapshot по SHA-256; `checklist-v19` оставляет `verified` только
+при ссылке на такой primary-фрагмент после повторной проверки content/fragment
+hash и самого blob. Остальные тексты дают максимум `supported`.
 
 ## 3.2 Публичный вход
 

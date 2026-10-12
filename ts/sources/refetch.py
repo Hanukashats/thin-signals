@@ -1,13 +1,17 @@
 """Safe, bounded re-fetching of advisory public-web leads."""
 from __future__ import annotations
 
+import errno
+import http.client
 import ipaddress
 import re
 import socket
+import ssl
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from html.parser import HTMLParser
-from urllib.parse import urljoin, urlparse
+from time import monotonic
+from urllib.parse import quote, urljoin, urlparse
 
 from ts.sources.connectors import ConnectorError, Hit
 
@@ -26,6 +30,22 @@ class RefetchResponse:
     status_code: int
     headers: Mapping[str, str]
     content: bytes
+
+
+@dataclass(frozen=True)
+class PublicTarget:
+    """One URL plus the exact public addresses validated for this hop.
+
+    The transport must connect to one of ``addresses``.  Handing the hostname
+    back to a generic HTTP client would create a second DNS lookup and reopen a
+    DNS-rebinding SSRF window.
+    """
+
+    url: str
+    scheme: str
+    host: str
+    port: int
+    addresses: tuple[str, ...]
 
 
 class _TextParser(HTMLParser):
@@ -60,7 +80,7 @@ class _TextParser(HTMLParser):
             self.title_parts.append(text)
 
 
-def _public_url(url: str, resolver=socket.getaddrinfo) -> str:
+def _public_target(url: str, resolver=socket.getaddrinfo) -> PublicTarget:
     try:
         parsed = urlparse(url)
         port = parsed.port or (443 if parsed.scheme == "https" else 80)
@@ -88,7 +108,141 @@ def _public_url(url: str, resolver=socket.getaddrinfo) -> str:
                 continue
     if not addresses or any(not address.is_global for address in addresses):
         raise ConnectorError("advisory URL is not public")
-    return url
+    return PublicTarget(
+        url=url,
+        scheme=parsed.scheme,
+        host=host,
+        port=port,
+        addresses=tuple(dict.fromkeys(str(address) for address in addresses)),
+    )
+
+
+class _PinnedHTTPConnection(http.client.HTTPConnection):
+    """HTTP connection whose TCP peer is an already validated numeric IP."""
+
+    def __init__(self, target: PublicTarget, address: str, timeout: float):
+        super().__init__(target.host, port=target.port, timeout=timeout)
+        self._pinned_address = address
+
+    def _connect_socket(self):
+        sock = _numeric_socket(
+            self._pinned_address, self.port, self.timeout, self.source_address,
+        )
+        try:
+            sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        except OSError as exc:
+            if exc.errno != errno.ENOPROTOOPT:
+                sock.close()
+                raise
+        return sock
+
+    def connect(self):
+        self.sock = self._connect_socket()
+
+
+class _PinnedHTTPSConnection(http.client.HTTPSConnection):
+    """HTTPS variant: pinned TCP peer, original hostname for TLS SNI/checks."""
+
+    def __init__(self, target: PublicTarget, address: str, timeout: float):
+        super().__init__(target.host, port=target.port, timeout=timeout)
+        self._pinned_address = address
+
+    def connect(self):
+        sock = _numeric_socket(
+            self._pinned_address, self.port, self.timeout, self.source_address,
+        )
+        try:
+            sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            self.sock = self._context.wrap_socket(sock, server_hostname=self.host)
+        except Exception:
+            sock.close()
+            raise
+
+
+def _numeric_socket(address: str, port: int, timeout: float, source_address=None):
+    """Connect to a numeric peer without invoking getaddrinfo again."""
+    parsed = ipaddress.ip_address(address)
+    family = socket.AF_INET6 if parsed.version == 6 else socket.AF_INET
+    sock = socket.socket(family, socket.SOCK_STREAM)
+    try:
+        sock.settimeout(timeout)
+        if source_address:
+            sock.bind(source_address)
+        peer = (address, port, 0, 0) if parsed.version == 6 else (address, port)
+        sock.connect(peer)
+        return sock
+    except Exception:
+        sock.close()
+        raise
+
+
+def fetch_public_target(
+    target: PublicTarget,
+    *,
+    headers: Mapping[str, str],
+    timeout_seconds: float,
+    max_body_bytes: int = MAX_BODY_BYTES,
+) -> RefetchResponse:
+    """Fetch one validated hop without resolving its hostname a second time."""
+    deadline_at = monotonic() + max(0.001, timeout_seconds)
+    parsed = urlparse(target.url)
+    path = quote(parsed.path or "/", safe="/%:@!$&'()*+,;=-._~")
+    if parsed.query:
+        path += f"?{parsed.query}"
+    default_port = 443 if target.scheme == "https" else 80
+    host = target.host.encode("idna").decode("ascii")
+    if ":" in host:
+        host = f"[{host}]"
+    authority = host if target.port == default_port else f"{host}:{target.port}"
+    request_headers = {
+        **{str(key): str(value) for key, value in headers.items()},
+        "Host": authority,
+        "Accept-Encoding": "identity",
+        "Connection": "close",
+    }
+    last_error: BaseException | None = None
+    for address in target.addresses:
+        connection = None
+        try:
+            remaining = deadline_at - monotonic()
+            if remaining <= 0:
+                raise TimeoutError("advisory re-fetch deadline exceeded")
+            connection_type = (
+                _PinnedHTTPSConnection if target.scheme == "https" else _PinnedHTTPConnection
+            )
+            connection = connection_type(target, address, remaining)
+            connection.request("GET", path, headers=request_headers)
+            response = connection.getresponse()
+            declared = response.getheader("content-length")
+            if declared and declared.isdigit() and int(declared) > max_body_bytes:
+                raise ConnectorError("advisory response is too large")
+            body = bytearray()
+            read_chunk = getattr(response, "read1", response.read)
+            while True:
+                remaining = deadline_at - monotonic()
+                if remaining <= 0:
+                    raise TimeoutError("advisory re-fetch deadline exceeded")
+                if connection.sock is not None:
+                    connection.sock.settimeout(max(0.001, remaining))
+                chunk = read_chunk(min(65_536, max_body_bytes + 1 - len(body)))
+                if not chunk:
+                    break
+                body.extend(chunk)
+                if len(body) > max_body_bytes:
+                    raise ConnectorError("advisory response is too large")
+            return RefetchResponse(
+                status_code=int(response.status),
+                headers={key.lower(): value for key, value in response.getheaders()},
+                content=bytes(body),
+            )
+        except ConnectorError:
+            raise
+        except (OSError, TimeoutError, http.client.HTTPException, ssl.SSLError) as exc:
+            last_error = exc
+        finally:
+            if connection is not None:
+                connection.close()
+    raise ConnectorError("advisory re-fetch transport failed") from last_error
 
 
 def _text(content: bytes, content_type: str) -> tuple[str, str]:
@@ -109,7 +263,7 @@ def _text(content: bytes, content_type: str) -> tuple[str, str]:
 
 def refetch_public_url(
     url: str,
-    request: Callable[[str], object],
+    request: Callable[[PublicTarget], object],
     *,
     resolver=socket.getaddrinfo,
     max_body_bytes: int = MAX_BODY_BYTES,
@@ -118,8 +272,8 @@ def refetch_public_url(
     current = url
     response = None
     for _hop in range(MAX_REDIRECTS + 1):
-        _public_url(current, resolver)
-        response = request(current)
+        target = _public_target(current, resolver)
+        response = request(target)
         status = getattr(response, "status_code", None)
         headers = getattr(response, "headers", {})
         if not isinstance(status, int) or not isinstance(headers, Mapping):

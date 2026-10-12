@@ -182,7 +182,7 @@ phases:
         status: in_progress
         owner: codex
         deliverables:
-          - "checklist-v18 preserved-primary, structural, countersearch-fragment and off-topic validator; potential-v2 current-observation ranking"
+          - "checklist-v19 blob-attested preserved-primary, structural, countersearch-fragment and off-topic validator; potential-v2 current-observation ranking"
           - "non-overridable ZDR/data-collection policy and returned-model allowlist"
           - "model/provider provenance from the same checklist card"
           - "honest evidence-first Streamlit result shell"
@@ -251,7 +251,7 @@ phases:
       - id: W10-research-adapter
         status: in_progress
         owner: research/backend
-        deliverables: ["bounded GPT Researcher adapter", "OpenAlex evidence enrichment", "provenance snapshots", "global deadline", "retrieval-0.3 plan-aware fingerprint", "conflict-aware DOI/URL-alias safe funnel with retained child exclusions"]
+        deliverables: ["bounded GPT Researcher adapter", "OpenAlex evidence enrichment", "blob-attested provenance snapshots", "hard global deadline", "retrieval-0.4 plan-aware fingerprint and DNS-pinned refetch", "conflict-aware DOI/Work/URL-alias safe funnel with retained child exclusions"]
         requirements: [RS-05, RS-06]
         forks: [runtime.adapter]
       - id: W11-adversarial-eval

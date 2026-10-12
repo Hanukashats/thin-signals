@@ -30,7 +30,7 @@ from ts.sources.trust import classify, load_trust
 STEPS = ("search", "snapshot", "dedup", "countersearch", "score", "rank")
 TOP_N = 15
 RUN_CONTRACT_VERSION = "run-status-0.2"
-RETRIEVAL_CONTRACT_VERSION = "retrieval-0.3"
+RETRIEVAL_CONTRACT_VERSION = "retrieval-0.4"
 CHAIN_CONNECTORS = frozenset({"searxng", "openalex", "crossref", "sec"})
 _DEEP = frozenset({"arxiv", "openalex", "crossref", "europepmc", "doaj", "hal"})
 # Phrase lists such as "market leader" are not in the brief and are not dataset
@@ -308,6 +308,14 @@ class Harness:
             hits.extend(hit for hit in extra if _on_topic(query, hit))
             failures.extend(extra_failures)
         self._snapshot(hits, fetch_body, steps, deadline_at=deadline_at)
+        snapshot_step = steps[-1]
+        snapshot_incomplete = (
+            snapshot_step.get("name") == "snapshot"
+            and (
+                bool(snapshot_step.get("failed"))
+                or snapshot_step.get("error") == "deadline_exceeded"
+            )
+        )
         sources = self._sources(hits)
         events = dedup(hits)
         steps.append({"name": "dedup", "status": "ok", "events": len(events),
@@ -321,7 +329,7 @@ class Harness:
         run_failures = failures + counter_failures
         if discovery_successes == 0:
             run_status = "failed"
-        elif run_failures:
+        elif run_failures or snapshot_incomplete:
             run_status = "degraded"
         else:
             run_status = "succeeded"
@@ -510,6 +518,7 @@ class Harness:
         saved = 0
         attempted = 0
         failed = 0
+        deadline_exceeded = False
         by_url: dict[str, dict] = {}
 
         def preserve(hit: Hit, fetched) -> bool:
@@ -525,13 +534,15 @@ class Harness:
             if text is None:
                 text = body.decode("utf-8", errors="replace")
             snapshot = save_snapshot(self.snapshot_dir, fetched_url, body)
+            fragment = str(text).strip()[:1500]
             hit.evidence = {
                 "status": "preserved",
                 "content_hash": snapshot["content_hash"],
                 "snapshot_ref": f"sha256:{snapshot['content_hash']}",
                 "fetched_url": fetched_url,
                 "content_type": content_type or "application/octet-stream",
-                "fragment": str(text).strip()[:1500],
+                "fragment": fragment,
+                "fragment_hash": hashlib.sha256(fragment.encode()).hexdigest(),
             }
             by_url[hit.url] = dict(hit.evidence)
             saved += 1
@@ -560,19 +571,41 @@ class Harness:
             item[0],
         ))
         if fetch_body is not None:
-            for _index, hit in candidates[: max(0, self.snapshot_limit)]:
-                if monotonic() >= deadline_at:
-                    break
-                attempted += 1
-                token = _ACTIVE_SEARCH_DEADLINE.set(deadline_at)
-                try:
-                    fetched = fetch_body(hit.url)
-                    if not preserve(hit, fetched):
+            executor = ThreadPoolExecutor(max_workers=1)
+            try:
+                for _index, hit in candidates[: max(0, self.snapshot_limit)]:
+                    remaining = deadline_at - monotonic()
+                    if remaining <= 0:
+                        deadline_exceeded = True
+                        break
+                    attempted += 1
+
+                    def invoke(url=hit.url):
+                        token = _ACTIVE_SEARCH_DEADLINE.set(deadline_at)
+                        try:
+                            return fetch_body(url)
+                        finally:
+                            _ACTIVE_SEARCH_DEADLINE.reset(token)
+
+                    future = executor.submit(invoke)
+                    done, _pending = wait([future], timeout=max(0.0, remaining))
+                    if future not in done:
+                        future.cancel()
                         failed += 1
-                except Exception:  # noqa: BLE001 - a source body must not abort retrieval
-                    failed += 1
-                finally:
-                    _ACTIVE_SEARCH_DEADLINE.reset(token)
+                        deadline_exceeded = True
+                        break
+                    try:
+                        fetched = future.result()
+                        if monotonic() >= deadline_at:
+                            failed += 1
+                            deadline_exceeded = True
+                            break
+                        if not preserve(hit, fetched):
+                            failed += 1
+                    except Exception:  # noqa: BLE001 - a source body must not abort retrieval
+                        failed += 1
+            finally:
+                executor.shutdown(wait=False, cancel_futures=True)
 
         for hit in hits:
             if not hit.evidence:
@@ -585,6 +618,7 @@ class Harness:
             "attempted": attempted,
             "failed": failed,
             "limit": self.snapshot_limit,
+            **({"error": "deadline_exceeded"} if deadline_exceeded else {}),
             **({"reason": "no fetcher"} if fetch_body is None and not saved else {}),
         })
 
@@ -664,6 +698,27 @@ def dedup(hits: list[Hit]) -> list[dict]:
             if find(key) == root
             for alias in _hit_identity_aliases(group)
         }
+
+    def join(left: str, right: str) -> None:
+        root_left, root_right = find(left), find(right)
+        if root_left == root_right:
+            return
+
+        def priority(key: str) -> tuple[int, str]:
+            rank = 0 if key.startswith("doi:") else 1 if key.startswith("work:") else 2
+            return rank, key
+
+        keep, drop = sorted((root_left, root_right), key=priority)
+        parent[drop] = keep
+
+    # Stable DOI/OpenAlex Work aliases are stronger than title similarity.  A
+    # DOI view and an OpenAlex-only view of the same Work must merge even when
+    # the title is too short for the deliberately conservative title heuristic.
+    for i, left in enumerate(keys):
+        left_aliases = _hit_identity_aliases(groups[left])
+        for right in keys[i + 1 :]:
+            if left_aliases & _hit_identity_aliases(groups[right]):
+                join(left, right)
 
     for i, left in enumerate(keys):
         left_titles = [_title_norm(hit.title) for hit in groups[left]]

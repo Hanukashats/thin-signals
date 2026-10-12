@@ -2,16 +2,20 @@
 from __future__ import annotations
 
 import json
+import socket
+import time
 from dataclasses import dataclass
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from threading import Thread
 
 import pytest
 
 from ts.harness import Harness
-from ts.live import default_connectors
+from ts.live import _public_refetcher, default_connectors
 from ts.persist import public_report
 from ts.settings import load
 from ts.sources.connectors import ConnectorError, Hit
-from ts.sources.refetch import refetch_public_url
+from ts.sources.refetch import PublicTarget, fetch_public_target, refetch_public_url
 from ts.sources.researcher import GptResearcherConnector
 
 
@@ -373,9 +377,9 @@ def _public_resolver(host, _port, **_kwargs):
 def test_refetch_accepts_bounded_public_text_and_rejects_private_redirects():
     calls = []
 
-    def request(url):
-        calls.append(url)
-        if url.endswith("/start"):
+    def request(target):
+        calls.append(target.url)
+        if target.url.endswith("/start"):
             return _Response(302, {"location": "https://127.0.0.1/private"}, b"")
         return _Response(
             200, {"content-type": "text/html; charset=utf-8"},
@@ -399,6 +403,132 @@ def test_refetch_accepts_bounded_public_text_and_rejects_private_redirects():
     assert calls[-1] == "https://public.example/start"
 
 
+def test_refetch_transport_receives_the_exact_validated_public_addresses():
+    seen = []
+
+    def request(target):
+        seen.append(target)
+        return _Response(200, {"content-type": "text/plain"}, b"primary body")
+
+    hit = refetch_public_url(
+        "https://public.example:8443/article", request, resolver=_public_resolver,
+    )
+
+    assert hit.fetched_text == "primary body"
+    assert len(seen) == 1
+    assert seen[0].url == "https://public.example:8443/article"
+    assert seen[0].host == "public.example"
+    assert seen[0].port == 8443
+    assert seen[0].addresses == ("93.184.216.34",)
+
+
+def test_default_refetch_path_passes_the_validated_target_to_the_pinned_transport(monkeypatch):
+    seen = []
+
+    def pinned_transport(target, **_kwargs):
+        seen.append(target)
+        return _Response(200, {"content-type": "text/plain"}, b"primary body")
+
+    monkeypatch.setattr("ts.live.fetch_public_target", pinned_transport)
+    settings = type("Settings", (), {"source_timeout_seconds": 1.0})()
+    hit = _public_refetcher(
+        settings,
+        {"User-Agent": "test"},
+        resolver=_public_resolver,
+    )("https://rebind.example/evidence")
+
+    assert hit.fetched_text == "primary body"
+    assert len(seen) == 1
+    assert seen[0].host == "rebind.example"
+    assert seen[0].addresses == ("93.184.216.34",)
+
+
+def test_pinned_transport_never_calls_dns_for_the_validated_numeric_peer(monkeypatch):
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain")
+            self.end_headers()
+            self.wfile.write(b"isolated canary")
+
+        def log_message(self, _format, *_args):
+            return
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    worker = Thread(target=server.serve_forever, daemon=True)
+    worker.start()
+    monkeypatch.setattr(
+        socket,
+        "getaddrinfo",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(
+            AssertionError("pinned transport attempted a second DNS lookup"),
+        ),
+    )
+    try:
+        port = server.server_address[1]
+        response = fetch_public_target(
+            PublicTarget(
+                url=f"http://rebind.example:{port}/evidence",
+                scheme="http",
+                host="rebind.example",
+                port=port,
+                addresses=("127.0.0.1",),
+            ),
+            headers={"User-Agent": "test"},
+            timeout_seconds=1.0,
+        )
+    finally:
+        server.shutdown()
+        server.server_close()
+        worker.join(timeout=1)
+
+    assert response.content == b"isolated canary"
+
+
+def test_pinned_transport_enforces_a_total_deadline_on_slow_streams():
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain")
+            self.end_headers()
+            try:
+                for _ in range(24):
+                    self.wfile.write(b"slow chunk\n")
+                    self.wfile.flush()
+                    time.sleep(0.01)
+            except (BrokenPipeError, ConnectionResetError):
+                return
+
+        def log_message(self, _format, *_args):
+            return
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    worker = Thread(target=server.serve_forever, daemon=True)
+    worker.start()
+    port = server.server_address[1]
+    started = time.monotonic()
+    try:
+        with pytest.raises(ConnectorError, match="transport"):
+            fetch_public_target(
+                PublicTarget(
+                    url=f"http://slow.example:{port}/evidence",
+                    scheme="http",
+                    host="slow.example",
+                    port=port,
+                    addresses=("127.0.0.1",),
+                ),
+                headers={"User-Agent": "test"},
+                timeout_seconds=0.05,
+            )
+    finally:
+        elapsed = time.monotonic() - started
+        server.shutdown()
+        server.server_close()
+        worker.join(timeout=1)
+
+    assert elapsed < 0.15
+
+
 @pytest.mark.parametrize("url", [
     "file:///etc/passwd",
     "http://localhost/admin",
@@ -410,7 +540,7 @@ def test_refetch_rejects_non_public_targets_before_request(url):
     calls = []
     with pytest.raises(ConnectorError):
         refetch_public_url(
-            url, lambda value: calls.append(value), resolver=_public_resolver,
+            url, lambda target: calls.append(target), resolver=_public_resolver,
         )
     assert calls == []
 
@@ -419,12 +549,12 @@ def test_refetch_rejects_binary_and_oversized_bodies():
     with pytest.raises(ConnectorError, match="content type"):
         refetch_public_url(
             "https://public.example/a.pdf",
-            lambda _url: _Response(200, {"content-type": "application/pdf"}, b"%PDF"),
+            lambda _target: _Response(200, {"content-type": "application/pdf"}, b"%PDF"),
             resolver=_public_resolver,
         )
     with pytest.raises(ConnectorError, match="large"):
         refetch_public_url(
             "https://public.example/huge",
-            lambda _url: _Response(200, {"content-type": "text/plain"}, b"x" * 2_000_001),
+            lambda _target: _Response(200, {"content-type": "text/plain"}, b"x" * 2_000_001),
             resolver=_public_resolver,
         )

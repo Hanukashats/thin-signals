@@ -1,12 +1,15 @@
 """Checklist after the list is chosen. A stand-in reader, no live model."""
 from __future__ import annotations
 
+import hashlib
+
 from ts.checklist import _case_quote, apply_checklist, score_card, vector_for
 from ts.desk import candidate_views, run_banner
 from ts.fanout import _identity
 from ts.harness import RunReport
 from ts.persist import public_report
 from ts.scoring.scorer import load_rules, score
+from ts.snapshots import save_snapshot
 
 
 def _rules():
@@ -21,12 +24,14 @@ def _card(
     snippet="A fragment about the cell.",
     preserved=True,
 ):
+    fragment_hash = hashlib.sha256(snippet.encode()).hexdigest()
     evidence = (
         {
             "status": "preserved",
             "fragment": snippet,
             "snapshot_ref": "sha256:" + "0" * 64,
             "content_hash": "0" * 64,
+            "fragment_hash": fragment_hash,
         }
         if preserved else {"status": "snippet_only"}
     )
@@ -138,6 +143,7 @@ def test_snippet_only_positive_claim_is_capped_to_supported():
     assert judged["card"]["checklist"]["status"] == "scored"
     assert judged["card"]["checklist"]["provenance_capped"] == ["P01", "TR"]
     assert judged["card"]["evidence_fragments"][0]["provenance"] == "snippet_only"
+    assert "snapshot_ref" not in judged["card"]["evidence_fragments"][0]
     assert judged["card"]["confidence"] == score(
         vector_for(card, {
             **out,
@@ -151,20 +157,48 @@ def test_snippet_only_positive_claim_is_capped_to_supported():
     ).confidence
 
 
-def test_preserved_primary_fragment_can_remain_verified_and_carries_snapshot_ref():
+def test_unattested_preserved_label_cannot_make_a_claim_verified():
+    card = _card()
+    card["sources"][0]["evidence"] = {
+        "status": "preserved",
+        "fragment": "Unsaved asserted primary text.",
+    }
+    out = _out(verified={"P01"}, transition="verified")
+
+    judged = score_card(card, lambda _card: _read(out), _rules())
+
+    assert judged["card"]["checklist"]["provenance_capped"] == ["P01", "TR"]
+    assert judged["card"]["evidence_fragments"][0]["provenance"] == "snippet_only"
+    p01 = next(item for item in judged["card"]["predictors"] if item["code"] == "P01")
+    assert p01["value"] == "supported"
+
+
+def test_preserved_primary_fragment_can_remain_verified_and_carries_snapshot_ref(tmp_path):
     card = _card(snippet="search snippet")
+    preserved = "Direct text from the preserved primary document."
+    snapshot = save_snapshot(
+        tmp_path,
+        "https://arxiv.org/abs/2401.00001",
+        preserved.encode(),
+    )
     card["sources"][0].update({
         "trust": "primary",
         "evidence": {
             "status": "preserved",
-            "fragment": "Direct text from the preserved primary document.",
-            "snapshot_ref": "sha256:" + "a" * 64,
-            "content_hash": "a" * 64,
+            "fragment": preserved,
+            "snapshot_ref": "sha256:" + snapshot["content_hash"],
+            "content_hash": snapshot["content_hash"],
+            "fragment_hash": hashlib.sha256(preserved.encode()).hexdigest(),
         },
     })
     out = _out(verified={"P01"}, transition="verified")
 
-    judged = score_card(card, lambda _card: _read(out), _rules())
+    judged = score_card(
+        card,
+        lambda _card: _read(out),
+        _rules(),
+        snapshot_root=tmp_path,
+    )
 
     assert "provenance_capped" not in judged["card"]["checklist"]
     assert judged["card"]["evidence_fragments"] == [{
@@ -172,8 +206,24 @@ def test_preserved_primary_fragment_can_remain_verified_and_carries_snapshot_ref
         "text": "Paper. Direct text from the preserved primary document",
         "url": "https://arxiv.org/abs/2401.00001",
         "provenance": "preserved_primary",
-        "snapshot_ref": "sha256:" + "a" * 64,
+        "snapshot_ref": "sha256:" + snapshot["content_hash"],
     }]
+
+
+def test_missing_snapshot_blob_cannot_keep_verified_provenance(tmp_path):
+    card = _card()
+    out = _out(verified={"P01"}, transition="verified")
+
+    judged = score_card(
+        card,
+        lambda _card: _read(out),
+        _rules(),
+        snapshot_root=tmp_path,
+    )
+
+    assert judged["card"]["checklist"]["provenance_capped"] == ["P01", "TR"]
+    assert judged["card"]["evidence_fragments"][0]["provenance"] == "snippet_only"
+    assert "snapshot_ref" not in judged["card"]["evidence_fragments"][0]
 
 
 def test_preserved_professional_fragment_is_still_at_most_supported():
