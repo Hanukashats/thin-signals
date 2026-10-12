@@ -18,12 +18,13 @@ from itertools import pairwise
 from pathlib import Path
 from time import monotonic
 from typing import Protocol
+from urllib.parse import urlsplit
 
 from ts.scoring.policy import route
 from ts.scoring.relevance import chain_link
 from ts.scoring.scorer import FeatureVector, load_rules, score
 from ts.snapshots import save_snapshot
-from ts.sources.connectors import Hit, script_of
+from ts.sources.connectors import Hit, normalise_work_id, script_of
 from ts.sources.trust import classify, load_trust
 
 STEPS = ("search", "snapshot", "dedup", "countersearch", "score", "rank")
@@ -140,6 +141,76 @@ def _advisory_provenance(raw: object) -> dict | None:
             value for value in artifacts[:8]
             if isinstance(value, str) and re.fullmatch(r"[a-f0-9]{16}", value)
         ]
+    return safe
+
+
+def _scholarly_evidence(raw: object) -> dict | None:
+    """Allowlist typed OpenAlex metadata; raw authorship text never leaves parsing."""
+    if not isinstance(raw, dict):
+        return None
+    if raw.get("version") != "openalex-work-0.1" or raw.get("provider") != "openalex":
+        return None
+    safe = {"version": "openalex-work-0.1", "provider": "openalex"}
+    allowed_roles = {
+        "identity", "chronology", "affiliation", "access", "integrity",
+        "reference_context",
+    }
+    roles = raw.get("roles")
+    if isinstance(roles, (list, tuple)):
+        safe["roles"] = list(dict.fromkeys(
+            role for role in roles[:8] if isinstance(role, str) and role in allowed_roles
+        ))
+    work_id = normalise_work_id(raw.get("work_id"))
+    if work_id:
+        safe["work_id"] = work_id
+    publication_date = raw.get("publication_date")
+    if isinstance(publication_date, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", publication_date):
+        safe["publication_date"] = publication_date
+    work_type = raw.get("work_type")
+    if isinstance(work_type, str) and re.fullmatch(r"[a-z][a-z-]{0,63}", work_type):
+        safe["work_type"] = work_type
+    ror_ids = raw.get("ror_ids")
+    if isinstance(ror_ids, (list, tuple)):
+        safe["ror_ids"] = sorted({
+            value for value in ror_ids[:100]
+            if isinstance(value, str) and re.fullmatch(r"ror:[0-9a-z]{9}", value)
+        })
+    access = raw.get("open_access")
+    if isinstance(access, dict):
+        public_access = {}
+        if type(access.get("is_oa")) is bool:
+            public_access["is_oa"] = access["is_oa"]
+        status = access.get("status")
+        if status in {"diamond", "gold", "green", "hybrid", "bronze", "closed"}:
+            public_access["status"] = status
+        url = access.get("url")
+        if isinstance(url, str) and len(url) <= 2048:
+            parsed = urlsplit(url)
+            if parsed.scheme in {"http", "https"} and parsed.hostname:
+                public_access["url"] = url
+        if public_access:
+            safe["open_access"] = public_access
+    integrity = raw.get("integrity")
+    if isinstance(integrity, dict):
+        is_retracted = integrity.get("is_retracted")
+        status = integrity.get("status")
+        notice_type = integrity.get("notice_type")
+        basis = integrity.get("basis")
+        if (
+            (type(is_retracted) is bool or is_retracted is None)
+            and status in {"known_retracted", "not_flagged", "unknown"}
+            and notice_type in {None, "erratum", "retraction"}
+            and basis == "openalex_retraction_watch_flag"
+        ):
+            safe["integrity"] = {
+                "is_retracted": is_retracted,
+                "status": status,
+                "notice_type": notice_type,
+                "basis": basis,
+            }
+    referenced_count = raw.get("referenced_works_count")
+    if type(referenced_count) is int and 0 <= referenced_count <= 10_000_000:
+        safe["referenced_works_count"] = referenced_count
     return safe
 
 
@@ -420,6 +491,7 @@ class Harness:
                 "snippet": (hit.snippet or "")[:500],
                 **({"doi": hit.doi} if hit.doi else {}),
                 **({"origin_ids": list(hit.origin_ids)} if hit.origin_ids else {}),
+                **({"work_id": hit.work_id} if hit.work_id else {}),
             }
             card["evidence"] = dict(hit.evidence or {"status": "snippet_only"})
             if purpose:
@@ -427,6 +499,9 @@ class Harness:
             advisory = _advisory_provenance(hit.advisory_provenance)
             if advisory:
                 card["advisory_provenance"] = advisory
+            scholarly = _scholarly_evidence(hit.scholarly_evidence)
+            if scholarly:
+                card["scholarly_evidence"] = scholarly
             cards.append(card)
         return cards
 
@@ -581,6 +656,15 @@ def dedup(hits: list[Hit]) -> list[dict]:
         return key
 
     keys = list(groups)
+
+    def component_aliases(root: str) -> set[str]:
+        return {
+            alias
+            for key, group in groups.items()
+            if find(key) == root
+            for alias in _hit_identity_aliases(group)
+        }
+
     for i, left in enumerate(keys):
         left_titles = [_title_norm(hit.title) for hit in groups[left]]
         for right in keys[i + 1 :]:
@@ -589,7 +673,18 @@ def dedup(hits: list[Hit]) -> list[dict]:
             root_left, root_right = find(left), find(right)
             if root_left == root_right:
                 continue
-            if root_right.startswith("doi:") and not root_left.startswith("doi:"):
+            left_aliases = component_aliases(root_left)
+            right_aliases = component_aliases(root_right)
+            left_work_ids = {alias for alias in left_aliases if alias.startswith("work:")}
+            right_work_ids = {alias for alias in right_aliases if alias.startswith("work:")}
+            # OpenAlex already clustered locations into a Work. Do not undo two
+            # conflicting Work identities merely because titles match. Distinct
+            # DOI file records retain the established long-title merge contract.
+            if left_work_ids and right_work_ids and left_work_ids.isdisjoint(right_work_ids):
+                continue
+            right_strong = root_right.startswith(("doi:", "work:"))
+            left_strong = root_left.startswith(("doi:", "work:"))
+            if right_strong and not left_strong:
                 parent[root_left] = root_right
             else:
                 parent[root_right] = root_left
@@ -745,8 +840,20 @@ def rank(cards: list[dict], require_subject: bool = False, query: str = "") -> t
 def _event_key(hit: Hit) -> str:
     if hit.doi:
         return "doi:" + hit.doi.lower().removeprefix("https://doi.org/")
+    if hit.work_id:
+        return "work:" + hit.work_id.casefold()
     words = re.findall(r"[a-z0-9а-яё]+", hit.title.lower())
     return "title:" + " ".join(words[:8])
+
+
+def _hit_identity_aliases(hits: list[Hit]) -> set[str]:
+    aliases = set()
+    for hit in hits:
+        if hit.doi:
+            aliases.add("doi:" + hit.doi.casefold().removeprefix("https://doi.org/"))
+        if hit.work_id:
+            aliases.add("work:" + hit.work_id.casefold())
+    return aliases
 
 
 def _host(url: str) -> str:

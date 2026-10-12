@@ -52,10 +52,11 @@ paths remain indicator; old runs remain immutable.
 
 ## Wave 2 — evidence retrieval
 
-State: **in progress**. Bounded fan-out, SHA-256 primary-source preservation,
-typed `technology-candidate-0.1` grouping and the default-off GPT Researcher
-advisory/refetch boundary are implemented on the reliability branch; OpenAlex
-enrichment and frozen replay remain open.
+State: **implementation complete, verification pending**. Bounded fan-out,
+SHA-256 primary-source preservation, typed `technology-candidate-0.1` grouping,
+the default-off GPT Researcher advisory/refetch boundary and versioned OpenAlex
+Work enrichment are implemented on the reliability branch; frozen replay and
+independent verification remain open.
 
 - Bounded connector concurrency, per-call timing and one global deadline.
 - Persist a retrieval fingerprint and a safe source funnel; show structured
@@ -69,10 +70,12 @@ enrichment and frozen replay remain open.
   correction/retraction metadata.
 
 Acceptance: deterministic ordering under concurrency; timeout/cancel tests;
-snippet-only claims cannot be verified; joint DOI/URL aliases make duplicate
+snippet-only claims cannot be verified; joint DOI/Work/URL aliases make duplicate
 views count once despite missing DOI metadata or repeated URLs, while conflicting
 explicit DOIs stay separate; GPT-R failure is explicit degradation and never
-direct evidence.
+direct evidence; OpenAlex Work/DOI mirrors count once, only explicit ROR values
+contribute origin identity, and a negative Retraction Watch flag is not treated
+as a completed integrity screen.
 
 Reference benchmark and donor decision:
 `reports/REFERENCE_WSIGNAL_REVIEW_2026-10-12.md`.

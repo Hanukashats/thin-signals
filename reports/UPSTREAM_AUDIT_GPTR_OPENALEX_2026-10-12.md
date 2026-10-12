@@ -66,5 +66,30 @@ OpenAlex, Crossref and SearXNG views of one Work remain one origin. OpenAlex is
 role-specific enrichment, not an independent vote and not a mirror fallback for
 claim verification.
 
-Rollback is the adapter feature flag plus removal of its host-only key path;
-existing direct connectors and stored historical runs remain readable.
+OpenAlex remains an ordinary typed connector, not a separately activated agent.
+This increment does not add key handling: the official anonymous allowance is
+enough for the bounded search contract, while any later scale-up must add a
+host-only bearer credential as a separate operational change. Rollback is the
+OpenAlex enrichment commit revert; stored historical runs remain readable.
+
+### Implemented branch contract
+
+The reliability branch implements `openalex-work-0.1` against the current
+official Work schema. It requests only `id`, DOI, title/abstract, publication
+date, type, authorships/institutions, OA status, `is_retracted` and bounded
+reference count. Stable Work and DOI aliases deduplicate copies; only explicit
+ROR values become origin IDs. Raw affiliation strings and unknown response
+fields are discarded. `is_retracted=false` is serialized as `not_flagged`, not
+as proof of a complete retraction screen; `erratum`/`retraction` describe the
+record type and do not silently mark a referenced target.
+
+Official contracts used:
+
+- <https://help.openalex.org/data/works/attributes/>
+- <https://help.openalex.org/data/authorships/>
+- <https://help.openalex.org/data/locations/>
+- <https://help.openalex.org/api/authentication/>
+
+A one-result anonymous API canary on 2026-10-12 returned a canonical Work ID,
+DOI, one ROR affiliation and typed chronology/access/integrity roles through the
+new parser. It changed no production state and used no secret.

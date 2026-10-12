@@ -15,7 +15,7 @@ import yaml
 
 from ts.harness import TOP_N, _tokens
 from ts.scoring.order import _published_rank, scope_rank
-from ts.sources.connectors import normalise_origin_id
+from ts.sources.connectors import normalise_origin_id, normalise_work_id
 
 PLAN_PATH = Path(__file__).resolve().parents[1] / "data" / "theme_plan.yaml"
 CANDIDATE_CONTRACT_VERSION = "technology-candidate-0.1"
@@ -52,6 +52,9 @@ def _identity(card: dict) -> tuple:
     dois = tuple(value for kind, value in sorted(aliases) if kind == "doi")
     if dois:
         return ("doi", *dois)
+    work_ids = tuple(value for kind, value in sorted(aliases) if kind == "work")
+    if work_ids:
+        return ("work", *work_ids)
     urls = tuple(value for kind, value in sorted(aliases) if kind == "url")
     if urls:
         return ("url", *urls)
@@ -80,6 +83,9 @@ def _identity_aliases(card: dict) -> frozenset[tuple[str, str]]:
         doi = _normalise_doi(source.get("doi"))
         if doi:
             aliases.add(("doi", doi))
+        work_id = normalise_work_id(source.get("work_id"))
+        if work_id:
+            aliases.add(("work", work_id.casefold()))
         url = str(source.get("url") or "").strip()
         if url:
             aliases.add(("url", url))
@@ -90,12 +96,12 @@ def _identity_aliases(card: dict) -> frozenset[tuple[str, str]]:
 
 
 def _identity_groups(cards: list[dict]) -> list[tuple[tuple, list[dict]]]:
-    """Partition cards by DOI/URL aliases without merging conflicting DOI anchors.
+    """Partition cards by DOI/Work/URL aliases without merging conflicting anchors.
 
-    A DOI-bearing record and a DOI-less record for the same URL are one event.
-    Explicitly different DOI records stay separate even if a URL conflicts. A
-    DOI-less URL component joins an anchored component only when that anchor is
-    unambiguous. The canonical key is therefore input-order invariant.
+    A stably identified record and an identifier-less record for the same URL
+    are one event. Explicitly different DOI/Work records stay separate even if a
+    URL conflicts. An identifier-less URL component joins an anchored component
+    only when that anchor is unambiguous. The canonical key is input-order invariant.
     """
     if not cards:
         return []
@@ -119,20 +125,31 @@ def _identity_groups(cards: list[dict]) -> list[tuple[tuple, list[dict]]]:
         {value for kind, value in aliases if kind == "doi"}
         for aliases in aliases_by_index
     ]
+    works_by_index = [
+        {value for kind, value in aliases if kind == "work"}
+        for aliases in aliases_by_index
+    ]
+    strong_by_index = [
+        dois | works for dois, works in zip(dois_by_index, works_by_index, strict=True)
+    ]
     urls_by_index = [
         {value for kind, value in aliases if kind == "url"}
         for aliases in aliases_by_index
     ]
 
-    # DOI is the strong anchor. A card may deliberately carry more than one
-    # DOI, so its DOI aliases belong to one anchored component.
+    # DOI and OpenAlex Work IDs are strong anchors. A card may deliberately
+    # carry more than one alias, so all matching aliases join one component.
     doi_owner: dict[str, int] = {}
+    work_owner: dict[str, int] = {}
     title_owner: dict[str, int] = {}
     candidate_owner: dict[str, int] = {}
     for index, aliases in enumerate(aliases_by_index):
         for kind, value in aliases:
             if kind == "doi":
                 previous = doi_owner.setdefault(value, index)
+                union(index, previous)
+            elif kind == "work":
+                previous = work_owner.setdefault(value, index)
                 union(index, previous)
             elif kind == "candidate":
                 previous = candidate_owner.setdefault(value, index)
@@ -142,10 +159,10 @@ def _identity_groups(cards: list[dict]) -> list[tuple[tuple, list[dict]]]:
                 union(index, previous)
 
     # First connect URL-only observations to each other. Their full component
-    # is considered before it is allowed to join a DOI anchor.
+    # is considered before it is allowed to join a DOI/Work anchor.
     url_only_owner: dict[str, int] = {}
     for index, urls in enumerate(urls_by_index):
-        if dois_by_index[index]:
+        if strong_by_index[index]:
             continue
         for url in urls:
             previous = url_only_owner.setdefault(url, index)
@@ -153,14 +170,14 @@ def _identity_groups(cards: list[dict]) -> list[tuple[tuple, list[dict]]]:
 
     anchored_by_url: dict[str, set[int]] = {}
     for index, urls in enumerate(urls_by_index):
-        if not dois_by_index[index]:
+        if not strong_by_index[index]:
             continue
         for url in urls:
             anchored_by_url.setdefault(url, set()).add(find(index))
 
     unanchored_urls: dict[int, set[str]] = {}
     for index, urls in enumerate(urls_by_index):
-        if dois_by_index[index]:
+        if strong_by_index[index]:
             continue
         unanchored_urls.setdefault(find(index), set()).update(urls)
     for root, urls in sorted(unanchored_urls.items()):

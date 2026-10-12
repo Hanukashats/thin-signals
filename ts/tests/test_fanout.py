@@ -206,6 +206,38 @@ def test_multiple_hosts_without_explicit_origin_ids_do_not_invent_independence()
     )["candidate"]["independence"] == "unknown"
 
 
+def test_openalex_work_mirrors_are_one_document_and_one_origin_group():
+    cards = [
+        {
+            "technology": "OpenAlex view",
+            "events": 1,
+            "sources": [{
+                "url": "https://openalex.org/W123",
+                "work_id": "https://openalex.org/W123",
+                "origin_ids": ["ror:03yrm5c26"],
+            }],
+        },
+        {
+            "technology": "Repository view",
+            "events": 1,
+            "sources": [{
+                "url": "https://repository.example/item/123",
+                "work_id": "https://openalex.org/W123",
+                "origin_ids": ["ror:03yrm5c26"],
+            }],
+        },
+    ]
+
+    candidate = aggregate_theme_candidate(
+        {"id": "memory", "title": "Memory", "query": "new memory mechanism"},
+        cards,
+    )
+
+    assert candidate["candidate"]["document_groups"] == 1
+    assert candidate["candidate"]["event_groups"] == 1
+    assert candidate["candidate"]["origin_groups"] == ["ror:03yrm5c26"]
+
+
 def test_doi_less_view_does_not_bridge_conflicting_doi_anchors():
     from ts.fanout import _identity_groups
 

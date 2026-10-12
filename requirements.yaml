@@ -576,7 +576,12 @@ requirements:
       - reports/ASTRA_AUDIT_2026-10-12.md
       - ts/sources/researcher.py
       - ts/sources/refetch.py
+      - ts/sources/connectors.py
+      - ts/fanout.py
       - ts/tests/test_research_adapter.py
+      - ts/tests/test_harness.py::test_openalex_emits_bounded_role_specific_work_evidence
+      - ts/tests/test_harness.py::test_openalex_correction_and_retraction_flags_are_not_overinterpreted
+      - ts/tests/test_fanout.py::test_openalex_work_mirrors_are_one_document_and_one_origin_group
 
   - id: RS-06
     title: Bounded and observable retrieval contract

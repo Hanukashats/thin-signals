@@ -56,12 +56,18 @@ containers, so live search no longer depends on backend VM101. Receipt:
   is discarded; only bounded public URLs that pass a second SSRF-guarded fetch
   and normal preserved-evidence path can become hits. Reported cost, validation
   and request counts and hashed artifact references are exposed without prompts
-  or local paths. OpenAlex still lacks graph/retraction/affiliation enrichment.
-  Full findings: `reports/ASTRA_AUDIT_2026-10-12.md`.
+  or local paths. Full findings: `reports/ASTRA_AUDIT_2026-10-12.md`.
+- `openalex-work-0.1` now projects current official Work fields into allowlisted
+  identity, chronology, ROR affiliation, access, integrity and reference-context
+  roles. Work/DOI aliases deduplicate mirrors without merging conflicting Work
+  IDs; only explicit ROR values contribute origin identity. Raw affiliations
+  and unknown fields are dropped. A false retraction flag is explicitly
+  `not_flagged`, not a completed integrity screen. One bounded live API canary
+  returned a valid Work, DOI, ROR and typed roles.
 - `run-status-0.2` makes total discovery failure `failed`, partial discovery or
   countersearch failure `degraded`, and failed countersearch blocks admission.
   The latest-run endpoint now returns the newest finished run instead of hiding
-  failed/degraded outcomes. The complete suite now passes 315/315 against a fresh
+  failed/degraded outcomes. The complete suite now passes 319/319 against a fresh
   disposable migrated database; production data was not touched.
 - `live-w20` attaches matching countersearch records to each candidate as a
   separate evidence channel. `checklist-v18` now requires at least one positive
@@ -150,8 +156,9 @@ containers, so live search no longer depends on backend VM101. Receipt:
 3. **Research integration:** GPT Researcher and SearXNG work together inside the
    research service. The Thin Signals adapter and preserved-source boundary are
    implemented and tested behind `TS_GPT_RESEARCHER_ENABLED=false`; it remains
-   inactive until OpenAlex enrichment, frozen replay/canary and the complete
-   release candidate are independently accepted.
+   inactive until frozen replay/canary and the complete release candidate are
+   independently accepted. OpenAlex enrichment is implemented on the branch but
+   not deployed.
 4. **Research scope:** New Life is a reproducible archive search, not new live web research. Its 15 hypotheses have no completed commercial/legal diligence.
 5. **Build-only dependencies:** the 2026-10-12 Trivy scan reports 13 HIGH and
    6 MEDIUM findings in presentation-only pins `Pillow==11.3.0` and
@@ -171,6 +178,10 @@ containers, so live search no longer depends on backend VM101. Receipt:
    thread. Late results are rejected and HTTP calls inherit a remaining-time
    timeout, but a misbehaving connector may finish in the background. Keep the
    worker ceiling and include this case in load/canary verification.
+9. **OpenAlex scope:** typed identity, chronology, affiliation, access and
+   integrity metadata are implemented. Reference count is context, not proof of
+   prior art or replication, and `not_flagged` is not a complete retraction
+   screen. Those claims remain for the evidence-gated review/evaluation goals.
 
 ## Requirements snapshot
 

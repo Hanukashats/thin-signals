@@ -11,12 +11,17 @@ import xml.etree.ElementTree as ET
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 
 Get = Callable[[str], str]
 Post = Callable[[str, dict], str]
 
 ARXIV_NS = {"a": "http://www.w3.org/2005/Atom"}
+OPENALEX_EVIDENCE_VERSION = "openalex-work-0.1"
+_OPENALEX_SELECT = (
+    "id,doi,display_name,abstract_inverted_index,publication_date,type,"
+    "authorships,institutions,open_access,is_retracted,referenced_works_count"
+)
 
 
 def script_of(text: str) -> str:
@@ -62,6 +67,16 @@ def normalise_origin_id(value: object) -> str:
     return origin if 0 < len(origin) <= 256 else ""
 
 
+def normalise_work_id(value: object) -> str:
+    """Return the canonical OpenAlex Work URL or nothing."""
+    raw = str(value or "").strip()
+    if raw.startswith(("https://openalex.org/", "http://openalex.org/")):
+        raw = raw.rstrip("/").rsplit("/", 1)[-1]
+    if not re.fullmatch(r"[Ww]\d{1,20}", raw):
+        return ""
+    return f"https://openalex.org/W{raw[1:]}"
+
+
 @dataclass
 class Hit:
     connector: str
@@ -76,6 +91,8 @@ class Hit:
     deployment: bool = False
     advisory_provenance: dict | None = None
     origin_ids: tuple[str, ...] = ()
+    work_id: str | None = None
+    scholarly_evidence: dict | None = field(default=None, repr=False, compare=False)
     fetched_body: bytes | None = field(default=None, repr=False, compare=False)
     fetched_text: str | None = field(default=None, repr=False, compare=False)
     fetched_content_type: str | None = field(default=None, repr=False, compare=False)
@@ -90,6 +107,7 @@ class Hit:
             for value in values
             if (origin := normalise_origin_id(value))
         }))
+        self.work_id = normalise_work_id(self.work_id) or None
 
 
 def _language(text: str, given: str) -> str:
@@ -175,28 +193,51 @@ class ArxivConnector:
 
 
 class OpenAlexConnector:
+    """Current Work search contract; metadata is typed evidence, never a vote.
+
+    Official field semantics:
+    https://help.openalex.org/data/works/attributes/
+    https://help.openalex.org/data/authorships/
+    """
+
     name = "openalex"
     takes_since = True
+    retrieval_identity = f"openalex:{OPENALEX_EVIDENCE_VERSION}"
 
     def __init__(self, get: Get):
         self.get = get
 
     def search(self, query: str, *, limit: int = 5, since: str | None = None) -> list[Hit]:
-        url = f"https://api.openalex.org/works?search={quote(query)}&per-page={limit}"
+        url = (
+            f"https://api.openalex.org/works?search={quote(query)}"
+            f"&per_page={limit}&select={_OPENALEX_SELECT}"
+        )
         day = _day(since)
         if day:
             url += f"&filter=from_publication_date:{day}"
         data = _get_json(self.get, url)
         hits = []
         for row in data.get("results") or []:
-            landing = row.get("doi") or row.get("id")
+            if not isinstance(row, dict):
+                continue
+            doi = _normalise_doi(row.get("doi"))
+            work_id = normalise_work_id(row.get("id"))
+            landing = f"https://doi.org/{doi}" if doi else work_id
             if not landing:
                 continue
+            published = _date(row.get("publication_date"))
+            origins = _openalex_ror_ids(row)
             hits.append(Hit(
                 connector=self.name, url=landing, title=row.get("display_name") or landing,
                 snippet=_openalex_abstract(row)[:500], source_type="paper",
-                published=row.get("publication_date"),
-                doi=(row.get("doi") or "").removeprefix("https://doi.org/") or None,
+                published=published, doi=doi or None, origin_ids=origins,
+                work_id=work_id or None,
+                scholarly_evidence=_openalex_evidence(
+                    row,
+                    work_id=work_id,
+                    published=published,
+                    origins=origins,
+                ),
             ))
         return hits
 
@@ -524,6 +565,119 @@ def _crossref_date(row: dict) -> str | None:
         return None
     y, m, d = nums[0], nums[1] if len(nums) > 1 else 1, nums[2] if len(nums) > 2 else 1
     return f"{y:04d}-{m:02d}-{d:02d}"
+
+
+def _normalise_doi(value: object) -> str:
+    doi = str(value or "").strip().casefold()
+    for prefix in ("https://doi.org/", "http://doi.org/", "http://dx.doi.org/", "doi:"):
+        if doi.startswith(prefix):
+            doi = doi.removeprefix(prefix).strip()
+            break
+    if not (0 < len(doi) <= 256 and re.fullmatch(r"10\.\S+/\S+", doi)):
+        return ""
+    return doi
+
+
+def _openalex_ror(value: object) -> str:
+    raw = str(value or "").strip().casefold().rstrip("/")
+    for prefix in ("https://ror.org/", "http://ror.org/", "ror:"):
+        if raw.startswith(prefix):
+            raw = raw.removeprefix(prefix)
+            break
+    return f"ror:{raw}" if re.fullmatch(r"[0-9a-z]{9}", raw) else ""
+
+
+def _openalex_ror_ids(row: dict) -> tuple[str, ...]:
+    institutions = list(row.get("institutions") or [])
+    for authorship in row.get("authorships") or []:
+        if isinstance(authorship, dict):
+            institutions.extend(authorship.get("institutions") or [])
+    return tuple(sorted({
+        ror
+        for institution in institutions
+        if isinstance(institution, dict)
+        if (ror := _openalex_ror(institution.get("ror")))
+    }))
+
+
+def _safe_metadata_url(value: object) -> str | None:
+    if not isinstance(value, str) or not (0 < len(value) <= 2048):
+        return None
+    parsed = urlsplit(value)
+    return value if parsed.scheme in {"http", "https"} and parsed.hostname else None
+
+
+def _openalex_evidence(
+    row: dict,
+    *,
+    work_id: str,
+    published: str | None,
+    origins: tuple[str, ...],
+) -> dict:
+    work_type = str(row.get("type") or "").strip().casefold()
+    if not re.fullmatch(r"[a-z][a-z-]{0,63}", work_type):
+        work_type = ""
+
+    raw_access = row.get("open_access")
+    access = {}
+    if isinstance(raw_access, dict):
+        if type(raw_access.get("is_oa")) is bool:
+            access["is_oa"] = raw_access["is_oa"]
+        status = str(raw_access.get("oa_status") or "").strip().casefold()
+        if status in {"diamond", "gold", "green", "hybrid", "bronze", "closed"}:
+            access["status"] = status
+        if url := _safe_metadata_url(raw_access.get("oa_url")):
+            access["url"] = url
+
+    is_retracted = row.get("is_retracted")
+    if type(is_retracted) is not bool:
+        is_retracted = None
+    notice_type = work_type if work_type in {"erratum", "retraction"} else None
+    integrity = None
+    if is_retracted is not None or notice_type:
+        integrity = {
+            "is_retracted": is_retracted,
+            "status": (
+                "known_retracted" if is_retracted is True
+                else "not_flagged" if is_retracted is False
+                else "unknown"
+            ),
+            "notice_type": notice_type,
+            "basis": "openalex_retraction_watch_flag",
+        }
+
+    referenced_count = row.get("referenced_works_count")
+    if type(referenced_count) is not int or not 0 <= referenced_count <= 10_000_000:
+        referenced_count = None
+
+    roles = []
+    if work_id:
+        roles.append("identity")
+    if published:
+        roles.append("chronology")
+    if origins:
+        roles.append("affiliation")
+    if access:
+        roles.append("access")
+    if integrity:
+        roles.append("integrity")
+    if referenced_count is not None:
+        roles.append("reference_context")
+
+    evidence = {
+        "version": OPENALEX_EVIDENCE_VERSION,
+        "provider": "openalex",
+        "roles": roles,
+        **({"work_id": work_id} if work_id else {}),
+        **({"publication_date": published} if published else {}),
+        **({"work_type": work_type} if work_type else {}),
+        **({"ror_ids": list(origins)} if origins else {}),
+        **({"open_access": access} if access else {}),
+        **({"integrity": integrity} if integrity else {}),
+    }
+    if referenced_count is not None:
+        evidence["referenced_works_count"] = referenced_count
+    return evidence
 
 
 def _openalex_abstract(row: dict) -> str:

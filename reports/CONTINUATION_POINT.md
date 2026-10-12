@@ -1,10 +1,10 @@
-# CONTINUATION POINT — reliability GOAL C04 candidate, 2026-10-12
+# CONTINUATION POINT — reliability GOAL C05 candidate, 2026-10-12
 
 ## Verified current state
 
 - Work is isolated on `feat/thin-signals-reliability-20261012`; production and
   its database were not changed.
-- Goal `g-62fcfd60cd61` has C01/C02/C03 already PASS. The C03 implementation groups
+- Goal `g-62fcfd60cd61` has C01/C02/C03/C04 already PASS. The C03 implementation groups
   same-theme work into versioned `technology-candidate-0.1` records, collapses
   DOI/URL mirrors, and awards origin independence only for explicit bounded
   institution/lab identifiers. Cross-theme alias-bridge deduplication and the
@@ -13,22 +13,26 @@
   top-level run, inherits the absolute run deadline, exposes only allowlisted
   telemetry, discards generated prose, and passes re-fetched public bodies
   through the same preserved-primary evidence path. The feature flag stays off.
-- The complete suite passes 315/315 against a fresh migrated disposable
+- The C05 candidate adds versioned OpenAlex Work/DOI identity, explicit ROR
+  affiliations, chronology, OA access, bounded reference context and honest
+  correction/retraction metadata. Work mirrors count once; unknown fields and
+  raw affiliation text do not leave the parser. A bounded live API canary passed.
+- The complete suite passes 319/319 against a fresh migrated disposable
   PostgreSQL database. Ruff, LivingSet links, YAML loading, diff and bounded
   credential-pattern checks pass. The sole warning is the pre-existing
   Starlette TestClient/httpx deprecation notice.
-- Earlier branch commits include `9daf408` (typed candidates), `2f7c1f5`
+- Earlier branch commits include `73fe4ae` (bounded GPT Researcher), `9daf408`
+  (typed candidates), `2f7c1f5`
   (default-off GPT Researcher adapter) and `fce7fac` (preserved-primary evidence
   requirement).
 
 ## Exact continuation
 
-1. Commit the frozen C04 slice, attach its reproducible evidence to the active
-   kernel goal, mark only C04 PASS, and checkpoint the commit.
-2. Implement C05 OpenAlex stable work/DOI identity, explicit ROR origin IDs,
-   chronology and correction/retraction metadata under the inherited deadline.
-3. Freeze the completed candidate for an independent verifier before any push,
-   deployment or production activation.
+1. Commit the frozen C05 slice, attach its reproducible evidence to the active
+   kernel goal, mark only C05 PASS, and checkpoint the commit.
+2. Freeze the completed five-criterion candidate for an independent verifier.
+3. Do not push, deploy or activate GPT Researcher before that verification and
+   the later release goal's snapshot/canary/rollback gates.
 
 # Historical checkpoint — SearXNG upgrade deployed, 2026-10-12
 
