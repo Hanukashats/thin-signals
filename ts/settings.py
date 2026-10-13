@@ -68,6 +68,11 @@ class Settings:
     gpt_researcher_max_cost_usd: float = 0.08
     gpt_researcher_max_leads: int = 12
     evidence_fetch_limit: int = 24
+    adversarial_review_enabled: bool = False
+    review_time_seconds: float = 45.0
+    review_max_output_tokens: int = 1200
+    review_max_cost_usd: float = 0.03
+    review_evidence_limit: int = 12
 
     @property
     def sqlalchemy_url(self) -> str:
@@ -111,4 +116,11 @@ def load(root: str | Path | None = None) -> Settings:
         gpt_researcher_max_cost_usd=float(g("TS_GPT_RESEARCHER_MAX_COST_USD", "0.08")),
         gpt_researcher_max_leads=int(g("TS_GPT_RESEARCHER_MAX_LEADS", "12")),
         evidence_fetch_limit=int(g("TS_EVIDENCE_FETCH_LIMIT", "24")),
+        adversarial_review_enabled=g(
+            "TS_ADVERSARIAL_REVIEW_ENABLED", "false",
+        ).lower() == "true",
+        review_time_seconds=float(g("TS_REVIEW_TIME_SECONDS", "45")),
+        review_max_output_tokens=int(g("TS_REVIEW_MAX_OUTPUT_TOKENS", "1200")),
+        review_max_cost_usd=float(g("TS_REVIEW_MAX_COST_USD", "0.03")),
+        review_evidence_limit=int(g("TS_REVIEW_EVIDENCE_LIMIT", "12")),
     )

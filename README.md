@@ -4,7 +4,7 @@
 
 Подход: **логическая модель** слабого сигнала (18 механизмов P01–P18, 6 контр-признаков зрелости, порядок gates, воспроизводимая уверенность с reason codes) + открытый поиск по первичным источникам + русский интерфейс. LLM из списка ТЗ извлекает факты из прочитанных источников; решение считает код. Весов не обучаем — см. `docs/METHODOLOGY.md`, ADR-009.
 
-Статус: W3 live path и W4 operator UI в работе. Закрытый стенд доступен на `https://tsignal.aispaces.ru`; текущие ограничения и доказательства — в `STATUS.md`.
+Статус: production работает на Home-PVE VM232 и доступен на `https://tsignal.aispaces.ru`; reliability 7.8 и default-off adversarial review проходят отдельные eval/release gates. Текущие ограничения и доказательства — в `STATUS.md`.
 
 ## Быстрый старт (разработка)
 
@@ -45,6 +45,11 @@ cp .env.example .env
 
 Секреты только в `.secrets/` (gitignored); пути — `docs/ops/secrets.paths.yaml`.
 
-## Production VM101
+## Production VM232
 
-После проверенного fast-forward `main` API и UI устанавливаются как persistent systemd services по `docs/ops/SYSTEMD.md`. Они слушают только `127.0.0.1`; публичный TLS и маршрутизация остаются на существующем домашнем proxy. Полный металлический логотип используется на тёмной бренд-панели, компактный знак — для favicon.
+После проверенного fast-forward API и UI устанавливаются как persistent systemd
+services по `docs/ops/SYSTEMD.md`; локальные SearXNG/GPT Researcher запускаются
+через `deploy/research/compose.yaml`. Все прикладные listeners loopback/private,
+а публичный TLS и маршрутизация остаются на существующем домашнем Caddy. Новый
+контур ролей устанавливается с `TS_ADVERSARIAL_REVIEW_ENABLED=false` и включается
+только после eval/canary.

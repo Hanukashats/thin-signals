@@ -54,6 +54,8 @@ def _reviewed_report(gateway=None) -> RunReport:
         exclusion_registry=[],
         corpus_version="review-persistence-0.1",
         review=round_,
+        review_enabled=True,
+        review_status="completed",
     )
 
 

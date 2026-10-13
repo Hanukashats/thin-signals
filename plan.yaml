@@ -227,15 +227,15 @@ phases:
         forks: [backend.reuse]
         note: "Objective self-tests pass; independent acceptance is still required."
       - id: W8-adversarial-review
-        status: in_progress
+        status: implemented
         owner: AI/domain
         deliverables:
           - "typed researcher/critic/defender/control-critic contracts"
-          - "deterministic arbiter, replay evaluation and timing/cost metrics"
+          - "deterministic arbiter, append-only review ledger and default-off product integration"
         requirements: [AR-01]
         forks: [adversarial.review]
         operator_gate: false
-        note: "Implementation was authorized 2026-10-12; production activation still requires W11 evaluation and W12 release gate."
+        note: "Implemented and locally tested 2026-10-13; production activation still requires W11 evaluation and W12 release gate."
 
   - id: P7
     name: ReliabilityAndResearch78

@@ -35,6 +35,7 @@ from ts.persist import load_report, public_report, save_report
 from ts.plain import REASONS, say
 from ts.potential import rank_potential_cards
 from ts.reach import annotate_reach
+from ts.review.integration import attach_candidate_review, review_configuration_fingerprint
 from ts.scale import annotate_scopes
 from ts.scoring.order import scope_rank, sort_admitted
 from ts.scoring.scorer import load_rules
@@ -83,6 +84,19 @@ def _key(
     return hashlib.sha256(
         f"{query}|{corpus}+{window}|{rules_version}|{RUN_CONTRACT_VERSION}|{retrieval or 'legacy'}".encode()
     ).hexdigest()
+
+
+def _review_bound_fingerprint(
+    retrieval: str,
+    settings: Settings,
+    *,
+    enabled: bool,
+) -> str:
+    if not enabled:
+        # Disabled means behavior-compatible: preserve existing cache/run IDs.
+        return retrieval
+    review = review_configuration_fingerprint(settings, enabled=enabled)
+    return hashlib.sha256(f"{retrieval}|review:{review}".encode()).hexdigest()
 
 
 def _near_miss(registry: list[dict], settings: Settings) -> list[dict]:
@@ -299,7 +313,8 @@ def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Se
               connectors=None, session_factory=None, _theme: bool = False, _day: str | None = None,
               _deadline_at: float | None = None,
               _parent_retrieval_fingerprint: str | None = None,
-              _fetch_body=None) -> dict:
+              _fetch_body=None, _review_gateway=None,
+              _review_evidence_provider=None) -> dict:
     # The extractor argument is ignored. Passing it into Harness.run collapses every find into one card.
     _ = extract
     s = settings or load()
@@ -317,6 +332,8 @@ def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Se
             query, plan, limit=limit, extract=extract, settings=s,
             connectors=connectors, session_factory=session_factory, day=day,
             deadline_at=deadline_at, fetch_body=_fetch_body,
+            _review_gateway=_review_gateway,
+            _review_evidence_provider=_review_evidence_provider,
         )
     corpus = CORPUS if _theme else f"{CORPUS}+{CHECKLIST_VERSION}"
     active_connectors = list(connectors) if connectors is not None else default_connectors(s)
@@ -331,8 +348,15 @@ def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Se
         parent_fingerprint=_parent_retrieval_fingerprint,
         snapshot_limit=getattr(s, "evidence_fetch_limit", 24),
     )
+    identity_fingerprint = _review_bound_fingerprint(
+        fingerprint,
+        s,
+        enabled=(
+            not _theme and bool(getattr(s, "adversarial_review_enabled", False))
+        ),
+    )
     key = _key(
-        query, s.rules_version, corpus=corpus, day=day, retrieval=fingerprint,
+        query, s.rules_version, corpus=corpus, day=day, retrieval=identity_fingerprint,
     )
     factory = _maker(session_factory)
     with factory() as session:
@@ -377,6 +401,12 @@ def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Se
                 report.exclusion_registry,
                 report.unread,
             )
+        report = attach_candidate_review(
+            report,
+            s,
+            gateway=_review_gateway,
+            evidence_provider=_review_evidence_provider,
+        )
     with factory() as session:
         save_report(session, report)
         if report.repeated:
@@ -388,7 +418,8 @@ def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Se
 
 
 def _run_wide(query, plan, *, limit, extract, settings, connectors, session_factory, day,
-              deadline_at, fetch_body=None) -> dict:
+              deadline_at, fetch_body=None, _review_gateway=None,
+              _review_evidence_provider=None) -> dict:
     """One stored run for the mission sentence. Theme queries stay their own runs."""
     rules = load_rules(settings.rules_version)
     corpus = f"{CORPUS}+{plan['version']}+{CHECKLIST_VERSION}"
@@ -404,8 +435,13 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
         parent_fingerprint=f"theme-plan:{theme_plan_fingerprint(plan)}",
         snapshot_limit=getattr(settings, "evidence_fetch_limit", 24),
     )
+    identity_fingerprint = _review_bound_fingerprint(
+        fingerprint,
+        settings,
+        enabled=bool(getattr(settings, "adversarial_review_enabled", False)),
+    )
     key = _key(
-        query, rules["version"], corpus=corpus, day=day, retrieval=fingerprint,
+        query, rules["version"], corpus=corpus, day=day, retrieval=identity_fingerprint,
     )
     factory = _maker(session_factory)
     with factory() as session:
@@ -565,6 +601,12 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
             "child_exclusion_observations": child_exclusion_observations,
             "unique_child_exclusions": len(child_exclusion_groups),
         },
+    )
+    report = attach_candidate_review(
+        report,
+        settings,
+        gateway=_review_gateway,
+        evidence_provider=_review_evidence_provider,
     )
     with factory() as session:
         save_report(session, report)

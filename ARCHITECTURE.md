@@ -97,6 +97,13 @@ reports/            eval_<date>.md, live-run receipts
 - **TS-INV-01** Идемпотентный run: тот же запрос + `corpus_version` + `rules_version` → прежний `run_id`; шаг повторяется по `input_hash`.
 - **TS-INV-02** Claim принимается только с `fragment_id` прочитанного snapshot; PASS gate без evidence невозможен (semantic validator, не структурный rc=0).
 - **TS-INV-03** Статус run (`succeeded`) ≠ решение сигнала (`weak_signal|watchlist|mature|noise`); UI показывает оба раздельно.
+- **TS-INV-04** Модельные роли только предлагают типизированные claims/objections/rebuttals; итоговый `PROMOTE|REFRAME|HOLD|REJECT` выдаёт детерминированный арбитр. Ошибка роли или нерешённое критическое возражение дают `HOLD`.
+
+Контур `researcher → critic → defender → control critic` встроен в narrow и
+wide запуски за выключенным по умолчанию флагом. Каждая роль получает одинаковый
+лимит и один и тот же snapshot-attested evidence bundle. В PostgreSQL сохраняются
+только типизированные действия, хеши, provenance и учёт ресурсов; prompts,
+цитаты и скрытое рассуждение в публичный trace не попадают.
 
 ## 5. Сеть и reuse (ADR 007 бэкенда)
 

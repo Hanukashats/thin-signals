@@ -246,6 +246,8 @@ class RunReport:
     near_miss: list[dict] = field(default_factory=list)
     potential: list[dict] = field(default_factory=list)
     review: object | None = None
+    review_enabled: bool = False
+    review_status: str = "disabled"
 
 
 @dataclass

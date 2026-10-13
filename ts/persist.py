@@ -16,6 +16,7 @@ from ts.harness import RunReport
 from ts.llm import MANDATORY_PROVIDER_POLICY
 from ts.nearest import build_nearest
 from ts.review.contracts import ArbiterDecision, parse_role_output
+from ts.review.integration import public_review_trace
 from ts.review.runner import (
     ReviewRound,
     review_candidate_hash,
@@ -169,7 +170,11 @@ def _validated_policy(event) -> dict:
 def _persist_review(session: Session, report: RunReport, candidate_id: str) -> str | None:
     review = report.review
     if review is None:
+        if report.review_status == "completed":
+            raise ValueError("completed review status lacks a review round")
         return None
+    if not report.review_enabled or report.review_status != "completed":
+        raise ValueError("review round must be explicitly enabled and completed")
     if not isinstance(review, ReviewRound):
         raise TypeError("report review must be a validated ReviewRound")
     events = list(review.events)
@@ -469,6 +474,7 @@ def public_report(report: RunReport) -> dict:
         "potential": list(getattr(report, "potential", None) or []),
         "model_id": report.model_id,
         "provider": report.provider,
+        "review": public_review_trace(report),
         "rules_version": report.card["rules_version"],
         "chain_link": report.card.get("chain_link"),
         "fanout": report.fanout,

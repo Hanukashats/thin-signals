@@ -1,6 +1,6 @@
 # STATUS.md — Thin Signals LivingSet
 
-Delivery package deadline: **2026-09-29 23:59 MSK** · Plan revision: **7.8** (parent 7.7) · Reliability work performed: **2026-10-12**
+Delivery package deadline: **2026-09-29 23:59 MSK** · Plan revision: **7.8** (parent 7.7) · Reliability work performed: **2026-10-12…13**
 
 Delivery verified: production runs the released three-module UI, including the
 `86b6840` caption and finalized typography/presentation. The replacement package
@@ -20,6 +20,13 @@ production duration is unknown; search breadth/depth/thresholds were not weakene
 See `reports/SEARCH_TIMING_2026-09-29.md`.
 
 7.8 continuation: evidence and provider boundaries are hardened without changing `rules-0.1`, weights, thresholds or P01–P18. `checklist-v19` validates reader structure and positive/counter evidence roles; only a blob-backed, SHA-256-attested primary fragment can remain `verified`, while snippets, missing/corrupt snapshots and non-primary text are capped to `supported`. Off-topic rejection precedes below-watchlist return. Mandatory OpenRouter ZDR fields cannot be weakened; returned model and cached response provenance are checked. Three modules share the evidence-first shell: live signals, a separate potential queue over current scored observations, and search over the sealed 29.09 old-technology archive. Facts/hypotheses/checks/sources and run provenance stay separate. Figma v4 is node `41:178`; transparent logo/favicon are versioned. API/UI run as persistent DynamicUser units, active and enabled.
+
+The bounded researcher/critic/defender/control-critic round is implemented behind
+`TS_ADVERSARIAL_REVIEW_ENABLED=false`. It uses equal role budgets, a deterministic
+fail-closed arbiter and an append-only PostgreSQL review ledger. Narrow and wide
+product integration, disabled/no-call behavior, replay, failure HOLD, persistence
+and safe public traces pass the complete 384-test suite on a disposable database.
+Evaluation and production activation remain separate gates.
 
 The public route is `https://tsignal.aispaces.ru` through Caddy on VM105 to
 VM232's private `:18443` listener. Account hashes and provider/database
@@ -42,7 +49,7 @@ containers, so live search no longer depends on backend VM101. Receipt:
 | W3-live | **in_progress** — live search exists; honest scored TOP-15 and durable per-step ledger remain incomplete |
 | W4-ui | **in_progress, deployed shell and verified typography** — three modules live; real-account authenticated production smoke remains unobserved |
 | Rules | `rules-0.1`, unchanged |
-| Checklist | branch `checklist-v19` + `technology-candidate-0.1`; production remains unchanged; old persisted rows remain historical and are excluded from the active potential queue |
+| Checklist | branch `checklist-v24` + `technology-candidate-0.1`; production remains unchanged; old persisted rows remain historical and are excluded from the active potential queue |
 | Production delivery | VM232 public; PostgreSQL/API/UI/sing-box/research services active+enabled; SearXNG patch upgrade and controlled container restart recovered automatically |
 | Canonical Git | private SourceCraft `shats123/thin-signals`; public GitHub delivery snapshot `Hanukashats/thin-signals`, `main=0c1fdd3` verified |
 | Reliability branch | `feat/thin-signals-reliability-20261012`; not deployed; real Git timestamps retained |
@@ -220,7 +227,7 @@ containers, so live search no longer depends on backend VM101. Receipt:
 - tested: `TZ-04`, `TZ-06`, `LLM-01`, `SC-12`, `TS-INV-02`, `TS-INV-03`
 - implemented: `LP-01…07`, `DN-01`, `RM-01`, `TZ-03`, `TZ-07`, `SC-06`, `SC-07`, `RS-01`
 - tested: `RS-02`, `RS-03`, `RS-04`, `RS-06`
-- in progress and feature-off: `RS-05`; planned and feature-off: `AR-01`
+- in progress and feature-off: `RS-05`; implemented and feature-off: `AR-01` (evaluation pending)
 - implemented: `TZ-14` (15-slide editable PPTX/PDF and complete render/visual checks; personal team fields still require factual input)
 - tested: `TZ-15` (public GitHub default branch resolves to exact delivery SHA)
 - removed to lineage: `SC-01`, `SC-04`, `SC-05`, `SC-08`, `SC-10`, `TS-AG-01…16`, `TS-AG-18`
@@ -240,10 +247,11 @@ containers, so live search no longer depends on backend VM101. Receipt:
 
 ## Next trigger
 
-1. Complete W9 on `feat/thin-signals-reliability-20261012`, then publish the
-   same verified SHA to SourceCraft and GitHub feature branches.
-2. Implement W10/W11 behind disabled flags; do not activate the role loop until
-   frozen replay, holdout, ablation and rollback criteria pass.
+1. Complete W11 frozen replay, holdout and ablation without lowering scientific
+   gates; record qualified signals, reserve list and honest shortfall separately.
+2. Independently verify the frozen candidate, deploy it first with the review
+   flag off, run the production canary, then publish the same SHA to SourceCraft
+   and GitHub feature branches.
 3. Fill the factual personal team fields in slides 2–4 before external submission;
    observe a real-account authenticated production smoke when an authorized
    existing session is available. No accounts were read or changed for this release.

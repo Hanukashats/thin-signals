@@ -618,7 +618,7 @@ requirements:
     title: Evidence-gated researcher critic defender methodology
     priority: P1
     owner: AI/domain
-    state: planned
+    state: implemented
     wave: W11-adversarial-eval
     forks: [adversarial.review]
     acceptance: >
@@ -632,3 +632,13 @@ requirements:
       - docs/adr/ADR-011-ADVERSARIAL-REVIEW-PROPOSAL.md
       - docs/adr/ADR-012-RELIABILITY-FIRST-RESEARCH-LOOP.md
       - docs/plan/PLAN_7.8.md
+      - ts/review/contracts.py
+      - ts/review/prompts.py
+      - ts/review/runner.py
+      - ts/review/arbiter.py
+      - ts/review/integration.py
+      - ts/db/migrations/versions/e2c7f6a9b104_review_events.py
+      - ts/tests/test_review_contracts.py
+      - ts/tests/test_review_runner.py
+      - ts/tests/test_review_persistence.py
+      - ts/tests/test_review_integration.py

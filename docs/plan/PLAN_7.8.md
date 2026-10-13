@@ -85,6 +85,9 @@ Reference benchmark and donor decision:
 
 ## Wave 3 — bounded adversarial review
 
+Status 2026-10-13: implemented and tested on the reliability branch; the
+production flag remains off until Wave 4 acceptance.
+
 - Typed claim, objection, rebuttal, control finding and arbiter schemas.
 - One equal-budget researcher/critic/defender/control-critic round.
 - Append-only review events in PostgreSQL with hashes, provenance, duration,
