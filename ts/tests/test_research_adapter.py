@@ -613,7 +613,8 @@ def test_pinned_transport_total_deadline_includes_slow_trickled_headers():
     assert fetch_elapsed is not None and fetch_elapsed < 0.16
 
 
-def test_pinned_transport_total_deadline_includes_tls_handshake(monkeypatch):
+@pytest.mark.parametrize("connect_delay", [0.07, 0.095])
+def test_pinned_transport_total_deadline_includes_tls_handshake(monkeypatch, connect_delay):
     listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     listener.bind(("127.0.0.1", 0))
@@ -634,7 +635,7 @@ def test_pinned_transport_total_deadline_includes_tls_handshake(monkeypatch):
 
     def delayed_numeric_socket(*args, **kwargs):
         peer = original_numeric_socket(*args, **kwargs)
-        time.sleep(0.07)
+        time.sleep(connect_delay)
         return peer
 
     monkeypatch.setattr(refetch_module, "_numeric_socket", delayed_numeric_socket)

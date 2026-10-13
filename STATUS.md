@@ -112,6 +112,12 @@ containers, so live search no longer depends on backend VM101. Receipt:
   `retrieval-0.7` exposes the real TLS socket before handshake. Both exact RED
   regressions and the complete 336-test suite pass locally; production remains
   untouched pending a clean independent PASS.
+- A fifth isolated review found a near-budget TCP→TLS race: a watchdog could
+  fire before the socket was published, after which TLS reused the original
+  timeout. `retrieval-0.8` recomputes the remaining absolute budget after TCP,
+  TLS wrapping and handshake. Both 70 ms and 95 ms connection-delay regressions
+  pass, as does the complete 337-test suite; production remains untouched
+  pending a clean independent PASS.
 - The default live path re-fetches a primary-first, configured maximum of source
   bodies inside the inherited deadline and stores immutable SHA-256 snapshots.
   Source cards distinguish `preserved` from `snippet_only`; verified features

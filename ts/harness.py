@@ -31,7 +31,7 @@ from ts.sources.trust import classify, load_trust
 STEPS = ("search", "snapshot", "dedup", "countersearch", "score", "rank")
 TOP_N = 15
 RUN_CONTRACT_VERSION = "run-status-0.2"
-RETRIEVAL_CONTRACT_VERSION = "retrieval-0.7"
+RETRIEVAL_CONTRACT_VERSION = "retrieval-0.8"
 SNAPSHOT_EVIDENCE_VERSION = "snapshot-evidence-0.3"
 CHAIN_CONNECTORS = frozenset({"searxng", "openalex", "crossref", "sec"})
 _DEEP = frozenset({"arxiv", "openalex", "crossref", "europepmc", "doaj", "hal"})

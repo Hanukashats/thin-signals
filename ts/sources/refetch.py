@@ -121,13 +121,24 @@ def _public_target(url: str, resolver=socket.getaddrinfo) -> PublicTarget:
 class _PinnedHTTPConnection(http.client.HTTPConnection):
     """HTTP connection whose TCP peer is an already validated numeric IP."""
 
-    def __init__(self, target: PublicTarget, address: str, timeout: float):
+    def __init__(
+        self,
+        target: PublicTarget,
+        address: str,
+        timeout: float,
+        *,
+        deadline_at: float,
+    ):
         super().__init__(target.host, port=target.port, timeout=timeout)
         self._pinned_address = address
+        self._deadline_at = deadline_at
 
     def _connect_socket(self):
         sock = _numeric_socket(
-            self._pinned_address, self.port, self.timeout, self.source_address,
+            self._pinned_address,
+            self.port,
+            _remaining_timeout(self._deadline_at),
+            self.source_address,
         )
         try:
             sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -135,6 +146,11 @@ class _PinnedHTTPConnection(http.client.HTTPConnection):
             if exc.errno != errno.ENOPROTOOPT:
                 sock.close()
                 raise
+        try:
+            sock.settimeout(_remaining_timeout(self._deadline_at))
+        except Exception:
+            sock.close()
+            raise
         return sock
 
     def connect(self):
@@ -144,16 +160,29 @@ class _PinnedHTTPConnection(http.client.HTTPConnection):
 class _PinnedHTTPSConnection(http.client.HTTPSConnection):
     """HTTPS variant: pinned TCP peer, original hostname for TLS SNI/checks."""
 
-    def __init__(self, target: PublicTarget, address: str, timeout: float):
+    def __init__(
+        self,
+        target: PublicTarget,
+        address: str,
+        timeout: float,
+        *,
+        deadline_at: float,
+    ):
         super().__init__(target.host, port=target.port, timeout=timeout)
         self._pinned_address = address
+        self._deadline_at = deadline_at
 
     def connect(self):
         sock = _numeric_socket(
-            self._pinned_address, self.port, self.timeout, self.source_address,
+            self._pinned_address,
+            self.port,
+            _remaining_timeout(self._deadline_at),
+            self.source_address,
         )
         try:
             sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            sock.settimeout(_remaining_timeout(self._deadline_at))
+            self.sock = sock
             wrapped = self._context.wrap_socket(
                 sock,
                 server_hostname=self.host,
@@ -162,7 +191,9 @@ class _PinnedHTTPSConnection(http.client.HTTPSConnection):
             # Publish the actual TLS socket before the handshake so the
             # absolute-deadline watchdog can abort a silent/trickling peer.
             self.sock = wrapped
+            self.sock.settimeout(_remaining_timeout(self._deadline_at))
             self.sock.do_handshake()
+            self.sock.settimeout(_remaining_timeout(self._deadline_at))
         except Exception:
             active_socket = self.sock or sock
             active_socket.close()
@@ -185,6 +216,13 @@ def _numeric_socket(address: str, port: int, timeout: float, source_address=None
     except Exception:
         sock.close()
         raise
+
+
+def _remaining_timeout(deadline_at: float) -> float:
+    remaining = deadline_at - monotonic()
+    if remaining <= 0:
+        raise TimeoutError("advisory re-fetch deadline exceeded")
+    return max(0.001, remaining)
 
 
 def _response_socket(connection, response=None):
@@ -242,7 +280,12 @@ def fetch_public_target(
             connection_type = (
                 _PinnedHTTPSConnection if target.scheme == "https" else _PinnedHTTPConnection
             )
-            connection = connection_type(target, address, remaining)
+            connection = connection_type(
+                target,
+                address,
+                remaining,
+                deadline_at=deadline_at,
+            )
             response_box = [None]
             deadline_timer = Timer(
                 max(0.001, deadline_at - monotonic()),

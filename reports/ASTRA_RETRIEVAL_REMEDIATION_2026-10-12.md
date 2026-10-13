@@ -36,9 +36,16 @@ fetched source type was not part of the immutable manifest, and TLS wrapping
 temporarily detached the socket from the deadline watchdog during handshake.
 Both were reproduced before the current fix.
 
+The fourth remediation at `7855a9b` fixed source-type binding and the normal
+TLS-handshake case. A fifth isolated review found a near-budget race: when TCP
+used 95 ms of a 100 ms budget, the one-shot watchdog fired before a socket was
+published and TLS inherited the stale original timeout. The current transport
+recomputes and applies the remaining absolute budget after every connection and
+TLS setup boundary.
+
 ## Remediation
 
-- `retrieval-0.7` resolves every URL/redirect hop once, rejects any non-public
+- `retrieval-0.8` resolves every URL/redirect hop once, rejects any non-public
   answer, and passes the exact numeric addresses to a pinned socket transport.
   The connection performs no second `getaddrinfo`; HTTP keeps the original Host
   and HTTPS keeps the original hostname for certificate validation and SNI.
@@ -63,7 +70,7 @@ Both were reproduced before the current fix.
 - Deduplication joins records on an explicit shared DOI/OpenAlex Work alias
   before applying conservative title similarity. Conflicting explicit Work IDs
   remain separated by the existing guard.
-- `live-w21`, `retrieval-0.7` and `checklist-v22` invalidate incompatible cached
+- `live-w21`, `retrieval-0.8` and `checklist-v22` invalidate incompatible cached
   run/checklist identities; historical database rows remain immutable.
 
 ## Verification
@@ -72,7 +79,7 @@ Both were reproduced before the current fix.
   lookup, slow-stream/final-EOF total timeout, inherited snapshot deadline,
   missing blob, invented fragment/blob cross-pairing, immutable URL/text/MIME
   attestation, redirect trust downgrade and short-title Work mirrors.
-- Full suite: **336 passed** on a fresh migrated disposable PostgreSQL database.
+- Full suite: **337 passed** on a fresh migrated disposable PostgreSQL database.
 - Ruff, LivingSet links, YAML loading, `git diff --check` and bounded credential
   pattern scan passed.
 - The only warning is the pre-existing Starlette TestClient/httpx deprecation.
