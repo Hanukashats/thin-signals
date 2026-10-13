@@ -18,7 +18,7 @@ from ts.snapshots import read_attested_snapshot
 from ts.sources.refetch import extract_text
 from ts.sources.trust import classify
 
-CHECKLIST_VERSION = "checklist-v23"
+CHECKLIST_VERSION = "checklist-v24"
 TEXT_HUNT = 4
 # Four extra reads for each standing theme. One noisy theme must not spend the rest.
 BACKFILL_CAP = TEXT_HUNT * 13
@@ -41,7 +41,8 @@ def _preserved_evidence(evidence: object, snapshot_root: Path | None = None) -> 
         or snapshot_root is None
     ):
         return False
-    fragment = str(evidence.get("fragment") or "").strip()
+    raw_fragment = evidence.get("fragment")
+    fragment = raw_fragment if isinstance(raw_fragment, str) else ""
     content_hash = str(evidence.get("content_hash") or "")
     fragment_hash = str(evidence.get("fragment_hash") or "")
     text_hash = str(evidence.get("text_hash") or "")
@@ -49,7 +50,7 @@ def _preserved_evidence(evidence: object, snapshot_root: Path | None = None) -> 
     fetched_url = str(evidence.get("fetched_url") or "")
     content_type = str(evidence.get("content_type") or "")
     fetched_source_type = str(evidence.get("fetched_source_type") or "")
-    if not fragment or not _SHA256.fullmatch(content_hash):
+    if not fragment.strip() or not _SHA256.fullmatch(content_hash):
         return False
     if evidence.get("snapshot_ref") != f"sha256:{content_hash}":
         return False
@@ -129,7 +130,12 @@ def _fragment_bundle_details(
         if not isinstance(source, dict):
             continue
         evidence = source.get("evidence") if isinstance(source.get("evidence"), dict) else None
-        preserved = str((evidence or {}).get("fragment") or "").strip()
+        raw_preserved = (evidence or {}).get("fragment")
+        preserved = (
+            raw_preserved
+            if isinstance(raw_preserved, str) and raw_preserved.strip()
+            else ""
+        )
         snippet = preserved or str(source.get("snippet") or "").strip()
         if not snippet:
             continue

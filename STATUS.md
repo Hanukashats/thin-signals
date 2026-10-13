@@ -196,7 +196,7 @@ containers, so live search no longer depends on backend VM101. Receipt:
    in a separately reviewed presentation rebuild rather than silently changing
    the sealed delivery package.
 6. **Evidence provenance release gate:** bounded source snapshots and
-   `checklist-v23` are implemented and tested on the branch. Attested evidence
+   `checklist-v24` are implemented and tested on the branch. Attested evidence
    contains only canonical snapshot text; mutable search titles cannot enter a
    verified quotation. A frozen replay and
    canary must measure coverage/latency before production activation; saved

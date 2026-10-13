@@ -21,13 +21,14 @@
   correction/retraction metadata. Work/DOI mirrors count once even with a
   short title; conflicting Work IDs stay separate. Unknown fields and raw
   affiliation text do not leave the parser. A bounded live API canary passed.
-- Six successive independent Astra reviews exposed and drove regressions for
+- Seven successive independent Astra reviews exposed and drove regressions for
   DNS rebinding, deadline gaps across every transport phase, incomplete
   snapshot cross-field binding, mutable citation URLs/source types, Work mirror
   identity and an unattested title entering a verified quotation. The current
-  `retrieval-0.8`, `snapshot-evidence-0.3` and `checklist-v23` candidate closes
-  every reproduced case; discovery titles remain outside attested fragments.
-- The complete suite passes 338/338 against a fresh migrated disposable
+  `retrieval-0.8`, `snapshot-evidence-0.3` and `checklist-v24` candidate closes
+  every reproduced case; discovery titles remain outside attested fragments
+  and exact canonical whitespace is preserved through attestation.
+- The complete suite passes 339/339 against a fresh migrated disposable
   PostgreSQL database. Ruff, LivingSet links, YAML loading, diff and bounded
   credential-pattern checks pass. The sole warning is the pre-existing
   Starlette TestClient/httpx deprecation notice.
@@ -38,8 +39,8 @@
 
 ## Exact continuation
 
-1. Commit the unattested-title remediation and attach its RED/GREEN/full-suite
-   evidence to GOAL increment `i-c7c6a7a5`.
+1. Commit the exact-fragment remediation and attach its RED/GREEN/full-suite
+   evidence to GOAL increment `i-2713fb05`.
 2. Freeze the new candidate and obtain a fresh independent Astra verdict using
    the accumulated adversarial matrix plus the full disposable-database suite.
 3. Do not push, deploy or activate GPT Researcher before that PASS and the later

@@ -50,6 +50,12 @@ long invented title could therefore fill the public 300-character quotation
 while inheriting the genuine article's primary provenance and snapshot link.
 The current checklist keeps discovery titles outside attested fragments.
 
+The sixth remediation at `6ef7480` closed the title injection. A seventh
+isolated review found an availability defect at the exact 1500-character
+snapshot boundary: checklist normalization stripped an authentic trailing
+space before hashing, so a valid canonical prefix became snippet-only. The
+current checklist validates and forwards the exact string hashed by Harness.
+
 ## Remediation
 
 - `retrieval-0.8` resolves every URL/redirect hop once, rejects any non-public
@@ -61,7 +67,7 @@ The current checklist keeps discovery titles outside attested fragments.
   results and records the run as `degraded`.
 - `snapshot-evidence-0.3` now carries an immutable content-addressed manifest
   binding the fetched URL, source type, raw body hash, MIME type and canonical
-  extracted-text hash. `checklist-v23` re-derives the text from the stored blob and requires the
+  extracted-text hash. `checklist-v24` re-derives the text from the stored blob and requires the
   cited fragment to be its exact bounded prefix before allowing `verified`.
   Missing, malformed, corrupt or cross-paired evidence becomes snippet-only and
   is capped to `supported`.
@@ -80,7 +86,7 @@ The current checklist keeps discovery titles outside attested fragments.
 - Deduplication joins records on an explicit shared DOI/OpenAlex Work alias
   before applying conservative title similarity. Conflicting explicit Work IDs
   remain separated by the existing guard.
-- `live-w21`, `retrieval-0.8` and `checklist-v23` invalidate incompatible cached
+- `live-w21`, `retrieval-0.8` and `checklist-v24` invalidate incompatible cached
   run/checklist identities; historical database rows remain immutable.
 
 ## Verification
@@ -88,9 +94,10 @@ The current checklist keeps discovery titles outside attested fragments.
 - Exact regressions cover validated-address handoff, absence of a second DNS
   lookup, slow-stream/final-EOF total timeout, inherited snapshot deadline,
   missing blob, invented fragment/blob cross-pairing, immutable URL/text/MIME
-  attestation, unattested title exclusion, redirect trust downgrade and
+  attestation, unattested title exclusion, exact whitespace-boundary handling,
+  redirect trust downgrade and
   short-title Work mirrors.
-- Full suite: **338 passed** on a fresh migrated disposable PostgreSQL database.
+- Full suite: **339 passed** on a fresh migrated disposable PostgreSQL database.
 - Ruff, LivingSet links, YAML loading, `git diff --check` and bounded credential
   pattern scan passed.
 - The only warning is the pre-existing Starlette TestClient/httpx deprecation.

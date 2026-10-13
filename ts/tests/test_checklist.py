@@ -6,10 +6,11 @@ import hashlib
 from ts.checklist import _case_quote, apply_checklist, score_card, vector_for
 from ts.desk import candidate_views, run_banner
 from ts.fanout import _identity
-from ts.harness import RunReport
+from ts.harness import Harness, RunReport
 from ts.persist import public_report
 from ts.scoring.scorer import load_rules, score
 from ts.snapshots import save_snapshot
+from ts.sources.connectors import Hit
 
 
 def _rules():
@@ -281,6 +282,47 @@ def test_unattested_source_title_never_enters_attested_evidence(tmp_path):
     assert seen["fragments"] == [preserved]
     assert judged["card"]["evidence_fragments"][0]["text"] == preserved
     assert invented.strip() not in judged["card"]["evidence_fragments"][0]["text"]
+    assert "provenance_capped" not in judged["card"]["checklist"]
+
+
+def test_attested_fragment_keeps_exact_trailing_space_at_snapshot_boundary(tmp_path):
+    text = "X" * 13 + " " + "Laboratory characterization confirms the novel cell mechanism. " * 60
+    body = text.encode()
+    hit = Hit(
+        "fixture",
+        "https://arxiv.org/abs/2401.00002",
+        "Novel cell mechanism",
+        "search snippet",
+        "paper",
+        fetched_body=body,
+        fetched_text=text,
+        fetched_content_type="text/plain",
+    )
+
+    class Source:
+        name = "fixture"
+        search_stages = frozenset({"search"})
+
+        def search(self, _query, *, limit=5):
+            return [hit][:limit]
+
+    report = Harness(snapshot_dir=tmp_path, corpus_version="space-boundary").run(
+        "novel cell mechanism", [Source()], limit=1,
+    )
+    card = _card(name="Novel cell mechanism", snippet="search snippet")
+    card["sources"] = report.sources
+    fragment = report.sources[0]["evidence"]["fragment"]
+    assert len(fragment) == 1500 and fragment.endswith(" ")
+    seen: dict[str, list[str]] = {}
+
+    def reader(row):
+        seen["fragments"] = row["_checklist_fragment_bundle"][0]
+        return _read(_out(verified={"P01"}, transition="verified"))
+
+    judged = score_card(card, reader, _rules(), snapshot_root=tmp_path)
+
+    assert seen["fragments"] == [fragment]
+    assert judged["card"]["evidence_fragments"][0]["provenance"] == "preserved_primary"
     assert "provenance_capped" not in judged["card"]["checklist"]
 
 
