@@ -6,10 +6,11 @@ import socket
 import time
 from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from threading import Thread
+from threading import Event, Thread
 
 import pytest
 
+import ts.sources.refetch as refetch_module
 from ts.harness import Harness
 from ts.live import _public_refetcher, default_connectors
 from ts.persist import public_report
@@ -610,6 +611,57 @@ def test_pinned_transport_total_deadline_includes_slow_trickled_headers():
         worker.join(timeout=1)
 
     assert fetch_elapsed is not None and fetch_elapsed < 0.16
+
+
+def test_pinned_transport_total_deadline_includes_tls_handshake(monkeypatch):
+    listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    listener.bind(("127.0.0.1", 0))
+    listener.listen(1)
+    port = listener.getsockname()[1]
+    stop = Event()
+    accepted = []
+
+    def silent_peer():
+        peer, _address = listener.accept()
+        accepted.append(peer)
+        stop.wait(0.5)
+        peer.close()
+
+    worker = Thread(target=silent_peer, daemon=True)
+    worker.start()
+    original_numeric_socket = refetch_module._numeric_socket
+
+    def delayed_numeric_socket(*args, **kwargs):
+        peer = original_numeric_socket(*args, **kwargs)
+        time.sleep(0.07)
+        return peer
+
+    monkeypatch.setattr(refetch_module, "_numeric_socket", delayed_numeric_socket)
+    started = time.monotonic()
+    fetch_elapsed = None
+    try:
+        with pytest.raises(ConnectorError, match="transport"):
+            fetch_public_target(
+                PublicTarget(
+                    url=f"https://silent-tls.example:{port}/evidence",
+                    scheme="https",
+                    host="silent-tls.example",
+                    port=port,
+                    addresses=("127.0.0.1",),
+                ),
+                headers={"User-Agent": "test"},
+                timeout_seconds=0.1,
+            )
+        fetch_elapsed = time.monotonic() - started
+    finally:
+        stop.set()
+        for peer in accepted:
+            peer.close()
+        listener.close()
+        worker.join(timeout=1)
+
+    assert fetch_elapsed is not None and fetch_elapsed < 0.14
 
 
 @pytest.mark.parametrize("url", [

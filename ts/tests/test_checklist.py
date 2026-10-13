@@ -33,12 +33,13 @@ def _card(
             snippet.encode(),
             content_type="text/plain",
             text_hash=fragment_hash,
+            source_type="paper",
         )
         if preserved and snapshot_root else None
     )
     evidence = (
         {
-            **({"version": "snapshot-evidence-0.2"} if snapshot else {}),
+            **({"version": "snapshot-evidence-0.3"} if snapshot else {}),
             "status": "preserved",
             "fragment": snippet,
             "snapshot_ref": "sha256:" + (snapshot["content_hash"] if snapshot else "0" * 64),
@@ -202,11 +203,12 @@ def test_preserved_primary_fragment_can_remain_verified_and_carries_snapshot_ref
         preserved.encode(),
         content_type="text/plain",
         text_hash=text_hash,
+        source_type="paper",
     )
     card["sources"][0].update({
         "trust": "primary",
         "evidence": {
-            "version": "snapshot-evidence-0.2",
+            "version": "snapshot-evidence-0.3",
             "status": "preserved",
             "fragment": preserved,
             "snapshot_ref": "sha256:" + snapshot["content_hash"],
@@ -216,6 +218,7 @@ def test_preserved_primary_fragment_can_remain_verified_and_carries_snapshot_ref
             "text_hash": text_hash,
             "fetched_url": "https://arxiv.org/abs/2401.00001",
             "content_type": "text/plain",
+            "fetched_source_type": "paper",
         },
     })
     out = _out(verified={"P01"}, transition="verified")
@@ -248,10 +251,11 @@ def test_valid_blob_cannot_attest_an_independently_hashed_invented_fragment(tmp_
         actual.encode(),
         content_type="text/plain",
         text_hash=actual_hash,
+        source_type="paper",
     )
     card = _card(snippet="search snippet")
     card["sources"][0]["evidence"] = {
-        "version": "snapshot-evidence-0.2",
+        "version": "snapshot-evidence-0.3",
         "status": "preserved",
         "fragment": invented,
         "snapshot_ref": "sha256:" + snapshot["content_hash"],
@@ -261,6 +265,7 @@ def test_valid_blob_cannot_attest_an_independently_hashed_invented_fragment(tmp_
         "text_hash": actual_hash,
         "fetched_url": fetched_url,
         "content_type": "text/plain",
+        "fetched_source_type": "paper",
     }
 
     judged = score_card(
@@ -284,10 +289,11 @@ def test_final_indicator_redirect_cannot_retain_declared_primary_trust(tmp_path)
         text.encode(),
         content_type="text/plain",
         text_hash=text_hash,
+        source_type="web",
     )
     card = _card(snippet="search snippet")
     card["sources"][0]["evidence"] = {
-        "version": "snapshot-evidence-0.2",
+        "version": "snapshot-evidence-0.3",
         "status": "preserved",
         "fragment": text,
         "snapshot_ref": "sha256:" + snapshot["content_hash"],
@@ -311,6 +317,44 @@ def test_final_indicator_redirect_cannot_retain_declared_primary_trust(tmp_path)
     assert judged["card"]["evidence_fragments"][0]["provenance"] == "preserved_non_primary"
 
 
+def test_unbound_fetched_source_type_cannot_promote_github_issue_to_primary(tmp_path):
+    fetched_url = "https://github.com/example/project/issues/1"
+    text = "An issue discussion is indicator evidence, not a repository release."
+    text_hash = hashlib.sha256(text.encode()).hexdigest()
+    snapshot = save_snapshot(
+        tmp_path,
+        fetched_url,
+        text.encode(),
+        content_type="text/plain",
+        text_hash=text_hash,
+        source_type="web",
+    )
+    card = _card(snippet="search snippet")
+    card["sources"][0]["evidence"] = {
+        "version": "snapshot-evidence-0.3",
+        "status": "preserved",
+        "fragment": text,
+        "snapshot_ref": "sha256:" + snapshot["content_hash"],
+        "attestation_ref": snapshot["attestation_ref"],
+        "content_hash": snapshot["content_hash"],
+        "fragment_hash": text_hash,
+        "text_hash": text_hash,
+        "fetched_url": fetched_url,
+        "fetched_source_type": "repository",
+        "content_type": "text/plain",
+    }
+
+    judged = score_card(
+        card,
+        lambda _card: _read(_out(verified={"P01"}, transition="verified")),
+        _rules(),
+        snapshot_root=tmp_path,
+    )
+
+    assert judged["card"]["checklist"]["provenance_capped"] == ["P01", "TR"]
+    assert judged["card"]["evidence_fragments"][0]["provenance"] == "snippet_only"
+
+
 def test_preserved_fragment_cites_its_attested_final_url_not_an_unrelated_primary(tmp_path):
     fetched_url = "https://arxiv.org/abs/2401.00001"
     text = "The attested arXiv paper contains this result."
@@ -321,10 +365,11 @@ def test_preserved_fragment_cites_its_attested_final_url_not_an_unrelated_primar
         text.encode(),
         content_type="text/plain",
         text_hash=text_hash,
+        source_type="paper",
     )
     card = _card(url="https://nature.com/articles/unrelated", snippet="search snippet")
     card["sources"][0]["evidence"] = {
-        "version": "snapshot-evidence-0.2",
+        "version": "snapshot-evidence-0.3",
         "status": "preserved",
         "fragment": text,
         "snapshot_ref": "sha256:" + snapshot["content_hash"],

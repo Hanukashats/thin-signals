@@ -18,7 +18,7 @@ from ts.snapshots import read_attested_snapshot
 from ts.sources.refetch import extract_text
 from ts.sources.trust import classify
 
-CHECKLIST_VERSION = "checklist-v21"
+CHECKLIST_VERSION = "checklist-v22"
 TEXT_HUNT = 4
 # Four extra reads for each standing theme. One noisy theme must not spend the rest.
 BACKFILL_CAP = TEXT_HUNT * 13
@@ -36,7 +36,7 @@ def _preserved_evidence(evidence: object, snapshot_root: Path | None = None) -> 
     """Validate the internal snapshot attestation before granting verified provenance."""
     if (
         not isinstance(evidence, dict)
-        or evidence.get("version") != "snapshot-evidence-0.2"
+        or evidence.get("version") != "snapshot-evidence-0.3"
         or evidence.get("status") != "preserved"
         or snapshot_root is None
     ):
@@ -48,6 +48,7 @@ def _preserved_evidence(evidence: object, snapshot_root: Path | None = None) -> 
     attestation_ref = str(evidence.get("attestation_ref") or "")
     fetched_url = str(evidence.get("fetched_url") or "")
     content_type = str(evidence.get("content_type") or "")
+    fetched_source_type = str(evidence.get("fetched_source_type") or "")
     if not fragment or not _SHA256.fullmatch(content_hash):
         return False
     if evidence.get("snapshot_ref") != f"sha256:{content_hash}":
@@ -56,7 +57,12 @@ def _preserved_evidence(evidence: object, snapshot_root: Path | None = None) -> 
         return False
     if hashlib.sha256(fragment.encode()).hexdigest() != fragment_hash:
         return False
-    if not _SHA256.fullmatch(text_hash) or not fetched_url or not content_type:
+    if (
+        not _SHA256.fullmatch(text_hash)
+        or not fetched_url
+        or not content_type
+        or not fetched_source_type
+    ):
         return False
     body = read_attested_snapshot(
         snapshot_root,
@@ -64,6 +70,7 @@ def _preserved_evidence(evidence: object, snapshot_root: Path | None = None) -> 
         content_hash,
         content_type=content_type,
         text_hash=text_hash,
+        source_type=fetched_source_type,
         attestation_ref=attestation_ref,
     )
     if body is None:

@@ -154,12 +154,18 @@ class _PinnedHTTPSConnection(http.client.HTTPSConnection):
         )
         try:
             sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-            # Expose the raw socket before TLS so the absolute-deadline watchdog
-            # can abort a peer that trickles handshake records indefinitely.
-            self.sock = sock
-            self.sock = self._context.wrap_socket(self.sock, server_hostname=self.host)
+            wrapped = self._context.wrap_socket(
+                sock,
+                server_hostname=self.host,
+                do_handshake_on_connect=False,
+            )
+            # Publish the actual TLS socket before the handshake so the
+            # absolute-deadline watchdog can abort a silent/trickling peer.
+            self.sock = wrapped
+            self.sock.do_handshake()
         except Exception:
-            sock.close()
+            active_socket = self.sock or sock
+            active_socket.close()
             self.sock = None
             raise
 

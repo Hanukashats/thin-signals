@@ -20,6 +20,7 @@ def save_snapshot(
     *,
     content_type: str | None = None,
     text_hash: str | None = None,
+    source_type: str | None = None,
 ) -> dict:
     root.mkdir(parents=True, exist_ok=True)
     digest = hashlib.sha256(body).hexdigest()
@@ -39,11 +40,12 @@ def save_snapshot(
         "blob_ref": str(blob),
         "created": created and not repeated,
     }
-    if content_type and text_hash and _SHA256.fullmatch(text_hash):
+    if content_type and text_hash and source_type and _SHA256.fullmatch(text_hash):
         manifest = json.dumps(
             {
                 "content_hash": digest,
                 "content_type": content_type,
+                "source_type": source_type,
                 "text_hash": text_hash,
                 "url": url,
             },
@@ -67,6 +69,7 @@ def read_attested_snapshot(
     *,
     content_type: str,
     text_hash: str,
+    source_type: str,
     attestation_ref: str,
 ) -> bytes | None:
     """Read a blob only when its immutable retrieval attestation agrees."""
@@ -96,6 +99,7 @@ def read_attested_snapshot(
     if record != {
         "content_hash": content_hash,
         "content_type": content_type,
+        "source_type": source_type,
         "text_hash": text_hash,
         "url": url,
     }:

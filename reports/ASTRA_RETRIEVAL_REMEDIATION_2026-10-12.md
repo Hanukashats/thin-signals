@@ -30,18 +30,24 @@ display URL could misattribute attested arXiv text to an unrelated Nature URL,
 and that byte-by-byte response headers could keep `getresponse()` alive beyond
 the total timeout. Both findings were reproduced before the current fix.
 
+The third remediation at `5907726` fixed both cases and every prior regression.
+A fourth isolated Astra review found two final cross-field/transport gaps: the
+fetched source type was not part of the immutable manifest, and TLS wrapping
+temporarily detached the socket from the deadline watchdog during handshake.
+Both were reproduced before the current fix.
+
 ## Remediation
 
-- `retrieval-0.6` resolves every URL/redirect hop once, rejects any non-public
+- `retrieval-0.7` resolves every URL/redirect hop once, rejects any non-public
   answer, and passes the exact numeric addresses to a pinned socket transport.
   The connection performs no second `getaddrinfo`; HTTP keeps the original Host
   and HTTPS keeps the original hostname for certificate validation and SNI.
 - Connect, headers and every streamed read share one monotonic deadline. The
   harness separately bounds the injected snapshot worker, discards late
   results and records the run as `degraded`.
-- `snapshot-evidence-0.2` now carries an immutable content-addressed manifest
-  binding the fetched URL, raw body hash, MIME type and canonical extracted-text
-  hash. `checklist-v20` re-derives the text from the stored blob and requires the
+- `snapshot-evidence-0.3` now carries an immutable content-addressed manifest
+  binding the fetched URL, source type, raw body hash, MIME type and canonical
+  extracted-text hash. `checklist-v22` re-derives the text from the stored blob and requires the
   cited fragment to be its exact bounded prefix before allowing `verified`.
   Missing, malformed, corrupt or cross-paired evidence becomes snippet-only and
   is capped to `supported`.
@@ -50,13 +56,14 @@ the total timeout. Both findings were reproduced before the current fix.
   DOI redirect to Medium remains indicator evidence.
 - The pinned transport sets the remaining deadline on the response's actual
   socket, actively aborts it at the absolute deadline while headers are parsed,
-  and checks the monotonic clock after every body read, including final EOF.
+  publishes the TLS socket before handshake, and checks the monotonic clock
+  after every body read, including final EOF.
 - Public evidence citations use the final URL in the immutable attestation,
   never a separately mutable display URL from the candidate card.
 - Deduplication joins records on an explicit shared DOI/OpenAlex Work alias
   before applying conservative title similarity. Conflicting explicit Work IDs
   remain separated by the existing guard.
-- `live-w21`, `retrieval-0.6` and `checklist-v21` invalidate incompatible cached
+- `live-w21`, `retrieval-0.7` and `checklist-v22` invalidate incompatible cached
   run/checklist identities; historical database rows remain immutable.
 
 ## Verification
@@ -65,7 +72,7 @@ the total timeout. Both findings were reproduced before the current fix.
   lookup, slow-stream/final-EOF total timeout, inherited snapshot deadline,
   missing blob, invented fragment/blob cross-pairing, immutable URL/text/MIME
   attestation, redirect trust downgrade and short-title Work mirrors.
-- Full suite: **334 passed** on a fresh migrated disposable PostgreSQL database.
+- Full suite: **336 passed** on a fresh migrated disposable PostgreSQL database.
 - Ruff, LivingSet links, YAML loading, `git diff --check` and bounded credential
   pattern scan passed.
 - The only warning is the pre-existing Starlette TestClient/httpx deprecation.

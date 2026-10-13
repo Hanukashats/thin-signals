@@ -292,6 +292,7 @@ def test_snapshot_attestation_is_immutable_and_binds_text_decoding(tmp_path: Pat
         first_body,
         content_type="text/plain",
         text_hash=first_text_hash,
+        source_type="web",
     )
     save_snapshot(
         tmp_path,
@@ -299,6 +300,7 @@ def test_snapshot_attestation_is_immutable_and_binds_text_decoding(tmp_path: Pat
         b"new body at the same URL",
         content_type="text/plain",
         text_hash=hashlib.sha256(b"new body at the same URL").hexdigest(),
+        source_type="web",
     )
 
     assert read_attested_snapshot(
@@ -307,6 +309,7 @@ def test_snapshot_attestation_is_immutable_and_binds_text_decoding(tmp_path: Pat
         first["content_hash"],
         content_type="text/plain",
         text_hash=first_text_hash,
+        source_type="web",
         attestation_ref=first["attestation_ref"],
     ) == first_body
     assert read_attested_snapshot(
@@ -315,6 +318,7 @@ def test_snapshot_attestation_is_immutable_and_binds_text_decoding(tmp_path: Pat
         first["content_hash"],
         content_type="text/html",
         text_hash=first_text_hash,
+        source_type="web",
         attestation_ref=first["attestation_ref"],
     ) is None
 

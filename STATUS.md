@@ -106,6 +106,12 @@ containers, so live search no longer depends on backend VM101. Receipt:
   `retrieval-0.6` actively aborts header parsing at the same absolute deadline.
   Both exact RED regressions and the complete 334-test suite pass locally;
   production remains untouched pending a clean independent PASS.
+- A fourth isolated review found that `fetched_source_type` was not covered by
+  the manifest and that TLS handshake temporarily hid its socket from the
+  deadline watchdog. `snapshot-evidence-0.3` now binds source type, while
+  `retrieval-0.7` exposes the real TLS socket before handshake. Both exact RED
+  regressions and the complete 336-test suite pass locally; production remains
+  untouched pending a clean independent PASS.
 - The default live path re-fetches a primary-first, configured maximum of source
   bodies inside the inherited deadline and stores immutable SHA-256 snapshots.
   Source cards distinguish `preserved` from `snippet_only`; verified features
@@ -184,7 +190,7 @@ containers, so live search no longer depends on backend VM101. Receipt:
    in a separately reviewed presentation rebuild rather than silently changing
    the sealed delivery package.
 6. **Evidence provenance release gate:** bounded source snapshots and
-   `checklist-v21` are implemented and tested on the branch. A frozen replay and
+   `checklist-v22` are implemented and tested on the branch. A frozen replay and
    canary must measure coverage/latency before production activation; saved
    historical runs remain immutable.
 7. **Release state:** bounded search, timings, safe funnel and configuration
