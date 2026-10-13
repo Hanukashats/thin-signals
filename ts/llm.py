@@ -132,6 +132,7 @@ class OpenRouterClient:
         temperature: float | None = 0.0,
         reasoning: bool = False,
         require_parameters: bool = False,
+        timeout_seconds: float | None = None,
     ) -> LLMResponse:
         model = model or self.s.llm_primary
         self.check_model(model)
@@ -155,7 +156,8 @@ class OpenRouterClient:
                 "json_schema": {"name": json_schema.get("title", "result"), "strict": True, "schema": json_schema},
             }
         t0 = time.time()
-        r = self._http.post("/chat/completions", json=body)
+        request_options = {"timeout": timeout_seconds} if timeout_seconds is not None else {}
+        r = self._http.post("/chat/completions", json=body, **request_options)
         data = r.json()
         if r.status_code >= 400 or "error" in data:
             raise LLMError(f"OpenRouter {r.status_code}: {json.dumps(data.get('error', data), ensure_ascii=False)[:400]}")
