@@ -324,6 +324,20 @@ def test_enabled_review_skips_empty_run_without_model_calls(tmp_path):
     assert gateway.calls == []
 
 
+def test_enabled_review_skips_candidate_without_citable_evidence(tmp_path):
+    gateway = AdaptiveGateway()
+    card = {**_card(), "evidence_fragments": []}
+
+    reviewed = attach_candidate_review(
+        _report(card), _enabled(make_settings(tmp_path)), gateway=gateway,
+    )
+
+    assert reviewed.review is None
+    assert reviewed.review_enabled is True
+    assert reviewed.review_status == "skipped_no_evidence"
+    assert gateway.calls == []
+
+
 def test_untrusted_route_metadata_is_rejected_without_public_echo(tmp_path):
     reviewed = attach_candidate_review(
         _report(), _enabled(make_settings(tmp_path)), gateway=MaliciousRouteGateway(),

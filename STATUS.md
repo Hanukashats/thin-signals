@@ -42,8 +42,11 @@ The first bounded production canary correctly failed closed when live models
 rewrote or cross-linked citation IDs. `adversarial-review-0.2` now constrains
 structured decoding to current-round identifiers and supplies exact defender and
 control-critic reference bindings. Its focused suite passes, and the complete
-suite is **444 passed** on a new migrated disposable PostgreSQL database. A fresh
+suite is **445 passed** on a new migrated disposable PostgreSQL database. A fresh
 live canary and independent release verification are still pending.
+An additional live run exposed an empty cited-evidence bundle on an otherwise
+admitted card. `review-integration-0.2` now reports `skipped_no_evidence` without
+spending four role calls; it never upgrades that absence into a positive review.
 
 Independent Astra verification accepted the frozen code commit `9f3a139` with
 no scoped P0/P1/P2 finding: 407 tests and Ruff passed, including native route,

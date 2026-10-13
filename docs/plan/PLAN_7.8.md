@@ -88,6 +88,8 @@ Reference benchmark and donor decision:
 Status 2026-10-13: implemented and tested on the reliability branch. A bounded
 production canary exposed model-written citation IDs; prompt/schema revision
 `adversarial-review-0.2` now constrains IDs and exact defender/control bindings.
+`review-integration-0.2` skips model spend explicitly when the admitted card has
+no checklist-cited evidence fragment.
 Release verification remains required for the remediated candidate.
 
 - Typed claim, objection, rebuttal, control finding and arbiter schemas.

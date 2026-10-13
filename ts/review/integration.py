@@ -20,7 +20,7 @@ from ts.review.runner import (
     run_review,
 )
 
-REVIEW_INTEGRATION_VERSION = "review-integration-0.1"
+REVIEW_INTEGRATION_VERSION = "review-integration-0.2"
 _ORIGIN_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/() -]{0,127}$")
 
 
@@ -183,6 +183,16 @@ def attach_candidate_review(
             review=None,
             review_enabled=True,
             review_status="skipped_no_candidate",
+        )
+    if evidence_provider is None and not report.card.get("evidence_fragments"):
+        # A strict researcher claim requires a real citation. Calling four
+        # models with an empty enum can only waste budget or produce an
+        # artificial schema failure; expose the missing prerequisite directly.
+        return replace(
+            report,
+            review=None,
+            review_enabled=True,
+            review_status="skipped_no_evidence",
         )
     if gateway is None:
         try:
