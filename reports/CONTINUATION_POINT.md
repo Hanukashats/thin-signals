@@ -1,4 +1,4 @@
-# CONTINUATION POINT — reliability verifier remediation, 2026-10-12
+# CONTINUATION POINT — reliability verifier remediation, 2026-10-13
 
 ## Verified current state
 
@@ -21,13 +21,13 @@
   correction/retraction metadata. Work/DOI mirrors count once even with a
   short title; conflicting Work IDs stay separate. Unknown fields and raw
   affiliation text do not leave the parser. A bounded live API canary passed.
-- Astra independently rejected `e006a36` after reproducing four gaps: DNS
-  rebinding, slow-stream deadline overrun, unattested preserved evidence and a
-  short-title Work mirror split. All four have TDD regressions in the current
-  remediation candidate. `checklist-v19` also re-hashes the stored blob and
-  fragment attestation before retaining `verified`; late snapshot fetches are
-  discarded and make the run `degraded`.
-- The complete suite passes 327/327 against a fresh migrated disposable
+- Six successive independent Astra reviews exposed and drove regressions for
+  DNS rebinding, deadline gaps across every transport phase, incomplete
+  snapshot cross-field binding, mutable citation URLs/source types, Work mirror
+  identity and an unattested title entering a verified quotation. The current
+  `retrieval-0.8`, `snapshot-evidence-0.3` and `checklist-v23` candidate closes
+  every reproduced case; discovery titles remain outside attested fragments.
+- The complete suite passes 338/338 against a fresh migrated disposable
   PostgreSQL database. Ruff, LivingSet links, YAML loading, diff and bounded
   credential-pattern checks pass. The sole warning is the pre-existing
   Starlette TestClient/httpx deprecation notice.
@@ -38,10 +38,10 @@
 
 ## Exact continuation
 
-1. Commit the four-finding remediation and attach reproducible evidence to the
-   three GOAL increments.
+1. Commit the unattested-title remediation and attach its RED/GREEN/full-suite
+   evidence to GOAL increment `i-c7c6a7a5`.
 2. Freeze the new candidate and obtain a fresh independent Astra verdict using
-   the same adversarial probes plus the full disposable-database suite.
+   the accumulated adversarial matrix plus the full disposable-database suite.
 3. Do not push, deploy or activate GPT Researcher before that PASS and the later
    release goal's snapshot/canary/rollback gates.
 

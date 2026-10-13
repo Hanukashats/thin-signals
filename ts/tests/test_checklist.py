@@ -233,11 +233,55 @@ def test_preserved_primary_fragment_can_remain_verified_and_carries_snapshot_ref
     assert "provenance_capped" not in judged["card"]["checklist"]
     assert judged["card"]["evidence_fragments"] == [{
         "fragment": 1,
-        "text": "Paper. Direct text from the preserved primary document",
+        "text": "Direct text from the preserved primary document.",
         "url": "https://arxiv.org/abs/2401.00001",
         "provenance": "preserved_primary",
         "snapshot_ref": "sha256:" + snapshot["content_hash"],
     }]
+
+
+def test_unattested_source_title_never_enters_attested_evidence(tmp_path):
+    fetched_url = "https://arxiv.org/abs/2401.00001"
+    preserved = "The stored primary article only describes laboratory characterization."
+    invented = "Invented commercial deployment claim " * 20
+    text_hash = hashlib.sha256(preserved.encode()).hexdigest()
+    snapshot = save_snapshot(
+        tmp_path,
+        fetched_url,
+        preserved.encode(),
+        content_type="text/plain",
+        text_hash=text_hash,
+        source_type="paper",
+    )
+    card = _card(snippet="search snippet")
+    card["sources"][0].update({
+        "name": invented,
+        "evidence": {
+            "version": "snapshot-evidence-0.3",
+            "status": "preserved",
+            "fragment": preserved,
+            "snapshot_ref": "sha256:" + snapshot["content_hash"],
+            "attestation_ref": snapshot["attestation_ref"],
+            "content_hash": snapshot["content_hash"],
+            "fragment_hash": text_hash,
+            "text_hash": text_hash,
+            "fetched_url": fetched_url,
+            "content_type": "text/plain",
+            "fetched_source_type": "paper",
+        },
+    })
+    seen: dict[str, list[str]] = {}
+
+    def reader(row):
+        seen["fragments"] = row["_checklist_fragment_bundle"][0]
+        return _read(_out(verified={"P01"}, transition="verified"))
+
+    judged = score_card(card, reader, _rules(), snapshot_root=tmp_path)
+
+    assert seen["fragments"] == [preserved]
+    assert judged["card"]["evidence_fragments"][0]["text"] == preserved
+    assert invented.strip() not in judged["card"]["evidence_fragments"][0]["text"]
+    assert "provenance_capped" not in judged["card"]["checklist"]
 
 
 def test_valid_blob_cannot_attest_an_independently_hashed_invented_fragment(tmp_path):

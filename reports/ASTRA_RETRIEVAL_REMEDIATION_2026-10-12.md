@@ -43,6 +43,13 @@ published and TLS inherited the stale original timeout. The current transport
 recomputes and applies the remaining absolute budget after every connection and
 TLS setup boundary.
 
+The fifth remediation at `22c8434` closed that connection-phase race. A sixth
+isolated review found one remaining evidence-boundary defect: mutable search
+result `source.name` text was prepended to an otherwise attested fragment. A
+long invented title could therefore fill the public 300-character quotation
+while inheriting the genuine article's primary provenance and snapshot link.
+The current checklist keeps discovery titles outside attested fragments.
+
 ## Remediation
 
 - `retrieval-0.8` resolves every URL/redirect hop once, rejects any non-public
@@ -54,10 +61,13 @@ TLS setup boundary.
   results and records the run as `degraded`.
 - `snapshot-evidence-0.3` now carries an immutable content-addressed manifest
   binding the fetched URL, source type, raw body hash, MIME type and canonical
-  extracted-text hash. `checklist-v22` re-derives the text from the stored blob and requires the
+  extracted-text hash. `checklist-v23` re-derives the text from the stored blob and requires the
   cited fragment to be its exact bounded prefix before allowing `verified`.
   Missing, malformed, corrupt or cross-paired evidence becomes snippet-only and
   is capped to `supported`.
+- Mutable source titles remain available on the candidate card as discovery
+  metadata but are never inserted into an attested reader fragment or public
+  preserved-primary quotation.
 - Trust is conservatively evaluated across both the claimed URL and the final
   fetched URL. A redirect can preserve or lower trust, never promote it. Thus a
   DOI redirect to Medium remains indicator evidence.
@@ -70,7 +80,7 @@ TLS setup boundary.
 - Deduplication joins records on an explicit shared DOI/OpenAlex Work alias
   before applying conservative title similarity. Conflicting explicit Work IDs
   remain separated by the existing guard.
-- `live-w21`, `retrieval-0.8` and `checklist-v22` invalidate incompatible cached
+- `live-w21`, `retrieval-0.8` and `checklist-v23` invalidate incompatible cached
   run/checklist identities; historical database rows remain immutable.
 
 ## Verification
@@ -78,8 +88,9 @@ TLS setup boundary.
 - Exact regressions cover validated-address handoff, absence of a second DNS
   lookup, slow-stream/final-EOF total timeout, inherited snapshot deadline,
   missing blob, invented fragment/blob cross-pairing, immutable URL/text/MIME
-  attestation, redirect trust downgrade and short-title Work mirrors.
-- Full suite: **337 passed** on a fresh migrated disposable PostgreSQL database.
+  attestation, unattested title exclusion, redirect trust downgrade and
+  short-title Work mirrors.
+- Full suite: **338 passed** on a fresh migrated disposable PostgreSQL database.
 - Ruff, LivingSet links, YAML loading, `git diff --check` and bounded credential
   pattern scan passed.
 - The only warning is the pre-existing Starlette TestClient/httpx deprecation.
