@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import yaml
@@ -25,7 +26,7 @@ from ts.plain import (
     stopper_line,
 )
 from ts.potential import POTENTIAL_VERSION, rank_potential_cards
-from ts.scoring.scorer import load_rules
+from ts.scoring.scorer import load_rules, thresholds_for
 from ts.ui_text import LABELS, panels
 
 FIELDS = [
@@ -372,7 +373,6 @@ def _checklist_filled(item: dict) -> bool:
 
 
 NEAR_MISS_FLOOR = 0.25
-NEAR_MISS_CEILING = 0.35
 NEAR_MISS_CAP = 8
 _NEAR_MISS_DROP = frozenset({
     "checklist_counter", "reader_failed", "reader_failed_replaced", "no_source_text", "no_source_text_replaced",
@@ -383,8 +383,11 @@ def _number(value) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool)
 
 
-def near_miss_cards(payload) -> list[dict]:
+def near_miss_cards(payload, *, rules: dict | None = None) -> list[dict]:
     """Scored cards just under the watchlist. They never fill the official TOP-15."""
+    version = str((payload or {}).get("rules_version") or "rules-0.1") if isinstance(payload, dict) else "rules-0.1"
+    active_rules = rules or load_rules(version)
+    watchlist_threshold = thresholds_for(active_rules)["watchlist"]
     registry = (payload or {}).get("exclusion_registry") if isinstance(payload, dict) else None
     picked = []
     for card in registry or []:
@@ -395,7 +398,7 @@ def near_miss_cards(payload) -> list[dict]:
         if card.get("policy_reason") in _NEAR_MISS_DROP:
             continue
         confidence = card.get("confidence")
-        if not _number(confidence) or not NEAR_MISS_FLOOR <= confidence < NEAR_MISS_CEILING:
+        if not _number(confidence) or not NEAR_MISS_FLOOR <= confidence < watchlist_threshold:
             continue
         picked.append(dict(card))
     picked.sort(key=lambda card: (-card["confidence"], str(card.get("technology") or "")))
@@ -851,13 +854,13 @@ def document(payload: dict, direction: str, correction: str, start: str, end: st
     return "\n".join(lines)
 
 
-def live_logic() -> dict:
-    rules = load_rules("rules-0.1")
+def live_logic(rules_version: str | None = None) -> dict:
+    rules = load_rules(rules_version or os.environ.get("TS_RULES_VERSION", "rules-0.1"))
     return {
         "rules_version": rules.get("version"),
         "prompt_version": PROMPT_VERSION,
-        "thresholds": rules.get("thresholds"),
-        "description_thresholds": (rules.get("modes") or {}).get("description", {}).get("thresholds"),
+        "thresholds": thresholds_for(rules),
+        "description_thresholds": thresholds_for(rules, "description"),
         "weights": rules.get("weights"),
         "note": "Экран эти числа не меняет. Смена — новый файл правил и отчёт eval.",
     }

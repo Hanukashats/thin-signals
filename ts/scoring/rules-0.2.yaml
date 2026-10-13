@@ -1,0 +1,79 @@
+# Thin Signals logical model — rules v0.2. Historical rules-0.1 remains immutable.
+version: rules-0.2
+as_of_default: "2026-10-13"
+
+value:
+  verified: 1.0
+  supported: 0.5
+  unknown: 0.0
+  absent: 0.0
+
+# The semantic primary pattern still explains the candidate. Scoring slots are
+# assigned by evidence strength, so discovering or upgrading positive evidence
+# cannot reduce confidence merely by changing which pattern is called primary.
+pattern_aggregation:
+  strategy: strongest_status_first
+
+weights:
+  primary: 0.35
+  secondary: 0.15
+  secondary_cap: 0.30
+  independence: 0.20
+  transition: 0.15
+
+penalties:
+  M01: 0.30
+  M02: 0.30
+  M03: 0.30
+  M04: 0.30
+  M05: 0.30
+  M06: 0.30
+
+counter_labels:
+  M01: mature
+  M02: mature
+  M03: mature
+  M04: noise
+  M05: noise
+  M06: mature
+
+# Initial thresholds deliberately match v0.1. They may move only after a
+# separately recorded train/holdout calibration; no threshold is tuned here.
+thresholds:
+  weak_signal: 0.60
+  watchlist: 0.35
+
+modes:
+  description:
+    max_status: supported
+    thresholds: {weak_signal: 0.30, watchlist: 0.18}
+  ledger:
+    max_status: verified
+
+patterns:
+  P01: Новый механизм или явление
+  P02: Преодоление порога эффективности
+  P03: Переход к реальному применению
+  P04: Конвергенция раннего капитала
+  P05: Появление самостоятельного продуктового слоя
+  P06: Зрелая технология в новой среде с новым ограничением
+  P07: Узкое место, замещение или дополнение в цепочке
+  P08: Стандарты и совместимость
+  P09: Новая угроза или нормативный стимул
+  P10: Перенос вычислений и границ данных
+  P11: Независимое исследовательское сближение
+  P12: Рост экосистемы разработчиков
+  P13: Разрыв между предметным прогрессом и вниманием
+  P14: Новая модель извлечения ценности
+  P15: Обязательство пользователя или внедренца
+  P16: Соединение ранее раздельных технологий
+  P17: Возвращение ранее неудавшегося направления
+  P18: Грант и публичная исследовательская программа
+
+counters:
+  M01: Выраженные лидеры рынка (≥3 поставщика с публичными долями / рейтинг «лидеров»)
+  M02: Принятый стандарт или обязательная сертификация в силе
+  M03: Массовое внедрение (deployment у многих клиентов / массовая поставка)
+  M04: Только индикаторные источники (соцсети, пресс-релизы, агрегаторы)
+  M05: Хайп без первичного источника (упоминаний много, и нет статьи, патента или документа регулятора). Первичная работа без продукта — не хайп
+  M06: Старая категория без нового применения/механизма

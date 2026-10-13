@@ -10,10 +10,9 @@ from collections.abc import Iterable
 
 from ts.checklist import CHECKLIST_VERSION
 from ts.fanout import _identity
+from ts.scoring.scorer import load_rules, thresholds_for
 
 POTENTIAL_VERSION = "potential-v2"
-WATCHLIST_THRESHOLD = 0.35
-WEAK_SIGNAL_THRESHOLD = 0.60
 NEAR_GATE_FLOOR = 0.25
 HIGH_POTENTIAL_THRESHOLD = 65.0
 DEFAULT_CAP = 8
@@ -55,8 +54,12 @@ def _axis_score(values: list[float]) -> float | None:
     return round(100.0 * (0.7 * strongest + 0.3 * second), 1)
 
 
-def potential_metrics(card: dict) -> dict:
+def potential_metrics(card: dict, *, rules: dict | None = None) -> dict:
     """Describe evidenced potential and gate proximity without making a forecast."""
+    active_rules = rules or load_rules(str(card.get("rules_version") or "rules-0.1"))
+    thresholds = thresholds_for(active_rules)
+    watchlist_threshold = thresholds["watchlist"]
+    weak_signal_threshold = thresholds["weak_signal"]
     predictors = card.get("predictors") if isinstance(card, dict) else None
     predictors = predictors if isinstance(predictors, list) else []
     metrics: dict[str, float | int | None | dict] = {}
@@ -79,10 +82,10 @@ def potential_metrics(card: dict) -> dict:
 
     confidence = card.get("confidence") if isinstance(card, dict) else None
     gate_proximity = None
-    gate_target = WATCHLIST_THRESHOLD
+    gate_target = watchlist_threshold
     if _number(confidence):
-        if float(confidence) >= WATCHLIST_THRESHOLD:
-            gate_target = WEAK_SIGNAL_THRESHOLD
+        if float(confidence) >= watchlist_threshold:
+            gate_target = weak_signal_threshold
         gate_proximity = round(
             100.0 * max(0.0, min(float(confidence), gate_target)) / gate_target,
             1,
@@ -97,16 +100,16 @@ def potential_metrics(card: dict) -> dict:
     return metrics
 
 
-def _eligible(card: dict) -> bool:
+def _eligible(card: dict, *, watchlist_threshold: float, weak_signal_threshold: float) -> bool:
     checklist = card.get("checklist")
     if not isinstance(checklist, dict) or checklist.get("status") != "scored":
         return False
     if checklist.get("version") != CHECKLIST_VERSION:
         return False
     confidence = card.get("confidence")
-    if not _number(confidence) or not 0 <= float(confidence) < WEAK_SIGNAL_THRESHOLD:
+    if not _number(confidence) or not 0 <= float(confidence) < weak_signal_threshold:
         return False
-    if float(confidence) < WATCHLIST_THRESHOLD:
+    if float(confidence) < watchlist_threshold:
         if card.get("policy_reason") != "checklist_below_watchlist":
             return False
     elif card.get("label") != "watchlist" or card.get("policy_reason") not in {
@@ -119,13 +122,23 @@ def _eligible(card: dict) -> bool:
     return True
 
 
-def rank_potential_cards(payload: dict, *, cap: int = DEFAULT_CAP) -> list[dict]:
+def rank_potential_cards(
+    payload: dict,
+    *,
+    cap: int = DEFAULT_CAP,
+    rules: dict | None = None,
+) -> list[dict]:
     """Rank observations worth another check; never change their signal label.
 
     A card enters for being close to the existing gate or for having a high
     evidence-based potential index.  The review priority is the stronger of
     those two triage signals, not a combined probability.
     """
+    version = str((payload or {}).get("rules_version") or "rules-0.1")
+    active_rules = rules or load_rules(version)
+    thresholds = thresholds_for(active_rules)
+    watchlist_threshold = thresholds["watchlist"]
+    weak_signal_threshold = thresholds["weak_signal"]
     registry = [
         card for bucket in ("top", "exclusion_registry")
         for card in (payload.get(bucket) or [])
@@ -133,16 +146,20 @@ def rank_potential_cards(payload: dict, *, cap: int = DEFAULT_CAP) -> list[dict]
     rows: list[dict] = []
     seen: set[tuple] = set()
     for card in registry or []:
-        if not isinstance(card, dict) or not _eligible(card):
+        if not isinstance(card, dict) or not _eligible(
+            card,
+            watchlist_threshold=watchlist_threshold,
+            weak_signal_threshold=weak_signal_threshold,
+        ):
             continue
         identity = _identity(card)
         if identity in seen:
             continue
         seen.add(identity)
         confidence = float(card["confidence"])
-        potential = potential_metrics(card)
+        potential = potential_metrics(card, rules=active_rules)
         reasons = []
-        if NEAR_GATE_FLOOR <= confidence < WATCHLIST_THRESHOLD:
+        if NEAR_GATE_FLOOR <= confidence < watchlist_threshold:
             reasons.append("near_gate")
         potential_index = potential["potential_index"]
         if _number(potential_index) and float(potential_index) >= HIGH_POTENTIAL_THRESHOLD:

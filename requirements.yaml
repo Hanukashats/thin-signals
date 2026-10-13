@@ -89,13 +89,18 @@ requirements:
     title: Classification algorithm as logical model (features + gates + calibrated thresholds), no weight training
     priority: P0
     owner: AI
-    state: planned
+    state: tested
     wave: W2-scorer-eval
     forks: [tz.classifier]
     acceptance: >
       ts/scoring produces label + confidence + reason codes for every row from features F-P01..18 and M01..06 only;
       dataset_score/trend/rationale never used as inputs; rules version pinned.
-    evidence: []
+    evidence:
+      - ts/scoring/rules-0.1.yaml
+      - ts/scoring/rules-0.2.yaml
+      - ts/scoring/scorer.py
+      - ts/tests/test_scorer.py
+      - docs/adr/ADR-013-RULES-0.2-MONOTONIC-SCORING.md
 
   - id: TZ-02
     title: Precision/Recall/F1 report on labelled data
@@ -574,6 +579,7 @@ requirements:
       no advisory text directly changes gates or scores
     evidence:
       - docs/adr/ADR-012-RELIABILITY-FIRST-RESEARCH-LOOP.md
+      - docs/adr/ADR-013-RULES-0.2-MONOTONIC-SCORING.md
       - reports/ASTRA_AUDIT_2026-10-12.md
       - ts/sources/researcher.py
       - ts/sources/refetch.py
@@ -637,11 +643,14 @@ requirements:
       - ts/review/runner.py
       - ts/review/arbiter.py
       - ts/review/integration.py
+      - ts/scoring/rules-0.2.yaml
+      - ts/scoring/scorer.py
       - ts/db/migrations/versions/e2c7f6a9b104_review_events.py
       - ts/tests/test_review_contracts.py
       - ts/tests/test_review_runner.py
       - ts/tests/test_review_persistence.py
       - ts/tests/test_review_integration.py
+      - ts/tests/test_scorer.py
       - ts/tests/test_llm.py::test_registry_slow_stream_is_abandoned_at_absolute_deadline
       - ts/tests/test_llm.py::test_completion_slow_stream_is_abandoned_at_absolute_deadline
       - ts/tests/test_review_integration.py::test_hard_process_death_recovers_running_reservation_as_stable_hold

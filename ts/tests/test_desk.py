@@ -324,6 +324,23 @@ def test_near_miss_keeps_only_scored_cards_just_under_the_watchlist():
     assert near_miss_cards({}) == [] and near_miss_cards({"exclusion_registry": None}) == []
 
 
+def test_near_miss_uses_rules_threshold_instead_of_a_duplicate_ceiling():
+    from copy import deepcopy
+
+    from ts.desk import near_miss_cards
+    from ts.scoring.scorer import load_rules
+
+    rules = deepcopy(load_rules())
+    rules["thresholds"] = {"weak_signal": 0.70, "watchlist": 0.40}
+
+    picked = near_miss_cards(
+        {"exclusion_registry": [_scored("динамический порог", 0.39)]},
+        rules=rules,
+    )
+
+    assert [card["technology"] for card in picked] == ["динамический порог"]
+
+
 def test_near_miss_board_falls_back_for_an_old_run_and_explains_reasons():
     from ts.desk import near_miss_board
 

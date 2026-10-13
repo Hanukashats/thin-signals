@@ -43,6 +43,14 @@ no scoped P0/P1/P2 finding: 407 tests and Ruff passed, including native route,
 PostgreSQL, pool saturation, process-death, DNS/proxy/TLS and deadline probes.
 Receipt: `reports/ASTRA_C05_PASS_9F3A139_2026-10-13.md`.
 
+`rules-0.2` is now an evaluation-only candidate. It fixes the positive-evidence
+non-monotonicity by separating semantic-primary explanation from strongest-first
+scoring slots, while retaining v0.1 weights and thresholds. All executable
+threshold consumers use the versioned scorer contract. Historical v0.1 rows are
+unchanged and production still requires replay, holdout and independent review.
+The candidate repository gate is **413 passed**, Ruff clean, with exhaustive
+primary-choice/status monotonicity and dynamic-threshold regressions.
+
 The public route is `https://tsignal.aispaces.ru` through Caddy on VM105 to
 VM232's private `:18443` listener. Account hashes and provider/database
 credentials remain only in host `.secrets/`. GOAL queue ownership remains

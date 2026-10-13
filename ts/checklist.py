@@ -13,7 +13,7 @@ from pathlib import Path
 from ts.extract import to_feature_vector, validate_scoring_output
 from ts.fanout import _identity, explicit_origin_groups
 from ts.scale import fetch_abstract
-from ts.scoring.scorer import load_rules, score
+from ts.scoring.scorer import load_rules, score, thresholds_for
 from ts.snapshots import read_attested_snapshot
 from ts.sources.refetch import extract_text
 from ts.sources.trust import classify
@@ -225,9 +225,7 @@ def vector_for(card: dict, out: dict):
 
 
 def _watchlist(rules: dict) -> float:
-    mode = (rules.get("modes") or {}).get("ledger") or {}
-    thresholds = mode.get("thresholds") or rules["thresholds"]
-    return float(thresholds["watchlist"])
+    return thresholds_for(rules)["watchlist"]
 
 
 def _case_quote(out: dict, fragments: list[str], urls: list[str]) -> dict | None:

@@ -196,3 +196,21 @@ def test_legacy_exclusion_cannot_silently_become_current_potential():
     assert "новый прогон" in board["note"]
     warnings = " ".join(run_integrity(payload, expected_checklist=CHECKLIST_VERSION)["warnings"])
     assert "checklist-v11" in warnings
+
+
+def test_potential_uses_injected_rules_thresholds_instead_of_module_constants():
+    from copy import deepcopy
+
+    from ts.potential import potential_metrics, rank_potential_cards
+    from ts.scoring.scorer import load_rules
+
+    rules = deepcopy(load_rules())
+    rules["thresholds"] = {"weak_signal": 0.70, "watchlist": 0.40}
+    card = _card("динамический порог", 0.39, [_p("P01", "supported")])
+
+    rows = rank_potential_cards({"exclusion_registry": [card]}, rules=rules)
+
+    assert len(rows) == 1
+    assert rows[0]["selection_reasons"] == ["near_gate"]
+    assert rows[0]["gate_target"] == 0.4
+    assert potential_metrics(card, rules=rules)["gate_target"] == 0.4

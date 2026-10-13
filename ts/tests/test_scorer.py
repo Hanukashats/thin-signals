@@ -1,7 +1,9 @@
 """Scorer invariants + METHODOLOGY §8 error cases expressed as feature statuses."""
 from __future__ import annotations
 
-from ts.scoring.scorer import FeatureVector, independence, load_rules, score
+from itertools import product
+
+from ts.scoring.scorer import FeatureVector, independence, load_rules, score, thresholds_for
 
 R = load_rules()
 
@@ -71,3 +73,81 @@ def test_thresholds_produce_watchlist_and_noise():
     assert r.label == "watchlist" and "below_tau" in r.reason_codes
     r = score(fv(features={}, secondary_patterns=[], evidence_events=0, independent_origins=0, transition="unknown"), R)
     assert r.label == "noise" and r.confidence == 0.0
+
+
+def test_rules_0_2_pattern_score_is_invariant_to_semantic_primary_choice():
+    rules = load_rules("rules-0.2")
+    features = {"P01": "supported", "P02": "verified", "P04": "supported"}
+    confidences = {
+        score(fv(
+            primary_pattern=primary,
+            secondary_patterns=[code for code in features if code != primary],
+            features=features,
+            evidence_events=0,
+            independent_origins=0,
+            transition="unknown",
+        ), rules).confidence
+        for primary in features
+    }
+
+    assert confidences == {0.5}
+
+
+def test_rules_0_2_positive_evidence_is_monotonic_when_primary_changes():
+    rules = load_rules("rules-0.2")
+    before = score(fv(
+        primary_pattern="P02",
+        secondary_patterns=["P04"],
+        features={"P02": "verified", "P04": "supported"},
+        evidence_events=0,
+        independent_origins=0,
+        transition="unknown",
+    ), rules)
+    after = score(fv(
+        primary_pattern="P01",
+        secondary_patterns=["P02", "P04"],
+        features={"P01": "supported", "P02": "verified", "P04": "supported"},
+        evidence_events=0,
+        independent_origins=0,
+        transition="unknown",
+    ), rules)
+
+    assert before.confidence == 0.425
+    assert after.confidence == 0.5
+    assert after.confidence >= before.confidence
+
+
+def test_thresholds_for_is_the_single_mode_aware_contract():
+    rules = load_rules("rules-0.2")
+
+    assert thresholds_for(rules) == {"weak_signal": 0.60, "watchlist": 0.35}
+    assert thresholds_for(rules, "description") == {"weak_signal": 0.30, "watchlist": 0.18}
+
+
+def test_rules_0_2_is_exhaustively_primary_invariant_and_status_monotonic():
+    rules = load_rules("rules-0.2")
+    codes = ("P01", "P02", "P03")
+    statuses = ("absent", "unknown", "supported", "verified")
+    strength = {"absent": 0, "unknown": 0, "supported": 1, "verified": 2}
+
+    def confidence(features: dict[str, str], primary: str) -> float:
+        return score(FeatureVector(
+            primary_pattern=primary,
+            secondary_patterns=[code for code in codes if code != primary],
+            features=features,
+            evidence_events=0,
+            independent_origins=0,
+            transition="unknown",
+        ), rules).confidence or 0.0
+
+    for values in product(statuses, repeat=len(codes)):
+        features = dict(zip(codes, values, strict=True))
+        primary_scores = {confidence(features, primary) for primary in codes}
+        assert len(primary_scores) == 1
+        baseline = primary_scores.pop()
+        for code in codes:
+            for upgraded in statuses:
+                if strength[upgraded] < strength[features[code]]:
+                    continue
+                changed = {**features, code: upgraded}
+                assert confidence(changed, code) >= baseline

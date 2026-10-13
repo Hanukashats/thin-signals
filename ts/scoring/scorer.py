@@ -21,6 +21,16 @@ def load_rules(version: str = "rules-0.1") -> dict:
     return yaml.safe_load((RULES_DIR / f"{version}.yaml").read_text())
 
 
+def thresholds_for(rules: dict, mode: str = "ledger") -> dict[str, float]:
+    """Return the one versioned threshold contract used by scoring and views."""
+    mode_rules = (rules.get("modes") or {}).get(mode) or {}
+    thresholds = mode_rules.get("thresholds") or rules["thresholds"]
+    return {
+        "weak_signal": float(thresholds["weak_signal"]),
+        "watchlist": float(thresholds["watchlist"]),
+    }
+
+
 @dataclass
 class FeatureVector:
     """Input to the scorer. In `description` mode statuses are capped at `supported`."""
@@ -63,7 +73,7 @@ def score(fv: FeatureVector, rules: dict | None = None) -> ScoreResult:
     value, w, u = r["value"], r["weights"], r["penalties"]
     mode = r["modes"].get(fv.mode, {})
     max_status = mode.get("max_status", "verified")
-    thr = mode.get("thresholds", r["thresholds"])
+    thr = thresholds_for(r, fv.mode)
     predictors: list[dict] = []
     reasons: list[str] = []
 
@@ -78,9 +88,49 @@ def score(fv: FeatureVector, rules: dict | None = None) -> ScoreResult:
         label = "noise" if "noise" in labels and "mature" not in labels else "mature"
         return ScoreResult(label, None, reasons, predictors, r["version"], gate="maturity")
 
-    # --- Σ w_i v(F-Pi): primary + capped secondary
+    # --- Σ w_i v(F-Pi): versioned pattern aggregation
     conf = 0.0
-    if fv.named_primary:
+    strongest_first = (
+        (r.get("pattern_aggregation") or {}).get("strategy")
+        == "strongest_status_first"
+    )
+    if strongest_first:
+        pattern_codes: list[str] = []
+        if fv.named_primary and fv.primary_pattern in PATTERN_IDS:
+            pattern_codes.append(fv.primary_pattern)
+        pattern_codes.extend(
+            code for code in fv.secondary_patterns
+            if code in PATTERN_IDS and code not in pattern_codes
+        )
+        patterns = [
+            (code, _cap(fv.features.get(code, "unknown"), max_status))
+            for code in pattern_codes
+        ]
+        patterns.sort(key=lambda row: (-float(value[row[1]]), row[0]))
+        secondary_total = 0.0
+        for index, (code, status) in enumerate(patterns):
+            weight = w["primary"] if index == 0 else w["secondary"]
+            contribution = weight * value[status]
+            if index:
+                allowed = max(0.0, w["secondary_cap"] - secondary_total)
+                contribution = min(contribution, allowed)
+                secondary_total += contribution
+            conf += contribution
+            predictors.append({
+                "code": code,
+                "kind": "primary" if code == fv.primary_pattern else "secondary",
+                "semantic_role": "primary" if code == fv.primary_pattern else "secondary",
+                "scoring_slot": "lead" if index == 0 else "support",
+                "value": status,
+                "weight": weight,
+                "contribution": round(contribution, 4),
+                "evidence": fv.evidence.get(code, ""),
+            })
+        if fv.named_primary:
+            primary_status = _cap(fv.features.get(fv.primary_pattern, "unknown"), max_status)
+            if primary_status in ("unknown", "absent"):
+                reasons.append(f"{fv.primary_pattern}_{primary_status}")
+    elif fv.named_primary:
         p_status = _cap(fv.features.get(fv.primary_pattern, "unknown"), max_status)
         c = w["primary"] * value[p_status]
         conf += c
@@ -88,18 +138,19 @@ def score(fv: FeatureVector, rules: dict | None = None) -> ScoreResult:
                            "contribution": round(c, 4), "evidence": fv.evidence.get(fv.primary_pattern, "")})
         if p_status in ("unknown", "absent"):
             reasons.append(f"{fv.primary_pattern}_{p_status}")
-    sec_total = 0.0
-    for p in fv.secondary_patterns:
-        if p == fv.primary_pattern or p not in PATTERN_IDS:
-            continue
-        s = _cap(fv.features.get(p, "unknown"), max_status)
-        c = w["secondary"] * value[s]
-        allowed = max(0.0, w["secondary_cap"] - sec_total)
-        c = min(c, allowed)
-        sec_total += c
-        conf += c
-        predictors.append({"code": p, "kind": "secondary", "value": s, "weight": w["secondary"],
-                           "contribution": round(c, 4), "evidence": fv.evidence.get(p, "")})
+    if not strongest_first:
+        sec_total = 0.0
+        for p in fv.secondary_patterns:
+            if p == fv.primary_pattern or p not in PATTERN_IDS:
+                continue
+            s = _cap(fv.features.get(p, "unknown"), max_status)
+            c = w["secondary"] * value[s]
+            allowed = max(0.0, w["secondary_cap"] - sec_total)
+            c = min(c, allowed)
+            sec_total += c
+            conf += c
+            predictors.append({"code": p, "kind": "secondary", "value": s, "weight": w["secondary"],
+                               "contribution": round(c, 4), "evidence": fv.evidence.get(p, "")})
 
     # --- independence and transition
     ind = independence(fv.evidence_events, fv.independent_origins)

@@ -114,13 +114,20 @@ def _review_bound_fingerprint(
 
 def _near_miss(registry: list[dict], settings: Settings) -> list[dict]:
     """Reach is read for the short list only, never for the whole registry."""
-    cards = near_miss_cards({"exclusion_registry": registry})
+    cards = near_miss_cards({
+        "rules_version": getattr(settings, "rules_version", "rules-0.1"),
+        "exclusion_registry": registry,
+    })
     return annotate_reach(cards, settings) if cards else []
 
 
 def _potential(registry: list[dict], settings: Settings, top: list[dict] | None = None) -> list[dict]:
     """Persist the separate evidence-triage queue; it never fills the admitted list."""
-    cards = rank_potential_cards({"top": top or [], "exclusion_registry": registry})
+    cards = rank_potential_cards({
+        "rules_version": getattr(settings, "rules_version", "rules-0.1"),
+        "top": top or [],
+        "exclusion_registry": registry,
+    })
     return annotate_reach(cards, settings) if cards else []
 
 

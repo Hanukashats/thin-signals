@@ -73,7 +73,7 @@ confidence = clamp( Σ_i w_i · v(F-Pi) + w_ind · ind + w_tr · tr − Σ_j u_j
 - `ind`: min(1, (events−1)/4) · min(1, (origins−1)/2) — независимость.
 - `tr`: 1 если есть `transition_verified`, иначе 0.
 - `m(Mj)`: 1 если контр-признак сработал.
-- Веса `w_i`, `w_ind`, `w_tr`, `u_j` — версионированная таблица в `ts/scoring/rules-0.1.yaml`; стартовые: w_primary=0.35, w_secondary=0.15 (сумма по secondary ≤0.30), w_ind=0.20, w_tr=0.15, u_M=0.30 каждый. Порог `weak_signal`: confidence ≥ τ (стартовый τ=0.60); `watchlist`: 0.35 ≤ c < τ. Калибровка τ по holdout — W2, фиксируется в ADR.
+- Веса `w_i`, `w_ind`, `w_tr`, `u_j` — версионированные таблицы `ts/scoring/rules-*.yaml`; стартовые: w_lead=0.35, w_support=0.15 (сумма support ≤0.30), w_ind=0.20, w_tr=0.15, u_M=0.30 каждый. Историческая `rules-0.1` привязывает lead к semantic primary. Кандидат `rules-0.2` сохраняет semantic primary для объяснения, но назначает lead самому сильному подтверждённому паттерну: добавление положительного доказательства больше не может снизить сумму. Порог `weak_signal`: confidence ≥ τ (0.60); `watchlist`: 0.35 ≤ c < τ. Первые пороги v0.2 намеренно не меняются; сравнение и holdout обязательны до активации (ADR-013).
 
 Каждое слагаемое видно в карточке как «ключевой предиктор» с reason code и ссылкой на fragment. Это и есть интерпретируемость по ТЗ.
 
