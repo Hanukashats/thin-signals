@@ -6,7 +6,9 @@ import json
 import re
 from collections.abc import Mapping, Sequence
 from dataclasses import replace
+from pathlib import Path
 
+from ts.checklist import review_evidence_fragments
 from ts.llm import MANDATORY_PROVIDER_POLICY, LLMError, OpenRouterClient
 from ts.review.arbiter import ARBITER_RULE_VERSION
 from ts.review.contracts import EvidenceItem, RoleName
@@ -20,7 +22,8 @@ from ts.review.runner import (
     run_review,
 )
 
-REVIEW_INTEGRATION_VERSION = "review-integration-0.2"
+REVIEW_INTEGRATION_VERSION = "review-integration-0.3"
+REVIEW_EVIDENCE_VERSION = "review-evidence-0.1"
 _ORIGIN_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/() -]{0,127}$")
 
 
@@ -89,10 +92,21 @@ def _explicit_origin(candidate: Mapping, url: str) -> str | None:
 
 
 class CandidateEvidenceProvider:
-    """Replays the exact checklist-attested bundle equally to every role."""
+    """Replays one bounded, provenance-typed evidence bundle to every role."""
 
-    def __init__(self, candidate: Mapping):
+    def __init__(self, candidate: Mapping, *, snapshot_root: str | Path | None = None):
         self.candidate = candidate
+        fragments = candidate.get("evidence_fragments")
+        if fragments is None or fragments == []:
+            fragments = review_evidence_fragments(
+                dict(candidate),
+                snapshot_root=Path(snapshot_root) if snapshot_root is not None else None,
+            )
+        self.fragments = fragments
+
+    @property
+    def has_evidence(self) -> bool:
+        return isinstance(self.fragments, list) and bool(self.fragments)
 
     def retrieve(
         self,
@@ -103,7 +117,7 @@ class CandidateEvidenceProvider:
         _ = role, budget
         if candidate is not self.candidate and dict(candidate) != dict(self.candidate):
             raise ValueError("review evidence provider candidate mismatch")
-        fragments = candidate.get("evidence_fragments")
+        fragments = self.fragments
         if not isinstance(fragments, list):
             raise TypeError("candidate has no typed checklist evidence bundle")
         rows = []
@@ -126,7 +140,7 @@ class CandidateEvidenceProvider:
             if provenance == "preserved_primary" and snapshot_ref is None:
                 raise ValueError("primary review evidence lacks snapshot attestation")
             identity = {
-                "version": REVIEW_INTEGRATION_VERSION,
+                "version": REVIEW_EVIDENCE_VERSION,
                 "index": index,
                 "quote_hash": hashlib.sha256(quote.encode()).hexdigest(),
                 "url": url,
@@ -184,7 +198,12 @@ def attach_candidate_review(
             review_enabled=True,
             review_status="skipped_no_candidate",
         )
-    if evidence_provider is None and not report.card.get("evidence_fragments"):
+    if evidence_provider is None:
+        evidence_provider = CandidateEvidenceProvider(
+            report.card,
+            snapshot_root=getattr(settings, "snapshot_dir", None),
+        )
+    if isinstance(evidence_provider, CandidateEvidenceProvider) and not evidence_provider.has_evidence:
         # A strict researcher claim requires a real citation. Calling four
         # models with an empty enum can only waste budget or produce an
         # artificial schema failure; expose the missing prerequisite directly.
@@ -209,7 +228,6 @@ def attach_candidate_review(
             max_cost_usd=0.000001,
             evidence_limit=1,
         )
-    evidence_provider = evidence_provider or CandidateEvidenceProvider(report.card)
     round_ = run_review(
         run_id=report.id,
         candidate=report.card,

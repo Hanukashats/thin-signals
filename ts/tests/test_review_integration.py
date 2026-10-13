@@ -22,6 +22,7 @@ from ts.review.integration import (
 )
 from ts.review.runner import RoleBudget, RoleCallResult
 from ts.settings import Settings
+from ts.snapshots import save_snapshot
 from ts.sources.connectors import Hit
 from ts.tests.test_harness import Scripted
 from ts.tests.test_llm import settings as make_settings
@@ -157,15 +158,24 @@ class AdaptiveGateway:
         body = messages[1]["content"].split("\n", 1)[1].rsplit("\n", 1)[0]
         evidence_ids = [row["evidence_id"] for row in json.loads(body)["evidence"]]
         assert len(evidence_ids) >= 3
-        mapped = json.dumps(outputs())
-        for old, new in zip(
+        replacements = dict(zip(
             ("evidence-1", "evidence-2", "evidence-3"),
             evidence_ids,
             strict=True,
-        ):
-            mapped = mapped.replace(old, new)
+        ))
+
+        def replace_exact(value):
+            if isinstance(value, str):
+                return replacements.get(value, value)
+            if isinstance(value, list):
+                return [replace_exact(row) for row in value]
+            if isinstance(value, dict):
+                return {key: replace_exact(row) for key, row in value.items()}
+            return value
+
+        mapped = replace_exact(outputs())
         return RoleCallResult(
-            payload=json.loads(mapped)[role],
+            payload=mapped[role],
             model_id=model,
             provider="FixtureZDR",
             usage={"prompt_tokens": 100, "completion_tokens": 100, "total_tokens": 200},
@@ -267,6 +277,78 @@ def test_candidate_provider_uses_only_attested_fragments_and_explicit_origins():
     ]
     assert all(row.snapshot_ref and row.snapshot_ref.startswith("sha256:") for row in rows)
     assert all("fragment" not in row.model_dump(mode="json") for row in rows)
+
+
+def test_candidate_provider_falls_back_to_revalidated_source_snapshot(tmp_path):
+    fetched_url = "https://arxiv.org/abs/2601.00009"
+    body = b"Independent primary experiment reports the mechanism."
+    text = body.decode()
+    text_hash = hashlib.sha256(text.encode()).hexdigest()
+    saved = save_snapshot(
+        tmp_path,
+        fetched_url,
+        body,
+        content_type="text/plain",
+        text_hash=text_hash,
+        source_type="paper",
+    )
+    card = {
+        **_card(),
+        "evidence_fragments": [],
+        "sources": [{
+            "name": "Primary experiment",
+            "url": "https://doi.org/10.1234/review-source",
+            "type": "paper",
+            "trust": "primary",
+            "doi": "10.1234/review-source",
+            "origin_ids": ["ror:source-lab"],
+            "snippet": "Discovery-only snippet.",
+            "evidence": {
+                "version": "snapshot-evidence-0.3",
+                "status": "preserved",
+                "content_hash": saved["content_hash"],
+                "snapshot_ref": f"sha256:{saved['content_hash']}",
+                "attestation_ref": saved["attestation_ref"],
+                "fetched_url": fetched_url,
+                "content_type": "text/plain",
+                "fetched_source_type": "paper",
+                "fragment": text,
+                "fragment_hash": hashlib.sha256(text.encode()).hexdigest(),
+                "text_hash": text_hash,
+            },
+        }],
+    }
+
+    provider = CandidateEvidenceProvider(card, snapshot_root=tmp_path)
+    rows = list(provider.retrieve("researcher", card, RoleBudget(5, 500, 0.02, 3)))
+
+    assert len(rows) == 1
+    assert rows[0].quote == text
+    assert rows[0].url == fetched_url
+    assert rows[0].provenance == "preserved_primary"
+    assert rows[0].snapshot_ref == f"sha256:{saved['content_hash']}"
+    assert rows[0].origin_group_id == "ror:source-lab"
+
+
+def test_candidate_provider_can_challenge_snippets_but_never_attests_them():
+    card = {
+        **_card(),
+        "evidence_fragments": [],
+        "sources": [{
+            "name": f"Discovery source {index}",
+            "url": f"https://example.org/source-{index}",
+            "type": "web",
+            "trust": "indicator",
+            "snippet": f"Bounded discovery snippet {index}.",
+        } for index in range(1, 4)],
+    }
+
+    provider = CandidateEvidenceProvider(card)
+    rows = list(provider.retrieve("researcher", card, RoleBudget(5, 500, 0.02, 3)))
+
+    assert len(rows) == 3
+    assert all(row.provenance == "snippet_only" for row in rows)
+    assert all(row.snapshot_ref is None for row in rows)
 
 
 def test_attach_review_is_default_off_and_enabled_trace_excludes_prose(tmp_path):

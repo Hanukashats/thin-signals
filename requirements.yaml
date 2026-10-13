@@ -656,6 +656,8 @@ requirements:
       - ts/db/migrations/versions/e2c7f6a9b104_review_events.py
       - ts/tests/test_review_contracts.py
       - ts/tests/test_review_runner.py
+      - ts/tests/test_review_integration.py::test_candidate_provider_falls_back_to_revalidated_source_snapshot
+      - ts/tests/test_review_integration.py::test_candidate_provider_can_challenge_snippets_but_never_attests_them
       - ts/tests/test_review_persistence.py
       - ts/tests/test_review_integration.py
       - data/review_eval_v1.json

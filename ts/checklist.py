@@ -102,6 +102,50 @@ def _effective_source_trust(source: dict, evidence: dict | None) -> str:
     return min(levels, key=lambda value: rank.get(value, 0))
 
 
+def review_evidence_fragments(
+    card: dict,
+    *,
+    snapshot_root: Path | None,
+    limit: int = 12,
+) -> list[dict]:
+    """Build review citations from revalidated snapshots or bounded snippets."""
+    rows = []
+    for bucket in ("sources", "counter_sources"):
+        for source in card.get(bucket) or []:
+            if not isinstance(source, dict):
+                continue
+            evidence = source.get("evidence") if isinstance(source.get("evidence"), dict) else None
+            attested = _preserved_evidence(evidence, snapshot_root)
+            text = (
+                str((evidence or {}).get("fragment") or "").strip()
+                if attested else str(source.get("snippet") or "").strip()
+            )
+            url = str(
+                (evidence or {}).get("fetched_url") or source.get("url") or ""
+                if attested else source.get("url") or ""
+            )
+            if not text or not url:
+                continue
+            provenance = "snippet_only"
+            snapshot_ref = None
+            if attested:
+                provenance = (
+                    "preserved_primary"
+                    if _effective_source_trust(source, evidence) == "primary"
+                    else "preserved_non_primary"
+                )
+                snapshot_ref = str((evidence or {}).get("snapshot_ref") or "") or None
+            rows.append({
+                "text": text,
+                "url": url,
+                "provenance": provenance,
+                "snapshot_ref": snapshot_ref,
+            })
+            if len(rows) >= limit:
+                return rows
+    return rows
+
+
 def _fuller(source: dict, snippet: str) -> str:
     """The official record text when the snippet was cut at the cap and the record says more."""
     if len(snippet) < SNIPPET_CAP:

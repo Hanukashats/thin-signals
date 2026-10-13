@@ -42,11 +42,13 @@ The first bounded production canary correctly failed closed when live models
 rewrote or cross-linked citation IDs. `adversarial-review-0.2` now constrains
 structured decoding to current-round identifiers and supplies exact defender and
 control-critic reference bindings. Its focused suite passes, and the complete
-suite is **446 passed** on a new migrated disposable PostgreSQL database. A fresh
+suite is **448 passed** on a new migrated disposable PostgreSQL database. A fresh
 live canary and independent release verification are still pending.
-An additional live run exposed an empty cited-evidence bundle on an otherwise
-admitted card. `review-integration-0.2` now reports `skipped_no_evidence` without
-spending four role calls; it never upgrades that absence into a positive review.
+An additional live run exposed an empty checklist-cited bundle on an otherwise
+admitted card. `review-integration-0.3` now revalidates preserved source
+snapshots and supplies remaining discovery snippets only as `snippet_only`;
+it reports `skipped_no_evidence` without role spend only when no URL+text
+citation exists, and never upgrades a snippet into attested evidence.
 The same receipt showed a paywalled DOI while OpenAlex already carried an
 explicit open-access location. `retrieval-0.9` now prefers that OA target for
 snapshot acquisition under the unchanged SSRF, final-URL trust and SHA-256

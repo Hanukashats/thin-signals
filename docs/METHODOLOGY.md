@@ -113,9 +113,11 @@ evidence ID для каждого objection; control critic — точную п�
 rebuttal, допустимые evidence ID и обязательные evidence ID для статуса
 `resolved`. Модель не может исправить или придумать ссылку свободным текстом;
 сервер повторно проверяет те же связи перед арбитражем.
-`review-integration-0.2` не вызывает роли при пустом checklist-cited evidence
-bundle: публичный статус в таком случае `skipped_no_evidence`, а не ложная
-ошибка провайдера и не положительный review.
+`review-integration-0.3` сначала использует checklist-cited evidence, а при его
+отсутствии заново проверяет snapshot attestation у source fragments и добавляет
+ограниченные discovery snippets только со статусом `snippet_only`. Если нет ни
+одной пары URL+текст, роли не вызываются и публичный статус становится
+`skipped_no_evidence`, а не ложная ошибка провайдера и не положительный review.
 Флаг `TS_ADVERSARIAL_REVIEW_ENABLED` по умолчанию `false`; при выключенном флаге
 идентификаторы прежних запусков сохраняются и модельные роли не вызываются.
 При включении перед расходом модельного бюджета создаётся durable reservation в
