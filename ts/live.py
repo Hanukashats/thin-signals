@@ -33,9 +33,11 @@ from ts.harness import (
     transport_timeout,
 )
 from ts.persist import (
+    acquire_report_lock,
     fail_reserved_report,
     load_report,
     public_report,
+    release_report_lock,
     reserve_report,
     save_report,
 )
@@ -331,27 +333,7 @@ def _review_and_store_locked(
 ) -> dict:
     """Reserve an enabled review before model spend, then atomically finalize it."""
     enabled = bool(getattr(settings, "adversarial_review_enabled", False))
-    reserved = False
-    if enabled:
-        with factory() as session:
-            stored = load_report(session, report.idempotency_key)
-        if stored is not None:
-            stored["repeated"] = True
-            return stored
-        with factory() as session:
-            reserved, stored = reserve_report(
-                session,
-                run_id=report.id,
-                query=report.query,
-                idempotency_key=report.idempotency_key,
-                corpus_version=report.corpus_version,
-                rules_version=report.card["rules_version"],
-                review_enabled=True,
-            )
-        if stored is not None:
-            stored["repeated"] = True
-            return stored
-    try:
+    if not enabled:
         report = attach_candidate_review(
             report,
             settings,
@@ -359,28 +341,79 @@ def _review_and_store_locked(
             evidence_provider=evidence_provider,
         )
         with factory() as session:
-            if reserved:
-                save_report(session, report, reserved=True)
-            else:
-                save_report(session, report)
+            save_report(session, report)
             if report.repeated:
                 stored = load_report(session, report.idempotency_key)
                 if stored is not None:
                     stored["repeated"] = True
                     return stored
-    except Exception:
-        if not reserved:
-            raise
-        with factory() as session:
-            failed = fail_reserved_report(
-                session,
-                idempotency_key=report.idempotency_key,
-                review_enabled=True,
-            )
-        if failed is not None:
-            return failed
-        raise
-    return public_report(report)
+        return public_report(report)
+
+    with factory() as lock_session:
+        lock_held = acquire_report_lock(lock_session, report.idempotency_key)
+        try:
+            with factory() as session:
+                reserved, stored = reserve_report(
+                    session,
+                    run_id=report.id,
+                    query=report.query,
+                    idempotency_key=report.idempotency_key,
+                    corpus_version=report.corpus_version,
+                    rules_version=report.card["rules_version"],
+                    review_enabled=True,
+                    coordinated=lock_held,
+                )
+            if stored is not None:
+                stored["repeated"] = True
+                return stored
+            try:
+                report = attach_candidate_review(
+                    report,
+                    settings,
+                    gateway=gateway,
+                    evidence_provider=evidence_provider,
+                )
+                with factory() as session:
+                    if reserved:
+                        save_report(session, report, reserved=True)
+                    else:
+                        save_report(session, report)
+            except Exception:
+                if not reserved:
+                    raise
+                with factory() as session:
+                    failed = fail_reserved_report(
+                        session,
+                        idempotency_key=report.idempotency_key,
+                        review_enabled=True,
+                        coordinated=lock_held,
+                    )
+                if failed is not None:
+                    return failed
+                raise
+            return public_report(report)
+        finally:
+            if lock_held:
+                release_report_lock(lock_session, report.idempotency_key)
+
+
+def _settle_reserved_report(factory, idempotency_key: str) -> dict | None:
+    """Wait for the live owner, or close its crash-left reservation as HOLD."""
+    with factory() as lock_session:
+        lock_held = acquire_report_lock(lock_session, idempotency_key)
+        try:
+            with factory() as session:
+                if lock_held:
+                    return fail_reserved_report(
+                        session,
+                        idempotency_key=idempotency_key,
+                        review_enabled=True,
+                        coordinated=True,
+                    )
+                return load_report(session, idempotency_key)
+        finally:
+            if lock_held:
+                release_report_lock(lock_session, idempotency_key)
 
 
 def _review_and_store(
@@ -459,8 +492,8 @@ def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Se
         and not _theme
         and bool(getattr(s, "adversarial_review_enabled", False))
     ):
-        with _review_lock(key), factory() as session:
-            stored = load_report(session, key)
+        with _review_lock(key):
+            stored = _settle_reserved_report(factory, key)
     if stored is not None:
         stored["repeated"] = True
         return stored
@@ -552,8 +585,8 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
         and stored.get("run_status") == "running"
         and bool(getattr(settings, "adversarial_review_enabled", False))
     ):
-        with _review_lock(key), factory() as session:
-            stored = load_report(session, key)
+        with _review_lock(key):
+            stored = _settle_reserved_report(factory, key)
     if stored is not None:
         stored["repeated"] = True
         return stored

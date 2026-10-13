@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import time
 from pathlib import Path
 
 import httpx
@@ -158,6 +159,60 @@ def test_registry_time_consumes_the_shared_role_deadline(tmp_path, monkeypatch):
         )
 
     assert paths == ["/api/v1/endpoints/zdr"]
+
+
+class SlowStream(httpx.SyncByteStream):
+    def __init__(self, payload: bytes, delay_seconds: float = 0.02):
+        self.payload = payload
+        self.delay_seconds = delay_seconds
+
+    def __iter__(self):
+        for byte in self.payload:
+            time.sleep(self.delay_seconds)
+            yield bytes([byte])
+
+
+def test_registry_slow_stream_is_abandoned_at_absolute_deadline(tmp_path):
+    payload = json.dumps(ZDR).encode()
+
+    def handler(_req: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, stream=SlowStream(payload))
+
+    client = llm_mod.OpenRouterClient(
+        settings(tmp_path),
+        transport=httpx.MockTransport(handler),
+    )
+    started = time.monotonic()
+    with pytest.raises(TimeoutError, match="role deadline"):
+        client.zdr_providers(timeout_seconds=0.05)
+
+    assert time.monotonic() - started < 0.15
+
+
+def test_completion_slow_stream_is_abandoned_at_absolute_deadline(tmp_path):
+    payload = json.dumps({
+        "model": "qwen/qwen3.6-35b-a3b",
+        "provider": "Venice",
+        "choices": [{"message": {"content": "Париж"}}],
+        "usage": {"total_tokens": 12},
+    }).encode()
+
+    def handler(_req: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, stream=SlowStream(payload))
+
+    client = llm_mod.OpenRouterClient(
+        settings(tmp_path),
+        transport=httpx.MockTransport(handler),
+    )
+    client._zdr = {"qwen/qwen3.6-35b-a3b": {"Venice"}}
+    started = time.monotonic()
+    with pytest.raises(TimeoutError, match="role deadline"):
+        client.chat(
+            [{"role": "user", "content": "x"}],
+            timeout_seconds=0.05,
+        )
+
+    assert time.monotonic() - started < 0.15
 
 
 def test_non_zdr_provider_in_response_rejected(tmp_path):

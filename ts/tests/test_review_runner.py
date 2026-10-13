@@ -130,6 +130,9 @@ class Gateway:
             provider_policy=dict(MANDATORY_PROVIDER_POLICY),
         )
 
+    def route_is_valid(self, requested_model, response_model, provider):
+        return requested_model == response_model and provider == "FixtureZDR"
+
 
 def review(gateway=None, provider=None, budget=None):
     return run_review(

@@ -92,8 +92,10 @@ production flag remains off until Wave 4 acceptance.
 - One equal-budget researcher/critic/defender/control-critic round.
 - Append-only review events in PostgreSQL with hashes, provenance, duration,
   tokens and cost.
+- Durable pre-spend reservation under a PostgreSQL session lock, including
+  process-death recovery to stable `HOLD` and cross-process canonical replay.
 - Public role traces contain safe structured events only; raw prompts, secrets
-  and hidden reasoning are excluded.
+  and hidden reasoning are excluded; rejected route identifiers are erased.
 - Deterministic arbiter and default-off feature flag.
 
 Acceptance: malformed output, invalid citation, timeout or unresolved critical

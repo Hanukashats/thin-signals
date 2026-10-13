@@ -642,3 +642,8 @@ requirements:
       - ts/tests/test_review_runner.py
       - ts/tests/test_review_persistence.py
       - ts/tests/test_review_integration.py
+      - ts/tests/test_llm.py::test_registry_slow_stream_is_abandoned_at_absolute_deadline
+      - ts/tests/test_llm.py::test_completion_slow_stream_is_abandoned_at_absolute_deadline
+      - ts/tests/test_review_integration.py::test_hard_process_death_recovers_running_reservation_as_stable_hold
+      - ts/tests/test_review_integration.py::test_separate_process_waiter_receives_owner_canonical_result
+      - reports/ASTRA_C05_REAUDIT_E888346_2026-10-13.md

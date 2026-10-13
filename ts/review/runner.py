@@ -114,6 +114,13 @@ class RoleGateway(Protocol):
         model: str,
     ) -> RoleCallResult: ...
 
+    def route_is_valid(
+        self,
+        requested_model: str,
+        response_model: str,
+        provider: str,
+    ) -> bool: ...
+
 
 class EvidenceProvider(Protocol):
     def retrieve(
@@ -129,6 +136,7 @@ class OpenRouterRoleGateway:
 
     def __init__(self, client):
         self.client = client
+        self._validated_routes: set[tuple[str, str, str]] = set()
 
     def call(self, role, messages, schema, budget, model) -> RoleCallResult:
         _ = role
@@ -142,6 +150,7 @@ class OpenRouterRoleGateway:
             require_parameters=True,
             timeout_seconds=budget.time_seconds,
         )
+        self._validated_routes.add((model, response.model_id, response.provider))
         usage = dict(response.usage or {})
         cost = usage.get("cost")
         try:
@@ -163,6 +172,9 @@ class OpenRouterRoleGateway:
             ),
             provider_policy=dict(MANDATORY_PROVIDER_POLICY),
         )
+
+    def route_is_valid(self, requested_model, response_model, provider) -> bool:
+        return (requested_model, response_model, provider) in self._validated_routes
 
 
 @dataclass(frozen=True)
@@ -511,15 +523,30 @@ def run_review(
         )
         model_id = validated_model_id(result.model_id) if result is not None else None
         provider = validated_provider_id(result.provider) if result is not None else None
+        route_valid = False
+        if result is not None and model_id is not None and provider is not None:
+            validator = getattr(gateway, "route_is_valid", None)
+            if callable(validator):
+                try:
+                    route_valid = bool(validator(
+                        models.for_role(role),
+                        model_id,
+                        provider,
+                    ))
+                except Exception:  # noqa: BLE001 - route attestation fails closed
+                    route_valid = False
         claimed_latency = _nonnegative_float(result.latency_s) if result is not None else None
         if result is not None and (
             claimed_latency is None
             or model_id is None
             or provider is None
-            or model_id != models.for_role(role)
+            or not route_valid
             or not _usage_is_valid(result.usage)
         ) and state == "succeeded":
             state, error_code, parsed = "invalid", "provider_metadata_invalid", None
+        if result is not None and not route_valid:
+            model_id = None
+            provider = None
         if (
             result is not None
             and (

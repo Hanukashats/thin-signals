@@ -104,6 +104,10 @@ wide запуски за выключенным по умолчанию флаг
 лимит и один и тот же snapshot-attested evidence bundle. В PostgreSQL сохраняются
 только типизированные действия, хеши, provenance и учёт ресурсов; prompts,
 цитаты и скрытое рассуждение в публичный trace не попадают.
+Один PostgreSQL session advisory lock охватывает reservation, четыре роли и
+финализацию: другой процесс ждёт канонический результат, а после смерти владельца
+закрывает оставшийся `running` как `HOLD`. Сетевой deadline является жёстким
+wall-clock пределом для registry, response body и completion.
 
 ## 5. Сеть и reuse (ADR 007 бэкенда)
 

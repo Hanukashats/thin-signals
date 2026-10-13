@@ -25,11 +25,13 @@ The bounded researcher/critic/defender/control-critic round is implemented behin
 `TS_ADVERSARIAL_REVIEW_ENABLED=false`. It uses equal role budgets, a deterministic
 fail-closed arbiter and an append-only PostgreSQL review ledger. Narrow and wide
 product integration, disabled/no-call behavior, replay, failure HOLD, persistence
-and safe public traces pass the complete 394-test suite on a disposable database.
-Enabled runs reserve their identity durably before role spend: concurrent calls
-reuse one result, while an interrupted save closes as a stable `HOLD` and cannot
-silently spend again. Route identifiers, effective routing configuration and the
-whole registry-plus-completion deadline are validated fail-closed.
+and safe public traces pass the complete 399-test suite on a disposable database.
+Enabled runs reserve their identity durably before role spend under a PostgreSQL
+session lock: concurrent processes wait for one canonical result, while process
+death or an interrupted save closes as a stable `HOLD` and cannot silently spend
+again. Unattested route identifiers are erased before public or persistent output;
+effective routing configuration and a hard wall-clock registry-plus-completion
+deadline are validated fail-closed.
 Evaluation and production activation remain separate gates.
 
 The public route is `https://tsignal.aispaces.ru` through Caddy on VM105 to

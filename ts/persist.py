@@ -363,16 +363,29 @@ def reserve_report(
     corpus_version: str,
     rules_version: str,
     review_enabled: bool,
+    coordinated: bool = False,
 ) -> tuple[bool, dict | None]:
     """Commit a durable pre-spend reservation; unsupported test sessions opt out."""
     if not isinstance(session, Session):
         return False, None
-    session.execute(
-        text("SELECT pg_advisory_xact_lock(hashtextextended(:scope, 0))"),
-        {"scope": f"thin-signals:run:{idempotency_key}"},
-    )
+    if not coordinated:
+        session.execute(
+            text("SELECT pg_advisory_xact_lock(hashtextextended(:scope, 0))"),
+            {"scope": f"thin-signals:run:{idempotency_key}"},
+        )
     existing = session.scalar(select(Run).where(Run.idempotency_key == idempotency_key))
     if existing is not None:
+        if coordinated and existing.status == "running" and existing.finished_at is None:
+            existing.status = "failed"
+            existing.stats = _reservation_stats(
+                run_id=existing.id,
+                query=existing.query,
+                rules_version=existing.rules_version,
+                review_enabled=review_enabled,
+                interrupted=True,
+            )
+            existing.finished_at = datetime.now(tz=UTC)
+            session.commit()
         stored = {"run_id": existing.id, "run_status": existing.status, **(existing.stats or {})}
         return False, stored
     session.add(Run(
@@ -401,14 +414,16 @@ def fail_reserved_report(
     *,
     idempotency_key: str,
     review_enabled: bool,
+    coordinated: bool = False,
 ) -> dict | None:
     """Close an interrupted reservation as a stable HOLD without raw errors."""
     if not isinstance(session, Session):
         return None
-    session.execute(
-        text("SELECT pg_advisory_xact_lock(hashtextextended(:scope, 0))"),
-        {"scope": f"thin-signals:run:{idempotency_key}"},
-    )
+    if not coordinated:
+        session.execute(
+            text("SELECT pg_advisory_xact_lock(hashtextextended(:scope, 0))"),
+            {"scope": f"thin-signals:run:{idempotency_key}"},
+        )
     row = session.scalar(select(Run).where(Run.idempotency_key == idempotency_key))
     if row is None:
         return None
@@ -424,6 +439,27 @@ def fail_reserved_report(
         row.finished_at = datetime.now(tz=UTC)
         session.commit()
     return {"run_id": row.id, "run_status": row.status, **(row.stats or {})}
+
+
+def acquire_report_lock(session: object, idempotency_key: str) -> bool:
+    """Hold a PostgreSQL session lock until explicit release or process death."""
+    if not isinstance(session, Session):
+        return False
+    session.execute(
+        text("SELECT pg_advisory_lock(hashtextextended(:scope, 0))"),
+        {"scope": f"thin-signals:run:{idempotency_key}"},
+    )
+    return True
+
+
+def release_report_lock(session: object, idempotency_key: str) -> None:
+    """Release a lock acquired by :func:`acquire_report_lock`."""
+    if not isinstance(session, Session):
+        return
+    session.execute(
+        text("SELECT pg_advisory_unlock(hashtextextended(:scope, 0))"),
+        {"scope": f"thin-signals:run:{idempotency_key}"},
+    )
 
 
 def save_report(session: Session, report: RunReport, *, reserved: bool = False) -> str:

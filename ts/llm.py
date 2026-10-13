@@ -10,8 +10,10 @@ Invariants enforced here, not by convention:
 from __future__ import annotations
 
 import json
+import math
 import time
 from dataclasses import dataclass, field
+from threading import Event, Thread
 from typing import Any
 
 import httpx
@@ -94,6 +96,44 @@ class OpenRouterClient:
         )
         self._zdr: dict[str, set[str]] | None = None
         self._zdr_at = 0.0
+        self._deadline_broken = False
+
+    def _within_deadline(self, call, timeout_seconds: float | None):
+        """Return a sync HTTP result within a hard wall deadline or abandon it."""
+        if timeout_seconds is None:
+            return call()
+        if (
+            not isinstance(timeout_seconds, (int, float))
+            or isinstance(timeout_seconds, bool)
+            or not math.isfinite(float(timeout_seconds))
+            or timeout_seconds <= 0
+            or self._deadline_broken
+        ):
+            raise TimeoutError("OpenRouter role deadline exceeded")
+        result: list[object] = []
+        errors: list[BaseException] = []
+        done = Event()
+
+        def execute() -> None:
+            try:
+                result.append(call())
+            except BaseException as exc:  # noqa: BLE001 - re-raised on the caller thread
+                errors.append(exc)
+            finally:
+                done.set()
+
+        Thread(
+            target=execute,
+            name="thin-signals-openrouter-deadline",
+            daemon=True,
+        ).start()
+        if not done.wait(float(timeout_seconds)):
+            self._deadline_broken = True
+            Thread(target=self._http.close, daemon=True).start()
+            raise TimeoutError("OpenRouter role deadline exceeded")
+        if errors:
+            raise errors[0]
+        return result[0]
 
     # -- ZDR endpoint registry ------------------------------------------------------------------
     def zdr_providers(
@@ -104,10 +144,14 @@ class OpenRouterClient:
         """model_id -> set(provider_name) for endpoints OpenRouter marks as ZDR."""
         if self._zdr is None or force or time.time() - self._zdr_at > ZDR_CACHE_TTL_S:
             options = {"timeout": timeout_seconds} if timeout_seconds is not None else {}
-            r = self._http.get("/endpoints/zdr", **options)
-            r.raise_for_status()
+            def fetch_registry():
+                response = self._http.get("/endpoints/zdr", **options)
+                response.raise_for_status()
+                return response.json()
+
+            data = self._within_deadline(fetch_registry, timeout_seconds)
             reg: dict[str, set[str]] = {}
-            for e in r.json().get("data", []):
+            for e in data.get("data", []):
                 reg.setdefault(e["model_id"], set()).add(e["provider_name"])
             self._zdr, self._zdr_at = reg, time.time()
         return self._zdr
@@ -145,8 +189,9 @@ class OpenRouterClient:
         timeout_seconds: float | None = None,
     ) -> LLMResponse:
         model = model or self.s.llm_primary
+        started = time.monotonic()
         deadline_at = (
-            time.monotonic() + timeout_seconds if timeout_seconds is not None else None
+            started + timeout_seconds if timeout_seconds is not None else None
         )
 
         def remaining() -> float | None:
@@ -180,16 +225,22 @@ class OpenRouterClient:
                 "type": "json_schema",
                 "json_schema": {"name": json_schema.get("title", "result"), "strict": True, "schema": json_schema},
             }
-        t0 = time.time()
         request_timeout = remaining()
         request_options = {"timeout": request_timeout} if request_timeout is not None else {}
+        def complete():
+            response = self._http.post(
+                "/chat/completions",
+                json=body,
+                **request_options,
+            )
+            return response.status_code, response.json()
+
         try:
-            r = self._http.post("/chat/completions", json=body, **request_options)
+            status_code, data = self._within_deadline(complete, request_timeout)
         except httpx.TimeoutException as exc:
             raise TimeoutError("OpenRouter role deadline exceeded") from exc
-        data = r.json()
-        if r.status_code >= 400 or "error" in data:
-            raise LLMError(f"OpenRouter {r.status_code}: {json.dumps(data.get('error', data), ensure_ascii=False)[:400]}")
+        if status_code >= 400 or "error" in data:
+            raise LLMError(f"OpenRouter {status_code}: {json.dumps(data.get('error', data), ensure_ascii=False)[:400]}")
         provider = data.get("provider", "")
         model_id = data.get("model", model)
         try:
@@ -206,7 +257,7 @@ class OpenRouterClient:
             provider=provider,
             content=content,
             usage=data.get("usage", {}),
-            latency_s=round(time.time() - t0, 3),
+            latency_s=round(time.monotonic() - started, 3),
             raw=data,
         )
 

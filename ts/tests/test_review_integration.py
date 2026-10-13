@@ -28,6 +28,81 @@ from ts.tests.test_llm import settings as make_settings
 from ts.tests.test_review_runner import CANDIDATE, outputs
 
 
+def _fresh_child_factory():
+    from ts import db
+
+    if db._engine is not None:
+        db._engine.dispose(close=False)
+    db._engine = None
+    return db.session_factory()
+
+
+def _crash_with_reserved_review(run_id, query, key, ready):
+    import os
+
+    from ts.persist import acquire_report_lock, reserve_report
+
+    factory = _fresh_child_factory()
+    with factory() as lock_session:
+        assert acquire_report_lock(lock_session, key)
+        with factory() as session:
+            owned, stored = reserve_report(
+                session,
+                run_id=run_id,
+                query=query,
+                idempotency_key=key,
+                corpus_version="crash-test-v1",
+                rules_version="rules-0.1",
+                review_enabled=True,
+                coordinated=True,
+            )
+        assert owned and stored is None
+        ready.set()
+        os._exit(73)
+
+
+def _complete_reserved_review(run_id, query, key, ready, release):
+    from datetime import UTC, datetime
+
+    from sqlalchemy import select
+
+    from ts.db.models import Run
+    from ts.persist import acquire_report_lock, release_report_lock, reserve_report
+
+    factory = _fresh_child_factory()
+    with factory() as lock_session:
+        assert acquire_report_lock(lock_session, key)
+        try:
+            with factory() as session:
+                owned, stored = reserve_report(
+                    session,
+                    run_id=run_id,
+                    query=query,
+                    idempotency_key=key,
+                    corpus_version="multiprocess-test-v1",
+                    rules_version="rules-0.1",
+                    review_enabled=True,
+                    coordinated=True,
+                )
+            assert owned and stored is None
+            ready.set()
+            assert release.wait(10)
+            with factory() as session:
+                row = session.scalar(select(Run).where(Run.idempotency_key == key))
+                row.status = "succeeded"
+                row.stats = {
+                    "run_id": run_id,
+                    "run_status": "succeeded",
+                    "query": query,
+                    "repeated": False,
+                    "review": {"enabled": True, "status": "completed", "verdict": "PROMOTE"},
+                }
+                row.finished_at = datetime.now(tz=UTC)
+                session.commit()
+        finally:
+            release_report_lock(lock_session, key)
+
+
 def _card() -> dict:
     urls = [
         "https://arxiv.org/abs/2601.00001",
@@ -105,6 +180,9 @@ class AdaptiveGateway:
             provider_policy=dict(MANDATORY_PROVIDER_POLICY),
         )
 
+    def route_is_valid(self, requested_model, response_model, provider):
+        return requested_model == response_model and provider == "FixtureZDR"
+
 
 class MaliciousRouteGateway(AdaptiveGateway):
     def call(self, role, messages, schema, budget, model):
@@ -120,6 +198,16 @@ class WrongApprovedModelGateway(AdaptiveGateway):
     def call(self, role, messages, schema, budget, model):
         result = super().call(role, messages, schema, budget, model)
         return replace(result, model_id="openai/gpt-4.1")
+
+
+class CompactUntrustedRouteGateway(AdaptiveGateway):
+    def call(self, role, messages, schema, budget, model):
+        result = super().call(role, messages, schema, budget, model)
+        return replace(
+            result,
+            model_id="private-prompt-fragment",
+            provider="private-reasoning-marker",
+        )
 
 
 class BrokenEvidenceProvider:
@@ -266,6 +354,44 @@ def test_response_route_must_match_the_requested_approved_model(tmp_path):
     assert [event.error_code for event in reviewed.review.events[:4]] == [
         "provider_metadata_invalid",
     ] * 4
+    assert all(event.model_id is None for event in reviewed.review.events[:4])
+    assert all(event.provider is None for event in reviewed.review.events[:4])
+
+
+def test_compact_untrusted_route_is_neither_public_nor_persisted(tmp_path):
+    from sqlalchemy import select
+
+    from ts.db import session_factory
+    from ts.db.models import ReviewEvent
+    from ts.persist import save_report
+
+    suffix = uuid.uuid4().hex[:12]
+    base = replace(
+        _report(),
+        id=f"compact-route-{suffix}",
+        query=f"compact-route-{suffix}",
+        idempotency_key=hashlib.sha256(f"compact-{suffix}".encode()).hexdigest(),
+    )
+    reviewed = attach_candidate_review(
+        base,
+        _enabled(make_settings(tmp_path)),
+        gateway=CompactUntrustedRouteGateway(),
+    )
+    public = public_report(reviewed)
+    factory = session_factory()
+    with factory() as session:
+        save_report(session, reviewed)
+    with factory() as session:
+        events = list(session.scalars(
+            select(ReviewEvent)
+            .where(ReviewEvent.run_id == reviewed.id, ReviewEvent.role != "arbiter")
+            .order_by(ReviewEvent.sequence)
+        ))
+
+    assert reviewed.review.decision.verdict == "HOLD"
+    assert "private-prompt-fragment" not in repr(public)
+    assert "private-reasoning-marker" not in repr(public)
+    assert all(event.model_id is None and event.provider is None for event in events)
 
 
 def test_unexpected_evidence_provider_failure_becomes_hold_without_leak(tmp_path):
@@ -559,3 +685,74 @@ def test_interrupted_reserved_save_becomes_stable_hold_without_respend(
     assert replay["repeated"] is True
     assert len(gateway.calls) == 4
     assert "private disk path" not in repr(first)
+
+
+def test_hard_process_death_recovers_running_reservation_as_stable_hold():
+    import multiprocessing
+
+    from ts.db import session_factory
+    from ts.live import _settle_reserved_report
+
+    suffix = uuid.uuid4().hex
+    run_id = f"crash-{suffix[:16]}"
+    query = f"crash-review-{suffix}"
+    key = hashlib.sha256(query.encode()).hexdigest()
+    context = multiprocessing.get_context("spawn")
+    ready = context.Event()
+    process = context.Process(
+        target=_crash_with_reserved_review,
+        args=(run_id, query, key, ready),
+    )
+    process.start()
+    assert ready.wait(10)
+    process.join(10)
+
+    assert process.exitcode == 73
+    factory = session_factory()
+    recovered = _settle_reserved_report(factory, key)
+    replay = _settle_reserved_report(factory, key)
+    assert recovered["run_status"] == replay["run_status"] == "failed"
+    assert recovered["policy_action"] == "HOLD"
+    assert recovered["review"]["status"] == "interrupted"
+    assert recovered["review"]["verdict"] == "HOLD"
+
+
+def test_separate_process_waiter_receives_owner_canonical_result():
+    import multiprocessing
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Event
+
+    from ts.db import session_factory
+    from ts.live import _settle_reserved_report
+
+    suffix = uuid.uuid4().hex
+    run_id = f"owner-{suffix[:16]}"
+    query = f"multiprocess-review-{suffix}"
+    key = hashlib.sha256(query.encode()).hexdigest()
+    context = multiprocessing.get_context("spawn")
+    ready = context.Event()
+    release = context.Event()
+    owner = context.Process(
+        target=_complete_reserved_review,
+        args=(run_id, query, key, ready, release),
+    )
+    owner.start()
+    assert ready.wait(10)
+    waiter_started = Event()
+
+    def wait_for_owner():
+        waiter_started.set()
+        return _settle_reserved_report(session_factory(), key)
+
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        future = pool.submit(wait_for_owner)
+        assert waiter_started.wait(5)
+        assert not future.done()
+        release.set()
+        result = future.result(timeout=15)
+    owner.join(10)
+
+    assert owner.exitcode == 0
+    assert result["run_id"] == run_id
+    assert result["run_status"] == "succeeded"
+    assert result["review"]["verdict"] == "PROMOTE"
