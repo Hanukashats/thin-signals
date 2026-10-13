@@ -29,6 +29,7 @@ def test_review_eval_has_disjoint_frozen_replay_and_sealed_holdout():
     assert replay.isdisjoint(holdout)
     assert replay_scenarios.isdisjoint(holdout_scenarios)
     assert dataset["frozen_code_sha"] == "9f3a1398fc3a82bb024e81d1c72e4fadb46eb4fc"
+    assert dataset["arbiter_candidate"] == "review-arbiter-0.2"
     assert dataset["holdout"]["sealed"] is True
     assert dataset["holdout"]["adjudication_method"]
 
@@ -76,21 +77,48 @@ def test_full_review_beats_baseline_without_unsafe_promotions():
         assert proposed["unresolved_critical_promotions"] == 0
         assert proposed["evidence_coverage"] == 1.0
         assert proposed["stability"] == 1.0
+        assert proposed["exact_verdict_accuracy"] == 1.0
+        assert proposed["overpromotions"] == 0
 
 
 def test_ablations_are_conservative_and_resource_metrics_are_complete():
     summary = evaluate_review_dataset(load_review_dataset(DATASET))
     metrics = summary["metrics"]["all"]
 
-    assert metrics["no_defender"]["precision"] == 1.0
-    assert metrics["no_defender"]["recall"] < metrics["proposed"]["recall"]
-    assert metrics["no_control"]["precision"] == 1.0
-    assert metrics["no_control"]["recall"] < metrics["proposed"]["recall"]
+    assert metrics["no_defender"]["recall"] == 0.0
+    assert metrics["no_defender"]["false_promotions"] == 0
+    assert metrics["no_control"]["recall"] == 0.0
+    assert metrics["no_control"]["false_promotions"] == 0
     assert metrics["baseline"]["tokens"] == 0
     assert metrics["baseline"]["cost_usd"] == 0.0
     assert metrics["proposed"]["tokens"] > metrics["no_defender"]["tokens"] > 0
     assert metrics["proposed"]["cost_usd"] > metrics["no_control"]["cost_usd"] > 0
     assert metrics["proposed"]["latency_ms"] > 0
+
+
+def test_ablations_execute_twice_through_runner_and_record_role_failure():
+    case = load_review_dataset(DATASET)["cases"][0]
+    paths = evaluate_case(case)
+
+    assert paths["no_defender"]["stable"] is True
+    assert ["defender", "role_call_failed"] in paths["no_defender"]["role_errors"]
+    assert paths["no_control"]["stable"] is True
+    assert ["control_critic", "role_call_failed"] in paths["no_control"]["role_errors"]
+    assert paths["no_defender"]["verdict"] == "HOLD"
+    assert paths["no_control"]["verdict"] == "HOLD"
+
+
+def test_safety_metrics_are_derived_not_hidden_by_risk_annotations():
+    dataset = load_review_dataset(DATASET)
+    expected = evaluate_review_dataset(dataset)["metrics"]["all"]
+    unlabelled = deepcopy(dataset)
+    for case in unlabelled["cases"]:
+        case["risk_flags"] = []
+    observed = evaluate_review_dataset(unlabelled)["metrics"]["all"]
+
+    for path in ("baseline", "proposed", "no_defender", "no_control"):
+        assert observed[path]["evidence_less_promotions"] == expected[path]["evidence_less_promotions"]
+        assert observed[path]["unresolved_critical_promotions"] == expected[path]["unresolved_critical_promotions"]
 
 
 def test_eval_output_is_reproducible_and_states_fixture_limit(tmp_path):

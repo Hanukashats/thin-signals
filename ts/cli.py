@@ -116,11 +116,13 @@ def cmd_score_replay(args: argparse.Namespace) -> int:
         "records_digest": summary["records_digest"],
         "result_digest": summary["result_digest"],
         "n": summary["n"],
+        "valid": summary["valid"],
+        "baseline_reproduction_mismatches": summary["baseline_reproduction_mismatches"],
         "changed_labels": summary["changed_labels"],
         "metrics": summary["metrics"],
         "out_dir": str(Path(args.out)),
     }, ensure_ascii=False, indent=1))
-    return 0
+    return 0 if summary["valid"] else 2
 
 
 def main(argv: list[str] | None = None) -> int:

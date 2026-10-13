@@ -641,6 +641,7 @@ requirements:
     evidence:
       - docs/adr/ADR-011-ADVERSARIAL-REVIEW-PROPOSAL.md
       - docs/adr/ADR-012-RELIABILITY-FIRST-RESEARCH-LOOP.md
+      - docs/adr/ADR-014-ATTESTED-PROMOTION-GATE.md
       - docs/plan/PLAN_7.8.md
       - ts/review/contracts.py
       - ts/review/prompts.py
@@ -658,6 +659,7 @@ requirements:
       - ts/review/evaluation.py
       - ts/tests/test_review_evaluation.py
       - reports/eval/review-2026-10-13/report.md
+      - reports/ASTRA_WAVE4_AUDIT_74445DE_2026-10-13.md
       - ts/tests/test_scorer.py
       - ts/tests/test_llm.py::test_registry_slow_stream_is_abandoned_at_absolute_deadline
       - ts/tests/test_llm.py::test_completion_slow_stream_is_abandoned_at_absolute_deadline

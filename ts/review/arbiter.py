@@ -12,7 +12,7 @@ from ts.review.contracts import (
     ResearcherOutput,
 )
 
-ARBITER_RULE_VERSION = "review-arbiter-0.1"
+ARBITER_RULE_VERSION = "review-arbiter-0.2"
 
 
 def _decision(
@@ -90,10 +90,14 @@ def arbitrate(
                 [objection.objection_id],
             )
 
+    critical_claims = {
+        claim.claim_id: claim for claim in researcher.claims if claim.critical
+    }
     unresolved: list[str] = []
     reframed: list[str] = []
-    accepted_evidence: set[str] = {
-        evidence_id for claim in researcher.claims for evidence_id in claim.evidence_ids
+    accepted_by_claim: dict[str, set[str]] = {
+        claim_id: set(claim.evidence_ids)
+        for claim_id, claim in (critical_claims or claims).items()
     }
     for objection in critic.objections:
         claim = claims.get(objection.claim_id)
@@ -127,13 +131,15 @@ def arbitrate(
             ):
                 unresolved.append(objection.objection_id)
                 continue
-            accepted_evidence.update(new_ids)
+            if claim is not None and claim.claim_id in accepted_by_claim:
+                accepted_by_claim[claim.claim_id].update(new_ids)
         elif rebuttal.action in {"CORRECT", "NARROW"}:
             replacement = rebuttal.replacement_claim
             if replacement is None or not _attested(replacement.evidence_ids, evidence):
                 unresolved.append(objection.objection_id)
                 continue
-            accepted_evidence.update(replacement.evidence_ids)
+            if claim is not None and claim.claim_id in accepted_by_claim:
+                accepted_by_claim[claim.claim_id].update(replacement.evidence_ids)
             reframed.append(objection.objection_id)
         else:
             unresolved.append(objection.objection_id)
@@ -142,18 +148,35 @@ def arbitrate(
         return _decision(
             "HOLD", ledger_revision, ["unresolved_critical"], sorted(unresolved),
         )
+    if any(claim.critical and claim.status == "unknown" for claim in researcher.claims):
+        unknown = [claim.claim_id for claim in researcher.claims if claim.critical and claim.status == "unknown"]
+        return _decision("HOLD", ledger_revision, ["critical_claim_unknown"], unknown)
+    unattested_claims = [
+        claim_id for claim_id, evidence_ids in accepted_by_claim.items()
+        if not any(_attested([evidence_id], evidence) for evidence_id in evidence_ids)
+    ]
+    if unattested_claims:
+        return _decision(
+            "HOLD", ledger_revision, ["critical_claim_unattested"], sorted(unattested_claims),
+        )
+    accepted_evidence = {
+        evidence_id
+        for evidence_ids in accepted_by_claim.values()
+        for evidence_id in evidence_ids
+    }
+    attested_evidence = [
+        evidence_id for evidence_id in accepted_evidence
+        if _attested([evidence_id], evidence)
+    ]
+    if len(_origins(attested_evidence, evidence)) < 2:
+        return _decision("HOLD", ledger_revision, ["insufficient_origin_diversity"], ["origins"])
     if reframed:
         return _decision(
             "REFRAME", ledger_revision, ["validated_narrower_claim"], sorted(reframed),
         )
-    if any(claim.critical and claim.status == "unknown" for claim in researcher.claims):
-        unknown = [claim.claim_id for claim in researcher.claims if claim.critical and claim.status == "unknown"]
-        return _decision("HOLD", ledger_revision, ["critical_claim_unknown"], unknown)
     if (
         candidate.get("policy_action") != "RANK_ELIGIBLE"
         or candidate.get("label") != "weak_signal"
     ):
         return _decision("HOLD", ledger_revision, ["existing_policy_not_promotable"], ["base_policy"])
-    if len(_origins(list(accepted_evidence), evidence)) < 2:
-        return _decision("HOLD", ledger_revision, ["insufficient_origin_diversity"], ["origins"])
     return _decision("PROMOTE", ledger_revision, ["all_critical_objections_resolved"])

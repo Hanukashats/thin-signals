@@ -146,6 +146,7 @@ def evaluate_scoring_replay(
         "records_digest": _digest(records),
         "n": len(records),
         "baseline_reproduction_mismatches": reproduction_mismatches,
+        "valid": reproduction_mismatches == 0,
         "changed_labels": changed_labels,
         "decreased_confidence": decreased,
         "increased_confidence": increased,
@@ -164,6 +165,8 @@ def evaluate_scoring_replay(
 def render_scoring_replay_report(summary: dict[str, Any]) -> str:
     lines = [
         "# Frozen scoring replay — rules 0.1 → 0.2",
+        "",
+        f"Evaluation status: **{'VALID' if summary['valid'] else 'INVALID'}**.",
         "",
         (
             f"Replayed **{summary['n']}** stored rows from `{summary['baseline_rules']}` "

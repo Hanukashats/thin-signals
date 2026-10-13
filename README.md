@@ -21,7 +21,7 @@ cp .env.example .env
 
 | Путь | Роль |
 |---|---|
-| `docs/plan/PLAN_7.2.md`…`PLAN_7.8.md`, `docs/adr/` | Базовый план и его эволюция, ADR-006…012 |
+| `docs/plan/PLAN_7.2.md`…`PLAN_7.8.md`, `docs/adr/` | Базовый план и его эволюция, ADR-006…014 |
 | `CONCEPT.md`, `ARCHITECTURE.md`, `docs/METHODOLOGY.md`, `docs/PROCESSING_CONTRACT.md` | Продукт, стек, логическая модель, объекты |
 | `plan.yaml`, `forks.yaml`, `requirements.yaml`, `STATUS.md` | Волны, развилки, требования, текущее состояние |
 | `ts/` | Код: `schemas/` (pydantic-контракты), `scoring/policy.py` (gates), `tests/` |

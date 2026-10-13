@@ -4,6 +4,7 @@
   "records_digest": "042aab83a94926a6e20767118a93882da1dad715c17167e33d887a580bb71ab7",
   "n": 170,
   "baseline_reproduction_mismatches": 0,
+  "valid": true,
   "changed_labels": 0,
   "decreased_confidence": 0,
   "increased_confidence": 0,
@@ -2304,5 +2305,5 @@
     "It isolates deterministic scoring and does not rerun retrieval or model extraction.",
     "Live search yield is measured only by the separately bounded release canary."
   ],
-  "result_digest": "c9e97cadbccea1385e92a7405f695cbcf806ccc686030daad69120bca662e039"
+  "result_digest": "fc08036e6e73359e7b99cd39a5e90ffab216938dfc86d779b9d5e9fa9dcce003"
 }

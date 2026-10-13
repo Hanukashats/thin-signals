@@ -58,3 +58,24 @@ def test_score_replay_cli_writes_artifacts(tmp_path, capsys):
     assert payload["changed_labels"] == 0
     assert (out / "summary.json").exists()
     assert (out / "report.md").exists()
+
+
+def test_score_replay_cli_fails_closed_on_baseline_mismatch(tmp_path, capsys):
+    from ts.cli import main
+
+    records = load_scoring_records(RECORDS)
+    records[0]["confidence"] = 0.123456
+    source = tmp_path / "tampered.jsonl"
+    source.write_text("\n".join(json.dumps(row) for row in records) + "\n")
+    out = tmp_path / "invalid"
+
+    assert main([
+        "score-replay",
+        "--records", str(source),
+        "--out", str(out),
+    ]) == 2
+    payload = json.loads(capsys.readouterr().out)
+
+    assert payload["valid"] is False
+    assert payload["baseline_reproduction_mismatches"] == 1
+    assert json.loads((out / "summary.json").read_text())["valid"] is False

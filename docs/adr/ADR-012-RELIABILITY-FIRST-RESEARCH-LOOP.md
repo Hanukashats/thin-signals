@@ -85,3 +85,8 @@ recorded in `reports/REFERENCE_WSIGNAL_REVIEW_2026-10-12.md`.
 PostgreSQL remains the only writable product ledger. GOAL remains the single
 development controller. Role prompts cannot call shell, deployment or database
 tools, and web/model output remains untrusted data.
+
+Amendment 2026-10-13: ADR-014 versions the arbiter to 0.2 after independent
+audit found that supported non-primary evidence and an early `REFRAME` return
+could bypass activation gates. ADR-014 is the controlling acceptance contract
+for new review decisions; persisted v0.1 history is not rewritten.

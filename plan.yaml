@@ -260,7 +260,7 @@ phases:
         deliverables: ["rules-0.2 monotonic scorer candidate", "typed role contracts", "frozen replay", "holdout", "ablation", "latency/token/cost report", "qualified-signal count"]
         requirements: [AR-01, TZ-01, TZ-02]
         forks: [adversarial.review]
-        note: "Rules replay 170/170 and 16-case review replay/holdout with ablations pass locally; fixture results do not claim live-model quality. Independent verification and optional qualified-signal canary remain open."
+        note: "Initial Astra verification rejected evidence provenance, post-hoc ablations and invalid-replay handling. Arbiter 0.2 and executable role-unavailability remediation pass locally; fresh independent verification and optional qualified-signal canary remain open."
       - id: W12-release
         status: planned
         owner: release/infra

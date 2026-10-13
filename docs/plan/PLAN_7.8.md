@@ -107,8 +107,12 @@ evidence or a narrower re-evaluated claim.
 
 ## Wave 4 — quality and target evaluation
 
-Status 2026-10-13: replay/holdout implementation complete; independent verifier
-and the optional live-yield target remain open.
+Status 2026-10-13: the first independent verifier rejected commit `74445de`
+because supported non-primary evidence could promote, ablations bypassed the
+runner and invalid baseline replay still exited successfully. The remediation
+versions the arbiter to 0.2, derives safety/exact-verdict metrics, executes each
+role-unavailability ablation twice and fails invalid replay closed. Fresh
+independent re-verification and the optional live-yield target remain open.
 
 - Correct primary-pattern non-monotonicity in a new rules version.
 - Run baseline, proposed, without-defender and without-control-critic paths on
@@ -127,6 +131,8 @@ Evidence: `reports/eval/review-2026-10-13/` and
 exactly and changes no historical labels. The 16-case review evaluation records
 all required quality/resource metrics and passes both safety gates. These are
 fixture and stored-extraction evaluations; live search quality is not inferred.
+The rejection receipt is `reports/ASTRA_WAVE4_AUDIT_74445DE_2026-10-13.md`;
+ADR-014 records the remediation contract.
 
 ## Wave 5 — canary, deploy and publish
 

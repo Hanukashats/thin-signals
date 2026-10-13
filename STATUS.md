@@ -48,20 +48,26 @@ non-monotonicity by separating semantic-primary explanation from strongest-first
 scoring slots, while retaining v0.1 weights and thresholds. All executable
 threshold consumers use the versioned scorer contract. Historical v0.1 rows are
 unchanged and production still requires replay, holdout and independent review.
-The candidate repository gate is **423 passed** on a disposable migrated
+The remediated candidate repository gate is **429 passed** on a disposable migrated
 PostgreSQL database, Ruff clean, with exhaustive
-primary-choice/status monotonicity and dynamic-threshold regressions.
+primary-choice/status monotonicity, dynamic-threshold and attested-promotion
+regressions.
 
 Wave 4 deterministic evaluation is now implemented. The `rules-0.2` scorer
 reproduces all 170 frozen `rules-0.1` rows exactly: 0 baseline mismatches,
 0 changed labels and 0 confidence decreases; holdout F1 remains 0.9541. On a
 separate 8-case replay and structurally distinct 8-case sealed holdout, the full
 researcher/critic/defender/control path has P/R 1.0/1.0, zero false or
-evidence-less promotions, zero unresolved-critical promotions and stability
-1.0. Defender/control ablations remain fail-closed but reduce recall to 0.3333.
-These are deterministic fixture/stored-extraction results, not a claim about
-live model quality or the ten-signal target; independent review and bounded
-production canary remain release gates.
+evidence-less promotions, zero unresolved-critical promotions, exact-verdict
+accuracy 1.0 and stability 1.0. Defender/control role-unavailability ablations
+now execute twice through the real runner and fail closed with recall 0.0;
+their errors, resources and stability are measured rather than reconstructed.
+The initial independent Astra audit of `74445de` rejected three safety/evaluation
+gaps. `review-arbiter-0.2`, executable ablations, derived safety metrics and an
+invalid-replay exit close those exact findings; fresh independent re-verification
+is still required. These are deterministic fixture/stored-extraction results,
+not a claim about live model quality or the ten-signal target; bounded production
+canary remains a release gate.
 
 The public route is `https://tsignal.aispaces.ru` through Caddy on VM105 to
 VM232's private `:18443` listener. Account hashes and provider/database
@@ -225,8 +231,9 @@ containers, so live search no longer depends on backend VM101. Receipt:
 
 1. **Rules release pending:** versioned `rules-0.2` fixes the known
    non-monotonicity, passes exhaustive property tests and reproduces all 170
-   historical rows without change. Independent acceptance and canary are still
-   required before production activation.
+   historical rows without change. A reconstruction mismatch now invalidates
+   the replay and returns a non-zero CLI status. Fresh independent acceptance
+   and canary are still required before production activation.
 2. **Persistence:** canonical step/evidence ledgers are not fully populated for existing live runs; JSON payloads are not a substitute for the intended durable ledger.
 3. **Research integration:** GPT Researcher and SearXNG work together inside the
    research service. The Thin Signals adapter and preserved-source boundary are
@@ -285,8 +292,9 @@ containers, so live search no longer depends on backend VM101. Receipt:
 
 ## Next trigger
 
-1. Independently verify the frozen Wave 4 candidate, including its replay,
-   sealed holdout, ablations and 170-row rules regression.
+1. Independently re-verify the remediated Wave 4 candidate, including the
+   attested critical-claim gate, exact verdicts, executed role-unavailability
+   ablations and invalid 170-row replay behavior.
 2. Deploy it first with the review
    flag off, run the production canary, then publish the same SHA to SourceCraft
    and GitHub feature branches.

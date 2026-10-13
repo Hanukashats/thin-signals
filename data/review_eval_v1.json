@@ -1,7 +1,8 @@
 {
-  "version": "review-eval-0.1",
-  "fixture_version": "review-fixtures-0.1",
+  "version": "review-eval-0.2",
+  "fixture_version": "review-fixtures-0.2",
   "frozen_code_sha": "9f3a1398fc3a82bb024e81d1c72e4fadb46eb4fc",
+  "arbiter_candidate": "review-arbiter-0.2",
   "frozen_at": "2026-10-13T12:00:00Z",
   "purpose": "Deterministic contract replay and untouched holdout for review-arbiter evaluation; not a live-model quality benchmark.",
   "replay": {

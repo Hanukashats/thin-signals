@@ -115,10 +115,15 @@ TLS/SNI, а отменённый lookup не порождает поздний P
 
 Evaluation не обращается к модели или сети. `score-replay` реконструирует
 FeatureVector из 170 сохранённых записей и требует точного совпадения v0.1 перед
-сравнением v0.2. `review-eval` исполняет реальный runner/arbiter поверх
+сравнением v0.2; несовпадение помечает оценку invalid и даёт ненулевой exit.
+`review-eval` исполняет реальный runner/`review-arbiter-0.2` поверх
 детерминированных typed fixtures: 8 frozen replay и 8 структурно отличных
-sealed holdout, плюс `no_defender`/`no_control` ablations. Gold не входит в путь
-решения. Живой поиск, latency провайдера и yield проверяются только canary.
+sealed holdout, плюс дважды исполняемые `no_defender`/`no_control` role-unavailable
+ablations. Arbiter требует attested primary evidence для каждого критического
+claim и не менее двух независимых primary-origin для `PROMOTE`/`REFRAME`;
+нерелевантный non-critical claim этот gate не закрывает. Safety-метрики выводятся
+из typed outputs/provenance, а не fixture labels; gold не входит в путь решения.
+Живой поиск, latency провайдера и yield проверяются только canary.
 
 ## 5. Сеть и reuse (ADR 007 бэкенда)
 

@@ -166,6 +166,7 @@ def test_one_equal_budget_call_per_role_and_valid_evidence_can_promote():
         "model-primary", "model-judge", "model-primary", "model-judge",
     ]
     assert result.decision.verdict == "PROMOTE"
+    assert result.decision.rule_version == "review-arbiter-0.2"
     assert [event.role for event in result.events] == [
         "researcher", "critic", "defender", "control_critic", "arbiter",
     ]
@@ -234,6 +235,63 @@ def test_unknown_evidence_reference_fails_closed_but_all_roles_still_run_once():
     assert result.events[0].state == "invalid"
 
 
+def test_supported_claims_with_only_non_primary_evidence_cannot_promote():
+    scripted = outputs()
+    scripted["researcher"]["claims"][0].update({
+        "evidence_ids": ["evidence-1", "evidence-2"],
+        "status": "supported",
+    })
+    scripted["critic"]["objections"] = []
+    scripted["defender"]["rebuttals"] = []
+    scripted["control_critic"]["findings"] = []
+    rows = [
+        row.model_copy(update={"provenance": "preserved_non_primary"})
+        for row in EVIDENCE[:2]
+    ]
+
+    result = review(Gateway(scripted), Provider(rows))
+
+    assert all(event.state == "succeeded" for event in result.events)
+    assert result.decision.verdict == "HOLD"
+    assert result.decision.reason_codes == ["critical_claim_unattested"]
+
+
+def test_unrelated_primary_claims_cannot_cover_unattested_critical_claim():
+    scripted = outputs()
+    scripted["researcher"]["claims"] = [
+        {
+            "claim_id": "claim-critical",
+            "statement": "The promotion claim is supported only by commentary.",
+            "critical": True,
+            "evidence_ids": ["evidence-1"],
+            "status": "supported",
+            "reason_codes": ["P01"],
+        },
+        {
+            "claim_id": "claim-background",
+            "statement": "Two primary sources establish unrelated background.",
+            "critical": False,
+            "evidence_ids": ["evidence-2", "evidence-3"],
+            "status": "verified",
+            "reason_codes": ["P03"],
+        },
+    ]
+    scripted["critic"]["objections"] = []
+    scripted["defender"]["rebuttals"] = []
+    scripted["control_critic"]["findings"] = []
+    rows = [
+        EVIDENCE[0].model_copy(update={"provenance": "preserved_non_primary"}),
+        EVIDENCE[1],
+        EVIDENCE[2],
+    ]
+
+    result = review(Gateway(scripted), Provider(rows))
+
+    assert result.decision.verdict == "HOLD"
+    assert result.decision.reason_codes == ["critical_claim_unattested"]
+    assert result.decision.blocking_ids == ["claim-critical"]
+
+
 def test_rhetoric_only_defender_output_cannot_resolve_an_objection():
     scripted = outputs()
     scripted["defender"]["rebuttals"][0].update({
@@ -299,6 +357,40 @@ def test_valid_narrowing_creates_reframe_instead_of_direct_promotion():
     }
 
     assert review(Gateway(scripted)).decision.verdict == "REFRAME"
+
+
+def test_reframe_cannot_hide_another_unknown_critical_claim():
+    scripted = outputs()
+    scripted["researcher"]["claims"].append({
+        "claim_id": "claim-2",
+        "statement": "A second critical deployment claim remains unknown.",
+        "critical": True,
+        "evidence_ids": ["evidence-2"],
+        "status": "unknown",
+        "reason_codes": ["P03"],
+    })
+    scripted["defender"]["rebuttals"][0] = {
+        "rebuttal_id": "rebuttal-1",
+        "objection_id": "objection-1",
+        "action": "NARROW",
+        "evidence_ids": ["evidence-3"],
+        "replacement_claim": {
+            "claim_id": "claim-1-narrow",
+            "statement": "A laboratory prototype reports the mechanism.",
+            "critical": True,
+            "evidence_ids": ["evidence-3"],
+            "status": "verified",
+            "reason_codes": ["P01"],
+        },
+        "changed_fields": ["statement", "scope"],
+        "statement": "Deployment language is removed.",
+    }
+
+    result = review(Gateway(scripted))
+
+    assert result.decision.verdict == "HOLD"
+    assert result.decision.reason_codes == ["critical_claim_unknown"]
+    assert result.decision.blocking_ids == ["claim-2"]
 
 
 def test_time_token_and_cost_overruns_each_hold():

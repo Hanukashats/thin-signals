@@ -14,13 +14,8 @@ from pathlib import Path
 from typing import Any
 
 from ts.llm import MANDATORY_PROVIDER_POLICY
-from ts.review.arbiter import arbitrate
-from ts.review.contracts import (
-    ControlOutput,
-    DefenderOutput,
-    EvidenceItem,
-    parse_role_output,
-)
+from ts.review.arbiter import ARBITER_RULE_VERSION
+from ts.review.contracts import EvidenceItem
 from ts.review.runner import (
     ReviewModels,
     RoleBudget,
@@ -64,13 +59,18 @@ def _digest(value: object) -> str:
 
 def load_review_dataset(path: Path) -> dict:
     data = json.loads(Path(path).read_text(encoding="utf-8"))
-    required = {"version", "fixture_version", "frozen_code_sha", "replay", "holdout", "cases"}
+    required = {
+        "version", "fixture_version", "frozen_code_sha", "arbiter_candidate",
+        "replay", "holdout", "cases",
+    }
     if not isinstance(data, dict) or not required <= set(data):
         raise ValueError("review evaluation dataset is incomplete")
     if not isinstance(data["cases"], list) or not data["cases"]:
         raise ValueError("review evaluation cases are missing")
     if not isinstance(data["holdout"], dict) or data["holdout"].get("sealed") is not True:
         raise ValueError("review holdout must be sealed")
+    if data["arbiter_candidate"] != ARBITER_RULE_VERSION:
+        raise ValueError("review dataset arbiter candidate does not match executable contract")
     seen: set[str] = set()
     for row in data["cases"]:
         if not isinstance(row, dict):
@@ -380,6 +380,7 @@ def _fixture(case: dict) -> tuple[dict, list[EvidenceItem], dict[str, dict]]:
             _evidence("evidence-1", "ror:origin-a", "1", "preserved_non_primary"),
             _evidence("evidence-2", "ror:origin-b", "2", "preserved_non_primary"),
         ]
+        outputs["researcher"]["claims"][0]["status"] = "supported"
     elif scenario == "valid_correction":
         outputs = _base_outputs(["evidence-1"])
         outputs["critic"] = {"objections": [{
@@ -451,8 +452,8 @@ class _Gateway:
         return requested_model == response_model and provider == "FixtureZDR"
 
 
-def _resources(events, roles: set[str]) -> dict[str, int | float]:
-    selected = [event for event in events if event.role in roles]
+def _resources(events) -> dict[str, int | float]:
+    selected = [event for event in events if event.role != "arbiter"]
     return {
         # The fixture gateway declares 10 ms for every completed role call.
         # Wall-clock Python overhead is intentionally excluded from the stable artifact.
@@ -462,69 +463,117 @@ def _resources(events, roles: set[str]) -> dict[str, int | float]:
     }
 
 
-def _covered(evidence: list[EvidenceItem]) -> bool:
+def _primary_origin_count(
+    evidence: list[EvidenceItem], evidence_ids: set[str] | None = None,
+) -> int:
     origins = {
         row.origin_group_id for row in evidence
-        if row.provenance == "preserved_primary" and row.snapshot_ref and row.origin_group_id
+        if (
+            row.provenance == "preserved_primary"
+            and row.snapshot_ref
+            and row.origin_group_id
+            and (evidence_ids is None or row.evidence_id in evidence_ids)
+        )
     }
-    return len(origins) >= 2
+    return len(origins)
+
+
+def _promotion_evidence_ids(outputs: dict[str, dict]) -> set[str]:
+    claims = outputs["researcher"].get("claims", [])
+    critical_claim_ids = {
+        claim.get("claim_id") for claim in claims if claim.get("critical")
+    }
+    selected_claim_ids = critical_claim_ids or {
+        claim.get("claim_id") for claim in claims
+    }
+    ids = {
+        evidence_id
+        for claim in claims
+        if claim.get("claim_id") in selected_claim_ids
+        for evidence_id in claim.get("evidence_ids", [])
+    }
+    objection_claims = {
+        objection.get("objection_id"): objection.get("claim_id")
+        for objection in outputs["critic"].get("objections", [])
+    }
+    for rebuttal in outputs["defender"].get("rebuttals", []):
+        if (
+            rebuttal.get("action") == "CONCEDE"
+            or objection_claims.get(rebuttal.get("objection_id")) not in selected_claim_ids
+        ):
+            continue
+        ids.update(rebuttal.get("evidence_ids", []))
+        replacement = rebuttal.get("replacement_claim")
+        if isinstance(replacement, dict):
+            ids.update(replacement.get("evidence_ids", []))
+    return ids
+
+
+def _has_unresolved_critical(outputs: dict[str, dict]) -> bool:
+    claims = {
+        claim["claim_id"]: claim
+        for claim in outputs["researcher"].get("claims", [])
+    }
+    if any(
+        claim.get("critical") and claim.get("status") == "unknown"
+        for claim in claims.values()
+    ):
+        return True
+    findings = {
+        finding["objection_id"]: finding
+        for finding in outputs["control_critic"].get("findings", [])
+    }
+    for objection in outputs["critic"].get("objections", []):
+        claim = claims.get(objection.get("claim_id"))
+        critical = bool(claim and claim.get("critical")) or objection.get("severity") in {
+            "critical", "fatal",
+        }
+        if not critical:
+            continue
+        finding = findings.get(objection.get("objection_id"))
+        if (
+            not isinstance(finding, dict)
+            or finding.get("residual_status") != "resolved"
+            or finding.get("evidence_valid") is not True
+        ):
+            return True
+    return False
+
+
+def _role_errors(round_result) -> list[list[str]]:
+    return [
+        [event.role, str(event.error_code)]
+        for event in round_result.events
+        if event.role != "arbiter" and event.error_code
+    ]
 
 
 def evaluate_case(case: dict) -> dict[str, dict[str, Any]]:
     """Evaluate paths without consulting gold_accept, gold_verdict or adjudication."""
     candidate, evidence, output_payloads = _fixture(case)
-    failure_role = "critic" if case["scenario"] == "provider_failure" else None
-    first = run_review(
-        run_id=f"eval-{case['case_id']}",
-        candidate=candidate,
-        gateway=_Gateway(output_payloads, failure_role),
-        evidence_provider=_Provider(evidence),
-        budget=_BUDGET,
-        models=_MODELS,
-    )
-    second = run_review(
-        run_id=f"eval-{case['case_id']}",
-        candidate=candidate,
-        gateway=_Gateway(output_payloads, failure_role),
-        evidence_provider=_Provider(evidence),
-        budget=_BUDGET,
-        models=_MODELS,
-    )
-    failures = [
-        (event.role, str(event.error_code))
-        for event in first.events[:-1] if event.error_code
-    ]
-    parsed = {
-        role: parse_role_output(role, payload)
-        for role, payload in output_payloads.items()
-    }
-    evidence_map = {row.evidence_id: row for row in evidence}
+    proposed_failure_role = "critic" if case["scenario"] == "provider_failure" else None
 
-    def ablation(path: str):
-        defender = parsed["defender"]
-        control = parsed["control_critic"]
-        if path == "no_defender":
-            defender = DefenderOutput(rebuttals=[])
-        elif path == "no_control":
-            control = ControlOutput(findings=[])
-        ledger_revision = review_hash({
-            "case_id": case["case_id"],
-            "path": path,
-            "candidate": candidate,
-            "evidence": [row.model_dump(mode="json") for row in evidence],
-            "outputs": output_payloads,
-            "failures": failures,
-        })
-        return arbitrate(
+    def execute(path: str):
+        unavailable_role = {
+            "proposed": proposed_failure_role,
+            "no_defender": "defender",
+            "no_control": "control_critic",
+        }[path]
+        return run_review(
+            run_id=f"eval-{case['case_id']}-{path}",
             candidate=candidate,
-            researcher=parsed["researcher"],
-            critic=parsed["critic"],
-            defender=defender,
-            control=control,
-            evidence=evidence_map,
-            failures=failures,
-            ledger_revision=ledger_revision,
+            gateway=_Gateway(output_payloads, unavailable_role),
+            evidence_provider=_Provider(evidence),
+            budget=_BUDGET,
+            models=_MODELS,
         )
+
+    first = execute("proposed")
+    second = execute("proposed")
+    ablation_rounds = {
+        path: (execute(path), execute(path))
+        for path in ("no_defender", "no_control")
+    }
 
     baseline_verdict = (
         "PROMOTE"
@@ -539,33 +588,46 @@ def evaluate_case(case: dict) -> dict[str, dict[str, Any]]:
             "latency_ms": 0,
             "tokens": 0,
             "cost_usd": 0.0,
+            "role_errors": [],
         },
         "proposed": {
             "verdict": first.decision.verdict,
             "ledger_revision": first.ledger_revision,
             "stable": first.decision == second.decision and first.ledger_revision == second.ledger_revision,
-            **_resources(first.events, {"researcher", "critic", "defender", "control_critic"}),
+            "role_errors": _role_errors(first),
+            **_resources(first.events),
         },
     }
-    role_sets = {
-        "no_defender": {"researcher", "critic", "control_critic"},
-        "no_control": {"researcher", "critic", "defender"},
-    }
-    for path, roles in role_sets.items():
-        decision = ablation(path)
+    for path, (first_ablation, second_ablation) in ablation_rounds.items():
         results[path] = {
-            "verdict": decision.verdict,
-            "ledger_revision": decision.ledger_revision,
-            "stable": True,
-            **_resources(first.events, roles),
+            "verdict": first_ablation.decision.verdict,
+            "ledger_revision": first_ablation.ledger_revision,
+            "stable": (
+                first_ablation.decision == second_ablation.decision
+                and first_ablation.ledger_revision == second_ablation.ledger_revision
+            ),
+            "role_errors": _role_errors(first_ablation),
+            **_resources(first_ablation.events),
         }
+    # The baseline projection has no typed citation contract, so available
+    # fixture evidence cannot be credited as decision evidence.
+    results["baseline"]["primary_origin_count"] = 0
+    results["proposed"]["primary_origin_count"] = _primary_origin_count(
+        evidence, _promotion_evidence_ids(output_payloads),
+    )
+    for path in ("no_defender", "no_control"):
+        results[path]["primary_origin_count"] = 0
     for row in results.values():
-        row["evidence_covered"] = _covered(evidence)
+        row["evidence_covered"] = row["primary_origin_count"] >= 2
+    unresolved = _has_unresolved_critical(output_payloads)
+    for path, row in results.items():
+        row["unresolved_critical"] = unresolved or bool(row["role_errors"])
     return results
 
 
 def _metrics(rows: list[dict], path: str) -> dict[str, int | float]:
-    predicted = [row["paths"][path]["verdict"] in ACCEPTED for row in rows]
+    verdicts = [row["paths"][path]["verdict"] for row in rows]
+    predicted = [verdict in ACCEPTED for verdict in verdicts]
     gold = [bool(row["gold_accept"]) for row in rows]
     tp = sum(p and g for p, g in zip(predicted, gold, strict=True))
     fp = sum(p and not g for p, g in zip(predicted, gold, strict=True))
@@ -588,12 +650,20 @@ def _metrics(rows: list[dict], path: str) -> dict[str, int | float]:
         "recall": round(recall, 4),
         "false_promotions": fp,
         "evidence_less_promotions": sum(
-            value and "evidence_less" in row["risk_flags"]
+            value and row["paths"][path]["primary_origin_count"] == 0
             for row, value in zip(rows, predicted, strict=True)
         ),
         "unresolved_critical_promotions": sum(
-            value and "unresolved_critical" in row["risk_flags"]
+            value and row["paths"][path]["unresolved_critical"]
             for row, value in zip(rows, predicted, strict=True)
+        ),
+        "exact_verdict_accuracy": round(sum(
+            verdict == row["gold_verdict"]
+            for row, verdict in zip(rows, verdicts, strict=True)
+        ) / len(rows), 4),
+        "overpromotions": sum(
+            verdict == "PROMOTE" and row["gold_verdict"] != "PROMOTE"
+            for row, verdict in zip(rows, verdicts, strict=True)
         ),
         "evidence_coverage": round(covered / len(accepted_rows), 4) if accepted_rows else 1.0,
         "stability": round(sum(row["paths"][path]["stable"] for row in rows) / len(rows), 4),
@@ -626,6 +696,7 @@ def evaluate_review_dataset(dataset: dict) -> dict:
         "dataset_version": dataset["version"],
         "fixture_version": dataset["fixture_version"],
         "frozen_code_sha": dataset["frozen_code_sha"],
+        "arbiter_candidate": dataset["arbiter_candidate"],
         "dataset_digest": _digest(dataset),
         "cases": evaluated,
         "metrics": metrics,
@@ -645,17 +716,18 @@ def render_review_report(summary: dict) -> str:
         "",
         (
             f"Dataset `{summary['dataset_version']}` · fixture `{summary['fixture_version']}` · "
-            f"frozen code `{summary['frozen_code_sha']}`."
+            f"frozen code `{summary['frozen_code_sha']}` · arbiter `{summary['arbiter_candidate']}`."
         ),
         "",
-        "| split/path | P | R | false promote | evidence-less | unresolved | coverage | stable | fixture ms | tokens | cost USD |",
-        "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
+        "| split/path | P | R | exact | overpromote | false promote | evidence-less | unresolved | coverage | stable | fixture ms | tokens | cost USD |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for split in ("replay", "holdout", "all"):
         for path in PATHS:
             row = summary["metrics"][split][path]
             lines.append(
                 f"| {split}/{path} | {row['precision']:.4f} | {row['recall']:.4f} | "
+                f"{row['exact_verdict_accuracy']:.4f} | {row['overpromotions']} | "
                 f"{row['false_promotions']} | {row['evidence_less_promotions']} | "
                 f"{row['unresolved_critical_promotions']} | {row['evidence_coverage']:.4f} | "
                 f"{row['stability']:.4f} | {row['latency_ms']} | {row['tokens']} | {row['cost_usd']:.6f} |"
@@ -666,7 +738,9 @@ def render_review_report(summary: dict) -> str:
         "",
         (
             "`baseline` is the pre-review base admission. `proposed` runs all four typed roles and the "
-            "deterministic arbiter. Ablations omit defender or independent control and therefore remain fail-closed."
+            "deterministic arbiter. Role-removal ablations execute the same runner twice with the selected role "
+            "unavailable; their typed failure, downstream validation, stability and resources are measured rather "
+            "than reconstructed post hoc."
         ),
         "",
         "## Limitation",
