@@ -13,7 +13,6 @@ import asyncio
 import concurrent.futures
 import json
 import math
-import socket
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -159,50 +158,16 @@ class OpenRouterClient:
             "X-Title": "Thin Signals",
         }
         self._transport = transport
-        self._resolved: tuple[float, str] | None = None
-        self._resolved_lock = threading.Lock()
         self._zdr: dict[str, set[str]] | None = None
         self._zdr_at = 0.0
 
-    async def _resolved_target(self, path: str) -> tuple[str, dict[str, str], dict]:
-        """Resolve once before dispatch so cancelled DNS cannot later send a request."""
+    def _request_target(self, path: str) -> str:
+        """Keep the original origin so HTTPX retains DNS fallback, proxy and TLS semantics."""
         parsed = urlsplit(self._base_url)
-        if self._transport is not None:
-            target_path = f"{parsed.path.rstrip('/')}/{path.lstrip('/')}"
-            return urlunsplit((parsed.scheme, parsed.netloc, target_path, "", "")), {}, {}
-        host = parsed.hostname
-        if parsed.scheme not in {"http", "https"} or not host:
+        if parsed.scheme not in {"http", "https"} or not parsed.hostname:
             raise LLMError("OpenRouter URL must be absolute HTTP(S)")
-        port = parsed.port or (443 if parsed.scheme == "https" else 80)
-        now = time.monotonic()
-        with self._resolved_lock:
-            cached = self._resolved
-        if cached is not None and cached[0] > now:
-            address = cached[1]
-        else:
-            rows = await asyncio.get_running_loop().getaddrinfo(
-                host,
-                port,
-                type=socket.SOCK_STREAM,
-                proto=socket.IPPROTO_TCP,
-            )
-            if not rows:
-                raise LLMError("OpenRouter host did not resolve")
-            address = rows[0][4][0]
-            with self._resolved_lock:
-                self._resolved = (time.monotonic() + 300.0, address)
-        netloc = f"[{address}]" if ":" in address else address
-        if port != (443 if parsed.scheme == "https" else 80):
-            netloc = f"{netloc}:{port}"
         target_path = f"{parsed.path.rstrip('/')}/{path.lstrip('/')}"
-        host_header = host
-        if port != (443 if parsed.scheme == "https" else 80):
-            host_header = f"{host}:{port}"
-        return (
-            urlunsplit((parsed.scheme, netloc, target_path, "", "")),
-            {"Host": host_header},
-            {"sni_hostname": host},
-        )
+        return urlunsplit((parsed.scheme, parsed.netloc, target_path, "", ""))
 
     async def _request_json_async(
         self,
@@ -217,7 +182,7 @@ class OpenRouterClient:
             connect=min(15.0, timeout_seconds),
         )
         async with asyncio.timeout(timeout_seconds):
-            target, target_headers, extensions = await self._resolved_target(path)
+            target = self._request_target(path)
             async with httpx.AsyncClient(
                 headers=self._headers,
                 timeout=timeout,
@@ -226,8 +191,6 @@ class OpenRouterClient:
                 method,
                 target,
                 json=body,
-                headers=target_headers,
-                extensions=extensions,
             ) as response:
                 raw = bytearray()
                 async for chunk in response.aiter_bytes():
@@ -369,7 +332,9 @@ class OpenRouterClient:
         if status_code >= 400 or "error" in data:
             raise LLMError(f"OpenRouter {status_code}: {json.dumps(data.get('error', data), ensure_ascii=False)[:400]}")
         provider = data.get("provider", "")
-        model_id = data.get("model", model)
+        model_id = data.get("model")
+        if not isinstance(model_id, str) or not model_id.strip():
+            raise ModelNotAllowed("missing response model metadata")
         if model_id != model:
             raise ModelNotAllowed(
                 f"response model {model_id!r} does not match requested model {model!r}"

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import socket
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -23,6 +24,13 @@ ZDR = {"data": [
     {"model_id": "qwen/qwen3-235b-a22b-2507", "provider_name": "Novita"},
     {"model_id": "openai/gpt-4.1", "provider_name": "Azure"},
 ]}
+PROXY_ENV_DISABLED = {
+    name: ""
+    for name in (
+        "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY",
+        "http_proxy", "https_proxy", "all_proxy", "no_proxy",
+    )
+}
 
 
 def settings(tmp_path: Path) -> Settings:
@@ -113,6 +121,25 @@ def test_different_but_allowed_response_model_is_rejected(tmp_path):
             [{"role": "user", "content": "x"}],
             model="qwen/qwen3.6-35b-a3b",
         )
+
+
+def test_missing_response_model_is_rejected(tmp_path):
+    def handler(req: httpx.Request) -> httpx.Response:
+        if req.url.path.endswith("/endpoints/zdr"):
+            return httpx.Response(200, json=ZDR)
+        return httpx.Response(200, json={
+            "provider": "Venice",
+            "choices": [{"message": {"content": "Париж"}}],
+            "usage": {"total_tokens": 12},
+        })
+
+    client = llm_mod.OpenRouterClient(
+        settings(tmp_path),
+        transport=httpx.MockTransport(handler),
+    )
+
+    with pytest.raises(llm_mod.ModelNotAllowed, match="missing response model"):
+        client.chat([{"role": "user", "content": "x"}])
 
 
 def test_role_timeout_covers_registry_and_completion_requests(tmp_path):
@@ -261,19 +288,20 @@ def test_timeout_during_dns_cannot_dispatch_a_late_completion(tmp_path):
     server_thread = Thread(target=server.serve_forever, daemon=True)
     server_thread.start()
     configured = settings(tmp_path)
-    configured.openrouter_url = f"http://127.0.0.1:{server.server_port}/api/v1"
+    configured.openrouter_url = f"http://late-dns.test:{server.server_port}/api/v1"
     client = llm_mod.OpenRouterClient(configured)
     client._zdr = {"qwen/qwen3.6-35b-a3b": {"Venice"}}
     client._zdr_at = time.time()
     original = socket.getaddrinfo
 
     def paused_dns(host, port, *args, **kwargs):
+        assert host in ("late-dns.test", b"late-dns.test")
         assert release_dns.wait(2)
-        return original(host, port, *args, **kwargs)
+        return original("127.0.0.1", port, *args, **kwargs)
 
     try:
         started = time.monotonic()
-        with patch("socket.getaddrinfo", paused_dns):
+        with patch.dict(os.environ, PROXY_ENV_DISABLED), patch("socket.getaddrinfo", paused_dns):
             with pytest.raises(TimeoutError, match="role deadline"):
                 client.chat(
                     [{"role": "user", "content": "x"}],
@@ -288,6 +316,133 @@ def test_timeout_during_dns_cannot_dispatch_a_late_completion(tmp_path):
         server.shutdown()
         server.server_close()
         server_thread.join(timeout=2)
+
+
+def test_native_http_tries_later_dns_address_after_connect_failure(tmp_path):
+    requests: list[str] = []
+
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, *_args):
+            return
+
+        def do_POST(self):
+            requests.append(self.headers["Host"])
+            self.rfile.read(int(self.headers["Content-Length"]))
+            payload = json.dumps({
+                "model": "qwen/qwen3.6-35b-a3b",
+                "provider": "Venice",
+                "choices": [{"message": {"content": "fallback"}}],
+                "usage": {"total_tokens": 12},
+            }).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    server_thread = Thread(target=server.serve_forever, daemon=True)
+    server_thread.start()
+    configured = settings(tmp_path)
+    configured.openrouter_url = f"http://fallback.test:{server.server_port}/api/v1"
+    client = llm_mod.OpenRouterClient(configured)
+    client._zdr = {"qwen/qwen3.6-35b-a3b": {"Venice"}}
+    client._zdr_at = time.time()
+
+    def two_addresses(host, port, *args, **kwargs):
+        assert host in ("fallback.test", b"fallback.test")
+        return [
+            (socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", ("127.0.0.2", port)),
+            (socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", ("127.0.0.1", port)),
+        ]
+
+    try:
+        with patch.dict(os.environ, PROXY_ENV_DISABLED), patch("socket.getaddrinfo", two_addresses):
+            response = client.chat(
+                [{"role": "user", "content": "x"}],
+                timeout_seconds=1.0,
+            )
+        assert response.content == "fallback"
+        assert requests == [f"fallback.test:{server.server_port}"]
+    finally:
+        server.shutdown()
+        server.server_close()
+        server_thread.join(timeout=2)
+
+
+def test_native_http_preserves_hostname_for_no_proxy(tmp_path):
+    origin_requests: list[str] = []
+    proxy_requests: list[str] = []
+
+    class OriginHandler(BaseHTTPRequestHandler):
+        def log_message(self, *_args):
+            return
+
+        def do_POST(self):
+            origin_requests.append(self.headers["Host"])
+            self.rfile.read(int(self.headers["Content-Length"]))
+            payload = json.dumps({
+                "model": "qwen/qwen3.6-35b-a3b",
+                "provider": "Venice",
+                "choices": [{"message": {"content": "direct"}}],
+                "usage": {"total_tokens": 12},
+            }).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+
+    class ProxyHandler(BaseHTTPRequestHandler):
+        def log_message(self, *_args):
+            return
+
+        def do_POST(self):
+            proxy_requests.append(self.path)
+            self.send_response(502)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(b'{"error":"unexpected proxy"}')
+
+    origin = ThreadingHTTPServer(("127.0.0.1", 0), OriginHandler)
+    proxy = ThreadingHTTPServer(("127.0.0.1", 0), ProxyHandler)
+    origin_thread = Thread(target=origin.serve_forever, daemon=True)
+    proxy_thread = Thread(target=proxy.serve_forever, daemon=True)
+    origin_thread.start()
+    proxy_thread.start()
+    configured = settings(tmp_path)
+    configured.openrouter_url = f"http://no-proxy.test:{origin.server_port}/api/v1"
+    client = llm_mod.OpenRouterClient(configured)
+    client._zdr = {"qwen/qwen3.6-35b-a3b": {"Venice"}}
+    client._zdr_at = time.time()
+    proxy_env = {
+        **PROXY_ENV_DISABLED,
+        "HTTP_PROXY": f"http://127.0.0.1:{proxy.server_port}",
+        "http_proxy": f"http://127.0.0.1:{proxy.server_port}",
+        "NO_PROXY": "no-proxy.test",
+        "no_proxy": "no-proxy.test",
+    }
+
+    def origin_address(host, port, *args, **kwargs):
+        assert host in ("no-proxy.test", b"no-proxy.test")
+        return [(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", ("127.0.0.1", port))]
+
+    try:
+        with patch.dict(os.environ, proxy_env), patch("socket.getaddrinfo", origin_address):
+            response = client.chat(
+                [{"role": "user", "content": "x"}],
+                timeout_seconds=1.0,
+            )
+        assert response.content == "direct"
+        assert origin_requests == [f"no-proxy.test:{origin.server_port}"]
+        assert proxy_requests == []
+    finally:
+        origin.shutdown()
+        proxy.shutdown()
+        origin.server_close()
+        proxy.server_close()
+        origin_thread.join(timeout=2)
+        proxy_thread.join(timeout=2)
 
 
 def test_non_zdr_provider_in_response_rejected(tmp_path):
