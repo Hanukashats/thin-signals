@@ -1,9 +1,14 @@
 """LLM-01 invariants: ZDR policy on every request, TZ allowlist, provider must be ZDR-listed."""
 from __future__ import annotations
 
+import asyncio
 import json
+import socket
 import time
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from threading import Event, Thread
+from unittest.mock import patch
 
 import httpx
 import pytest
@@ -96,6 +101,20 @@ def test_unallowed_model_returned_by_provider_is_rejected_before_zdr_lookup(tmp_
     assert lookups == 1
 
 
+def test_different_but_allowed_response_model_is_rejected(tmp_path):
+    client = make_client(
+        tmp_path,
+        provider="Azure",
+        model="openai/gpt-4.1",
+    )
+
+    with pytest.raises(llm_mod.ModelNotAllowed, match="does not match requested"):
+        client.chat(
+            [{"role": "user", "content": "x"}],
+            model="qwen/qwen3.6-35b-a3b",
+        )
+
+
 def test_role_timeout_covers_registry_and_completion_requests(tmp_path):
     timeouts = []
 
@@ -161,14 +180,14 @@ def test_registry_time_consumes_the_shared_role_deadline(tmp_path, monkeypatch):
     assert paths == ["/api/v1/endpoints/zdr"]
 
 
-class SlowStream(httpx.SyncByteStream):
+class SlowStream(httpx.AsyncByteStream):
     def __init__(self, payload: bytes, delay_seconds: float = 0.02):
         self.payload = payload
         self.delay_seconds = delay_seconds
 
-    def __iter__(self):
+    async def __aiter__(self):
         for byte in self.payload:
-            time.sleep(self.delay_seconds)
+            await asyncio.sleep(self.delay_seconds)
             yield bytes([byte])
 
 
@@ -213,6 +232,62 @@ def test_completion_slow_stream_is_abandoned_at_absolute_deadline(tmp_path):
         )
 
     assert time.monotonic() - started < 0.15
+
+
+def test_timeout_during_dns_cannot_dispatch_a_late_completion(tmp_path):
+    release_dns = Event()
+    posts: list[float] = []
+
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, *_args):
+            return
+
+        def do_POST(self):
+            posts.append(time.monotonic())
+            self.rfile.read(int(self.headers["Content-Length"]))
+            payload = json.dumps({
+                "model": "qwen/qwen3.6-35b-a3b",
+                "provider": "Venice",
+                "choices": [{"message": {"content": "late"}}],
+                "usage": {"total_tokens": 12},
+            }).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    server_thread = Thread(target=server.serve_forever, daemon=True)
+    server_thread.start()
+    configured = settings(tmp_path)
+    configured.openrouter_url = f"http://127.0.0.1:{server.server_port}/api/v1"
+    client = llm_mod.OpenRouterClient(configured)
+    client._zdr = {"qwen/qwen3.6-35b-a3b": {"Venice"}}
+    client._zdr_at = time.time()
+    original = socket.getaddrinfo
+
+    def paused_dns(host, port, *args, **kwargs):
+        assert release_dns.wait(2)
+        return original(host, port, *args, **kwargs)
+
+    try:
+        started = time.monotonic()
+        with patch("socket.getaddrinfo", paused_dns):
+            with pytest.raises(TimeoutError, match="role deadline"):
+                client.chat(
+                    [{"role": "user", "content": "x"}],
+                    timeout_seconds=0.05,
+                )
+            assert time.monotonic() - started < 0.15
+            release_dns.set()
+            time.sleep(0.2)
+        assert posts == []
+    finally:
+        release_dns.set()
+        server.shutdown()
+        server.server_close()
+        server_thread.join(timeout=2)
 
 
 def test_non_zdr_provider_in_response_rejected(tmp_path):

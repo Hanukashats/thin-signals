@@ -40,22 +40,21 @@ def _fresh_child_factory():
 def _crash_with_reserved_review(run_id, query, key, ready):
     import os
 
-    from ts.persist import acquire_report_lock, reserve_report
+    from ts.persist import coordinated_report_session, reserve_report
 
     factory = _fresh_child_factory()
-    with factory() as lock_session:
-        assert acquire_report_lock(lock_session, key)
-        with factory() as session:
-            owned, stored = reserve_report(
-                session,
-                run_id=run_id,
-                query=query,
-                idempotency_key=key,
-                corpus_version="crash-test-v1",
-                rules_version="rules-0.1",
-                review_enabled=True,
-                coordinated=True,
-            )
+    with coordinated_report_session(factory, key) as (session, coordinated):
+        assert coordinated
+        owned, stored = reserve_report(
+            session,
+            run_id=run_id,
+            query=query,
+            idempotency_key=key,
+            corpus_version="crash-test-v1",
+            rules_version="rules-0.1",
+            review_enabled=True,
+            coordinated=True,
+        )
         assert owned and stored is None
         ready.set()
         os._exit(73)
@@ -67,40 +66,35 @@ def _complete_reserved_review(run_id, query, key, ready, release):
     from sqlalchemy import select
 
     from ts.db.models import Run
-    from ts.persist import acquire_report_lock, release_report_lock, reserve_report
+    from ts.persist import coordinated_report_session, reserve_report
 
     factory = _fresh_child_factory()
-    with factory() as lock_session:
-        assert acquire_report_lock(lock_session, key)
-        try:
-            with factory() as session:
-                owned, stored = reserve_report(
-                    session,
-                    run_id=run_id,
-                    query=query,
-                    idempotency_key=key,
-                    corpus_version="multiprocess-test-v1",
-                    rules_version="rules-0.1",
-                    review_enabled=True,
-                    coordinated=True,
-                )
-            assert owned and stored is None
-            ready.set()
-            assert release.wait(10)
-            with factory() as session:
-                row = session.scalar(select(Run).where(Run.idempotency_key == key))
-                row.status = "succeeded"
-                row.stats = {
-                    "run_id": run_id,
-                    "run_status": "succeeded",
-                    "query": query,
-                    "repeated": False,
-                    "review": {"enabled": True, "status": "completed", "verdict": "PROMOTE"},
-                }
-                row.finished_at = datetime.now(tz=UTC)
-                session.commit()
-        finally:
-            release_report_lock(lock_session, key)
+    with coordinated_report_session(factory, key) as (session, coordinated):
+        assert coordinated
+        owned, stored = reserve_report(
+            session,
+            run_id=run_id,
+            query=query,
+            idempotency_key=key,
+            corpus_version="multiprocess-test-v1",
+            rules_version="rules-0.1",
+            review_enabled=True,
+            coordinated=True,
+        )
+        assert owned and stored is None
+        ready.set()
+        assert release.wait(10)
+        row = session.scalar(select(Run).where(Run.idempotency_key == key))
+        row.status = "succeeded"
+        row.stats = {
+            "run_id": run_id,
+            "run_status": "succeeded",
+            "query": query,
+            "repeated": False,
+            "review": {"enabled": True, "status": "completed", "verdict": "PROMOTE"},
+        }
+        row.finished_at = datetime.now(tz=UTC)
+        session.commit()
 
 
 def _card() -> dict:
@@ -756,3 +750,59 @@ def test_separate_process_waiter_receives_owner_canonical_result():
     assert result["run_id"] == run_id
     assert result["run_status"] == "succeeded"
     assert result["review"]["verdict"] == "PROMOTE"
+
+
+def test_distinct_review_locks_do_not_exhaust_their_own_connection_pool():
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Barrier
+
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+
+    from ts.persist import (
+        coordinated_report_session,
+        fail_reserved_report,
+        reserve_report,
+    )
+    from ts.settings import load
+
+    engine = create_engine(
+        load().sqlalchemy_url,
+        pool_size=2,
+        max_overflow=0,
+        pool_timeout=0.3,
+    )
+    factory = sessionmaker(engine, expire_on_commit=False)
+    barrier = Barrier(2)
+
+    def reserve_distinct(index: int):
+        suffix = uuid.uuid4().hex
+        key = hashlib.sha256(f"pool-{suffix}".encode()).hexdigest()
+        with coordinated_report_session(factory, key) as (session, coordinated):
+            assert coordinated is True
+            barrier.wait(timeout=5)
+            owned, stored = reserve_report(
+                session,
+                run_id=f"pool-{index}-{suffix[:12]}",
+                query=f"pool-review-{suffix}",
+                idempotency_key=key,
+                corpus_version="pool-test-v1",
+                rules_version="rules-0.1",
+                review_enabled=True,
+                coordinated=True,
+            )
+            assert owned and stored is None
+            return fail_reserved_report(
+                session,
+                idempotency_key=key,
+                review_enabled=True,
+                coordinated=True,
+            )
+
+    try:
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            results = list(pool.map(reserve_distinct, range(2)))
+    finally:
+        engine.dispose()
+
+    assert all(result["run_status"] == "failed" for result in results)

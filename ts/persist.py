@@ -6,9 +6,12 @@ from __future__ import annotations
 
 import math
 import re
+from collections.abc import Iterator
+from contextlib import contextmanager
 from datetime import UTC, datetime
 
 from sqlalchemy import select, text
+from sqlalchemy.engine import Connection, Engine
 from sqlalchemy.orm import Session
 
 from ts.db.models import Candidate, Decision, ReviewEvent, Run
@@ -460,6 +463,41 @@ def release_report_lock(session: object, idempotency_key: str) -> None:
         text("SELECT pg_advisory_unlock(hashtextextended(:scope, 0))"),
         {"scope": f"thin-signals:run:{idempotency_key}"},
     )
+
+
+@contextmanager
+def coordinated_report_session(factory, idempotency_key: str) -> Iterator[tuple[object, bool]]:
+    """Pin one connection for the session lock and every coordinated write."""
+    initial = factory()
+    if not isinstance(initial, Session):
+        with initial as session:
+            yield session, False
+        return
+
+    bind = initial.get_bind()
+    if isinstance(bind, Connection):
+        with initial as session:
+            held = acquire_report_lock(session, idempotency_key)
+            try:
+                yield session, held
+            finally:
+                if held:
+                    release_report_lock(session, idempotency_key)
+        return
+
+    initial.close()
+    if not isinstance(bind, Engine):
+        raise TypeError("report session must be bound to a SQLAlchemy engine or connection")
+    with bind.connect() as connection, Session(
+        bind=connection,
+        expire_on_commit=False,
+    ) as session:
+        held = acquire_report_lock(session, idempotency_key)
+        try:
+            yield session, held
+        finally:
+            if held:
+                release_report_lock(session, idempotency_key)
 
 
 def save_report(session: Session, report: RunReport, *, reserved: bool = False) -> str:

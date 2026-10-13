@@ -646,4 +646,8 @@ requirements:
       - ts/tests/test_llm.py::test_completion_slow_stream_is_abandoned_at_absolute_deadline
       - ts/tests/test_review_integration.py::test_hard_process_death_recovers_running_reservation_as_stable_hold
       - ts/tests/test_review_integration.py::test_separate_process_waiter_receives_owner_canonical_result
+      - ts/tests/test_review_integration.py::test_distinct_review_locks_do_not_exhaust_their_own_connection_pool
+      - ts/tests/test_llm.py::test_timeout_during_dns_cannot_dispatch_a_late_completion
+      - ts/tests/test_review_runner.py::test_native_gateway_wrong_approved_model_is_sanitized_and_holds
       - reports/ASTRA_C05_REAUDIT_E888346_2026-10-13.md
+      - reports/ASTRA_C05_AUDIT_E8788FC_2026-10-13.md

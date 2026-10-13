@@ -172,6 +172,55 @@ def test_one_equal_budget_call_per_role_and_valid_evidence_can_promote():
     assert all(event.state == "succeeded" for event in result.events)
 
 
+def test_gateway_attestation_cannot_override_requested_model_equality():
+    class WrongApprovedModelGateway(Gateway):
+        def call(self, role, messages, schema, budget, model):
+            return replace(
+                super().call(role, messages, schema, budget, model),
+                model_id="other-approved-model",
+            )
+
+        def route_is_valid(self, *_args):
+            return True
+
+    result = review(WrongApprovedModelGateway())
+
+    assert result.decision.verdict == "HOLD"
+    assert all(event.error_code == "provider_metadata_invalid" for event in result.events[:4])
+    assert all(event.model_id is None and event.provider is None for event in result.events[:4])
+
+
+def test_native_gateway_wrong_approved_model_is_sanitized_and_holds():
+    scripted = iter(outputs().values())
+
+    class Response:
+        model_id = "other-approved-model"
+        provider = "FixtureZDR"
+        latency_s = 0.01
+
+        def __init__(self, payload):
+            self._payload = payload
+            self.usage = {
+                "prompt_tokens": 100,
+                "completion_tokens": 100,
+                "total_tokens": 200,
+                "cost": 0.001,
+            }
+
+        def json(self):
+            return self._payload
+
+    class Client:
+        def chat(self, *_args, **_kwargs):
+            return Response(next(scripted))
+
+    result = review(OpenRouterRoleGateway(Client()))
+
+    assert result.decision.verdict == "HOLD"
+    assert all(event.error_code == "provider_metadata_invalid" for event in result.events[:4])
+    assert all(event.model_id is None and event.provider is None for event in result.events[:4])
+
+
 def test_unknown_evidence_reference_fails_closed_but_all_roles_still_run_once():
     scripted = outputs()
     scripted["researcher"]["claims"][0]["evidence_ids"] = ["evidence-unknown"]

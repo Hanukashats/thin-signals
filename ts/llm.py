@@ -9,12 +9,17 @@ Invariants enforced here, not by convention:
 """
 from __future__ import annotations
 
+import asyncio
+import concurrent.futures
 import json
 import math
+import socket
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from threading import Event, Thread
 from typing import Any
+from urllib.parse import urlsplit, urlunsplit
 
 import httpx
 
@@ -23,6 +28,63 @@ from ts.settings import Settings, load
 ZDR_CACHE_TTL_S = 6 * 3600
 CACHE_POLICY_VERSION = "zdr-deny-v1"
 MANDATORY_PROVIDER_POLICY = {"zdr": True, "data_collection": "deny"}
+MAX_RESPONSE_BYTES = 8 * 1024 * 1024
+
+
+class _AsyncRequestLoop:
+    """One bounded event-loop worker; coroutine cancellation prevents late dispatch."""
+
+    def __init__(self) -> None:
+        self._ready = threading.Event()
+        self._loop: asyncio.AbstractEventLoop | None = None
+        threading.Thread(
+            target=self._serve,
+            name="thin-signals-http-loop",
+            daemon=True,
+        ).start()
+        self._ready.wait()
+
+    def _serve(self) -> None:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.set_default_executor(ThreadPoolExecutor(
+            max_workers=4,
+            thread_name_prefix="thin-signals-dns",
+        ))
+        self._loop = loop
+        self._ready.set()
+        loop.run_forever()
+
+    def run(self, coroutine, timeout_seconds: float):
+        loop = self._loop
+        if loop is None:
+            raise RuntimeError("HTTP request loop did not start")
+        future = asyncio.run_coroutine_threadsafe(coroutine, loop)
+        try:
+            return future.result(timeout=timeout_seconds + 0.025)
+        except concurrent.futures.TimeoutError as exc:
+            future.cancel()
+            # Ensure the loop observes cancellation before the caller proceeds;
+            # a DNS executor may finish later, but its cancelled task cannot POST.
+            barrier = asyncio.run_coroutine_threadsafe(asyncio.sleep(0), loop)
+            try:
+                barrier.result(timeout=0.025)
+            except concurrent.futures.TimeoutError:
+                barrier.cancel()
+            raise TimeoutError("OpenRouter role deadline exceeded") from exc
+
+
+_REQUEST_LOOP: _AsyncRequestLoop | None = None
+_REQUEST_LOOP_LOCK = threading.Lock()
+
+
+def _request_loop() -> _AsyncRequestLoop:
+    global _REQUEST_LOOP
+    if _REQUEST_LOOP is None:
+        with _REQUEST_LOOP_LOCK:
+            if _REQUEST_LOOP is None:
+                _REQUEST_LOOP = _AsyncRequestLoop()
+    return _REQUEST_LOOP
 
 
 class LLMError(RuntimeError):
@@ -80,60 +142,126 @@ def cached_response_is_current(client, meta: object, requested_model: str) -> bo
 
 
 class OpenRouterClient:
-    def __init__(self, settings: Settings | None = None, transport: httpx.BaseTransport | None = None):
+    def __init__(
+        self,
+        settings: Settings | None = None,
+        transport: httpx.AsyncBaseTransport | None = None,
+    ):
         self.s = settings or load()
         if not self.s.openrouter_key:
             raise LLMError("OpenRouter key missing: set TS_OPENROUTER_KEY_FILE")
-        self._http = httpx.Client(
-            base_url=self.s.openrouter_url,
-            headers={
-                "Authorization": f"Bearer {self.s.openrouter_key}",
-                "HTTP-Referer": "https://thin-signals.local",
-                "X-Title": "Thin Signals",
-            },
-            timeout=httpx.Timeout(120.0, connect=15.0),
-            transport=transport,
-        )
+        if transport is not None and not isinstance(transport, httpx.AsyncBaseTransport):
+            raise TypeError("OpenRouter transport must support asynchronous cancellation")
+        self._base_url = self.s.openrouter_url
+        self._headers = {
+            "Authorization": f"Bearer {self.s.openrouter_key}",
+            "HTTP-Referer": "https://thin-signals.local",
+            "X-Title": "Thin Signals",
+        }
+        self._transport = transport
+        self._resolved: tuple[float, str] | None = None
+        self._resolved_lock = threading.Lock()
         self._zdr: dict[str, set[str]] | None = None
         self._zdr_at = 0.0
-        self._deadline_broken = False
 
-    def _within_deadline(self, call, timeout_seconds: float | None):
-        """Return a sync HTTP result within a hard wall deadline or abandon it."""
+    async def _resolved_target(self, path: str) -> tuple[str, dict[str, str], dict]:
+        """Resolve once before dispatch so cancelled DNS cannot later send a request."""
+        parsed = urlsplit(self._base_url)
+        if self._transport is not None:
+            target_path = f"{parsed.path.rstrip('/')}/{path.lstrip('/')}"
+            return urlunsplit((parsed.scheme, parsed.netloc, target_path, "", "")), {}, {}
+        host = parsed.hostname
+        if parsed.scheme not in {"http", "https"} or not host:
+            raise LLMError("OpenRouter URL must be absolute HTTP(S)")
+        port = parsed.port or (443 if parsed.scheme == "https" else 80)
+        now = time.monotonic()
+        with self._resolved_lock:
+            cached = self._resolved
+        if cached is not None and cached[0] > now:
+            address = cached[1]
+        else:
+            rows = await asyncio.get_running_loop().getaddrinfo(
+                host,
+                port,
+                type=socket.SOCK_STREAM,
+                proto=socket.IPPROTO_TCP,
+            )
+            if not rows:
+                raise LLMError("OpenRouter host did not resolve")
+            address = rows[0][4][0]
+            with self._resolved_lock:
+                self._resolved = (time.monotonic() + 300.0, address)
+        netloc = f"[{address}]" if ":" in address else address
+        if port != (443 if parsed.scheme == "https" else 80):
+            netloc = f"{netloc}:{port}"
+        target_path = f"{parsed.path.rstrip('/')}/{path.lstrip('/')}"
+        host_header = host
+        if port != (443 if parsed.scheme == "https" else 80):
+            host_header = f"{host}:{port}"
+        return (
+            urlunsplit((parsed.scheme, netloc, target_path, "", "")),
+            {"Host": host_header},
+            {"sni_hostname": host},
+        )
+
+    async def _request_json_async(
+        self,
+        method: str,
+        path: str,
+        *,
+        timeout_seconds: float,
+        body: dict | None = None,
+    ) -> tuple[int, dict]:
+        timeout = httpx.Timeout(
+            timeout_seconds,
+            connect=min(15.0, timeout_seconds),
+        )
+        async with asyncio.timeout(timeout_seconds):
+            target, target_headers, extensions = await self._resolved_target(path)
+            async with httpx.AsyncClient(
+                headers=self._headers,
+                timeout=timeout,
+                transport=self._transport,
+            ) as client, client.stream(
+                method,
+                target,
+                json=body,
+                headers=target_headers,
+                extensions=extensions,
+            ) as response:
+                raw = bytearray()
+                async for chunk in response.aiter_bytes():
+                    raw.extend(chunk)
+                    if len(raw) > MAX_RESPONSE_BYTES:
+                        raise LLMError("OpenRouter response is too large")
+                return response.status_code, json.loads(raw)
+
+    def _request_json(
+        self,
+        method: str,
+        path: str,
+        *,
+        timeout_seconds: float | None,
+        body: dict | None = None,
+    ) -> tuple[int, dict]:
         if timeout_seconds is None:
-            return call()
+            timeout_seconds = 120.0
         if (
             not isinstance(timeout_seconds, (int, float))
             or isinstance(timeout_seconds, bool)
             or not math.isfinite(float(timeout_seconds))
             or timeout_seconds <= 0
-            or self._deadline_broken
         ):
             raise TimeoutError("OpenRouter role deadline exceeded")
-        result: list[object] = []
-        errors: list[BaseException] = []
-        done = Event()
-
-        def execute() -> None:
-            try:
-                result.append(call())
-            except BaseException as exc:  # noqa: BLE001 - re-raised on the caller thread
-                errors.append(exc)
-            finally:
-                done.set()
-
-        Thread(
-            target=execute,
-            name="thin-signals-openrouter-deadline",
-            daemon=True,
-        ).start()
-        if not done.wait(float(timeout_seconds)):
-            self._deadline_broken = True
-            Thread(target=self._http.close, daemon=True).start()
-            raise TimeoutError("OpenRouter role deadline exceeded")
-        if errors:
-            raise errors[0]
-        return result[0]
+        return _request_loop().run(
+            self._request_json_async(
+                method,
+                path,
+                timeout_seconds=float(timeout_seconds),
+                body=body,
+            ),
+            float(timeout_seconds),
+        )
 
     # -- ZDR endpoint registry ------------------------------------------------------------------
     def zdr_providers(
@@ -143,13 +271,16 @@ class OpenRouterClient:
     ) -> dict[str, set[str]]:
         """model_id -> set(provider_name) for endpoints OpenRouter marks as ZDR."""
         if self._zdr is None or force or time.time() - self._zdr_at > ZDR_CACHE_TTL_S:
-            options = {"timeout": timeout_seconds} if timeout_seconds is not None else {}
-            def fetch_registry():
-                response = self._http.get("/endpoints/zdr", **options)
-                response.raise_for_status()
-                return response.json()
-
-            data = self._within_deadline(fetch_registry, timeout_seconds)
+            status_code, data = self._request_json(
+                "GET",
+                "/endpoints/zdr",
+                timeout_seconds=timeout_seconds,
+            )
+            if status_code >= 400 or "error" in data:
+                raise LLMError(
+                    f"OpenRouter {status_code}: "
+                    f"{json.dumps(data.get('error', data), ensure_ascii=False)[:400]}"
+                )
             reg: dict[str, set[str]] = {}
             for e in data.get("data", []):
                 reg.setdefault(e["model_id"], set()).add(e["provider_name"])
@@ -226,23 +357,23 @@ class OpenRouterClient:
                 "json_schema": {"name": json_schema.get("title", "result"), "strict": True, "schema": json_schema},
             }
         request_timeout = remaining()
-        request_options = {"timeout": request_timeout} if request_timeout is not None else {}
-        def complete():
-            response = self._http.post(
-                "/chat/completions",
-                json=body,
-                **request_options,
-            )
-            return response.status_code, response.json()
-
         try:
-            status_code, data = self._within_deadline(complete, request_timeout)
+            status_code, data = self._request_json(
+                "POST",
+                "/chat/completions",
+                timeout_seconds=request_timeout,
+                body=body,
+            )
         except httpx.TimeoutException as exc:
             raise TimeoutError("OpenRouter role deadline exceeded") from exc
         if status_code >= 400 or "error" in data:
             raise LLMError(f"OpenRouter {status_code}: {json.dumps(data.get('error', data), ensure_ascii=False)[:400]}")
         provider = data.get("provider", "")
         model_id = data.get("model", model)
+        if model_id != model:
+            raise ModelNotAllowed(
+                f"response model {model_id!r} does not match requested model {model!r}"
+            )
         try:
             self.validate_response_route(
                 model_id,

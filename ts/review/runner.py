@@ -523,13 +523,14 @@ def run_review(
         )
         model_id = validated_model_id(result.model_id) if result is not None else None
         provider = validated_provider_id(result.provider) if result is not None else None
+        requested_model = models.for_role(role)
         route_valid = False
         if result is not None and model_id is not None and provider is not None:
             validator = getattr(gateway, "route_is_valid", None)
             if callable(validator):
                 try:
                     route_valid = bool(validator(
-                        models.for_role(role),
+                        requested_model,
                         model_id,
                         provider,
                     ))
@@ -540,11 +541,14 @@ def run_review(
             claimed_latency is None
             or model_id is None
             or provider is None
+            or model_id != requested_model
             or not route_valid
             or not _usage_is_valid(result.usage)
         ) and state == "succeeded":
             state, error_code, parsed = "invalid", "provider_metadata_invalid", None
-        if result is not None and not route_valid:
+        if result is not None and (
+            not route_valid or model_id != requested_model
+        ):
             model_id = None
             provider = None
         if (
