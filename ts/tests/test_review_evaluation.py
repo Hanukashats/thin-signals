@@ -108,6 +108,47 @@ def test_ablations_execute_twice_through_runner_and_record_role_failure():
     assert paths["no_control"]["verdict"] == "HOLD"
 
 
+def test_ablations_preserve_the_case_provider_failure():
+    case = next(
+        row for row in load_review_dataset(DATASET)["cases"]
+        if row["scenario"] == "provider_failure"
+    )
+    paths = evaluate_case(case)
+
+    assert paths["no_defender"]["role_errors"] == [
+        ["critic", "role_call_failed"],
+        ["defender", "role_call_failed"],
+    ]
+    assert paths["no_control"]["role_errors"] == [
+        ["critic", "role_call_failed"],
+        ["control_critic", "role_call_failed"],
+    ]
+    assert paths["no_defender"]["tokens"] == paths["no_control"]["tokens"] == 300
+    assert paths["no_defender"]["cost_usd"] == paths["no_control"]["cost_usd"] == 0.002
+    assert paths["no_defender"]["latency_ms"] == paths["no_control"]["latency_ms"] == 20
+
+
+def test_unknown_critical_replacement_is_derived_as_unresolved(monkeypatch):
+    from ts.review import evaluation
+
+    case = next(
+        row for row in load_review_dataset(DATASET)["cases"]
+        if row["scenario"] == "valid_narrowing"
+    )
+    candidate, evidence, outputs = evaluation._fixture(case)
+    outputs["defender"]["rebuttals"][0]["replacement_claim"]["status"] = "unknown"
+    monkeypatch.setattr(
+        evaluation,
+        "_fixture",
+        lambda _case: (deepcopy(candidate), deepcopy(evidence), deepcopy(outputs)),
+    )
+
+    proposed = evaluate_case(case)["proposed"]
+
+    assert proposed["verdict"] == "HOLD"
+    assert proposed["unresolved_critical"] is True
+
+
 def test_safety_metrics_are_derived_not_hidden_by_risk_annotations():
     dataset = load_review_dataset(DATASET)
     expected = evaluate_review_dataset(dataset)["metrics"]["all"]

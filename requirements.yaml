@@ -660,6 +660,7 @@ requirements:
       - ts/tests/test_review_evaluation.py
       - reports/eval/review-2026-10-13/report.md
       - reports/ASTRA_WAVE4_AUDIT_74445DE_2026-10-13.md
+      - reports/ASTRA_WAVE4_REAUDIT_26B4E8D_2026-10-13.md
       - ts/tests/test_scorer.py
       - ts/tests/test_llm.py::test_registry_slow_stream_is_abandoned_at_absolute_deadline
       - ts/tests/test_llm.py::test_completion_slow_stream_is_abandoned_at_absolute_deadline

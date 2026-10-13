@@ -122,7 +122,10 @@ sealed holdout, плюс дважды исполняемые `no_defender`/`no_c
 ablations. Arbiter требует attested primary evidence для каждого критического
 claim и не менее двух независимых primary-origin для `PROMOTE`/`REFRAME`;
 нерелевантный non-critical claim этот gate не закрывает. Safety-метрики выводятся
-из typed outputs/provenance, а не fixture labels; gold не входит в путь решения.
+из typed outputs/provenance, а не fixture labels. Resolved control finding
+обязан назвать точный rebuttal и проверить используемые им evidence; replacement
+критического claim остаётся critical и не может иметь статус unknown. Gold не
+входит в путь решения.
 Живой поиск, latency провайдера и yield проверяются только canary.
 
 ## 5. Сеть и reuse (ADR 007 бэкенда)

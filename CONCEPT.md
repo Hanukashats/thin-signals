@@ -73,7 +73,10 @@ Researcher формирует advisory-пакет через локальный 
 критический claim опирается на attested primary snapshot и в принятой цепочке
 есть не менее двух независимых primary-origin. Ссылки из нерелевантного
 non-critical claim, статус, назначенный моделью, и ранний reframe не обходят
-этот gate. Абляции ролей проходят через тот же runner и fail closed.
+этот gate. Control critic обязан связать решение с точным rebuttal и проверить
+все принятые defender evidence; неизвестный или переставший быть critical
+replacement не принимается. Абляции ролей проходят через тот же runner,
+сохраняют исходные отказы сценария и fail closed.
 
 На ветке 7.8 native synchronous adapter уже реализован, но выключен. Он не
 передаёт Markdown в модель/скоринг: URL заново скачивается через публичный

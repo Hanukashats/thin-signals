@@ -260,7 +260,7 @@ phases:
         deliverables: ["rules-0.2 monotonic scorer candidate", "typed role contracts", "frozen replay", "holdout", "ablation", "latency/token/cost report", "qualified-signal count"]
         requirements: [AR-01, TZ-01, TZ-02]
         forks: [adversarial.review]
-        note: "Initial Astra verification rejected evidence provenance, post-hoc ablations and invalid-replay handling. Arbiter 0.2 and executable role-unavailability remediation pass locally; fresh independent verification and optional qualified-signal canary remain open."
+        note: "Two Astra passes rejected provenance/control binding, replacement-claim safety and faithful ablations. The current arbiter 0.2 remediation binds exact rebuttal evidence, rejects unknown/noncritical replacements and preserves scenario failures; fresh independent verification and optional qualified-signal canary remain open."
       - id: W12-release
         status: planned
         owner: release/infra

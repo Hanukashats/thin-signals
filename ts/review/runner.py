@@ -379,6 +379,14 @@ def _validate_references(
                 or not set(finding.evidence_ids) <= traceable_evidence
             ):
                 return "invalid_citation"
+            if finding.residual_status == "resolved":
+                if rebuttal is None or finding.rebuttal_id != rebuttal.rebuttal_id:
+                    return "invalid_citation"
+                accepted_ids = set(rebuttal.evidence_ids)
+                if rebuttal.replacement_claim is not None:
+                    accepted_ids.update(rebuttal.replacement_claim.evidence_ids)
+                if not accepted_ids <= set(finding.evidence_ids):
+                    return "invalid_citation"
     return None
 
 

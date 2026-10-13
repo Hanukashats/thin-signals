@@ -48,7 +48,7 @@ non-monotonicity by separating semantic-primary explanation from strongest-first
 scoring slots, while retaining v0.1 weights and thresholds. All executable
 threshold consumers use the versioned scorer contract. Historical v0.1 rows are
 unchanged and production still requires replay, holdout and independent review.
-The remediated candidate repository gate is **429 passed** on a disposable migrated
+The remediated candidate repository gate is **435 passed** on a disposable migrated
 PostgreSQL database, Ruff clean, with exhaustive
 primary-choice/status monotonicity, dynamic-threshold and attested-promotion
 regressions.
@@ -63,8 +63,11 @@ accuracy 1.0 and stability 1.0. Defender/control role-unavailability ablations
 now execute twice through the real runner and fail closed with recall 0.0;
 their errors, resources and stability are measured rather than reconstructed.
 The initial independent Astra audit of `74445de` rejected three safety/evaluation
-gaps. `review-arbiter-0.2`, executable ablations, derived safety metrics and an
-invalid-replay exit close those exact findings; fresh independent re-verification
+gaps. A second audit of `26b4e8d` confirmed those fixes but found an unbound
+control finding, an unknown critical replacement and a provider-failure ablation
+that silently restored the critic. The current remediation binds control to the
+exact rebuttal/evidence, validates the effective replacement and layers ablation
+failures without erasing the scenario failure. Fresh independent re-verification
 is still required. These are deterministic fixture/stored-extraction results,
 not a claim about live model quality or the ten-signal target; bounded production
 canary remains a release gate.

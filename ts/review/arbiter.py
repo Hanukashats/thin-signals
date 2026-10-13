@@ -111,6 +111,8 @@ def arbitrate(
             or finding is None
             or finding.residual_status != "resolved"
             or not finding.evidence_valid
+            or finding.rebuttal_id != rebuttal.rebuttal_id
+            or not set(rebuttal.evidence_ids) <= set(finding.evidence_ids)
             or not _attested(finding.evidence_ids, evidence)
         ):
             unresolved.append(objection.objection_id)
@@ -135,7 +137,13 @@ def arbitrate(
                 accepted_by_claim[claim.claim_id].update(new_ids)
         elif rebuttal.action in {"CORRECT", "NARROW"}:
             replacement = rebuttal.replacement_claim
-            if replacement is None or not _attested(replacement.evidence_ids, evidence):
+            if (
+                replacement is None
+                or replacement.status == "unknown"
+                or not replacement.critical
+                or not set(replacement.evidence_ids) <= set(finding.evidence_ids)
+                or not _attested(replacement.evidence_ids, evidence)
+            ):
                 unresolved.append(objection.objection_id)
                 continue
             if claim is not None and claim.claim_id in accepted_by_claim:

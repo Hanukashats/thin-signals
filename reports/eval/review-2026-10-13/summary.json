@@ -1113,34 +1113,42 @@
         },
         "no_defender": {
           "verdict": "HOLD",
-          "ledger_revision": "c2365bc9b004bef07dc9372f91f8de3bca1cccbbbcff454e02006fb23be44499",
+          "ledger_revision": "ed8285e1703ecda7f71b39ef2b011d7c73c848bd9cd4d505905e2c12737b542b",
           "stable": true,
           "role_errors": [
+            [
+              "critic",
+              "role_call_failed"
+            ],
             [
               "defender",
               "role_call_failed"
             ]
           ],
-          "latency_ms": 30,
-          "tokens": 450,
-          "cost_usd": 0.003,
+          "latency_ms": 20,
+          "tokens": 300,
+          "cost_usd": 0.002,
           "primary_origin_count": 0,
           "evidence_covered": false,
           "unresolved_critical": true
         },
         "no_control": {
           "verdict": "HOLD",
-          "ledger_revision": "11093073b45772ed3c058c2716ba4c51f8984a1b49758081a4c29ddd96627a77",
+          "ledger_revision": "8930bc01a8a2b7383c2de8e050110587df8d8908a7a266cbcb5aeaf4c7c6b369",
           "stable": true,
           "role_errors": [
+            [
+              "critic",
+              "role_call_failed"
+            ],
             [
               "control_critic",
               "role_call_failed"
             ]
           ],
-          "latency_ms": 30,
-          "tokens": 450,
-          "cost_usd": 0.003,
+          "latency_ms": 20,
+          "tokens": 300,
+          "cost_usd": 0.002,
           "primary_origin_count": 0,
           "evidence_covered": false,
           "unresolved_critical": true
@@ -1299,12 +1307,12 @@
         "overpromotions": 0,
         "evidence_coverage": 1.0,
         "stability": 1.0,
-        "latency_ms": 240,
-        "mean_latency_ms": 30.0,
-        "tokens": 3600,
-        "mean_tokens": 450.0,
-        "cost_usd": 0.024,
-        "mean_cost_usd": 0.003
+        "latency_ms": 230,
+        "mean_latency_ms": 28.75,
+        "tokens": 3450,
+        "mean_tokens": 431.25,
+        "cost_usd": 0.023,
+        "mean_cost_usd": 0.002875
       },
       "no_control": {
         "n": 8,
@@ -1321,12 +1329,12 @@
         "overpromotions": 0,
         "evidence_coverage": 1.0,
         "stability": 1.0,
-        "latency_ms": 240,
-        "mean_latency_ms": 30.0,
-        "tokens": 3600,
-        "mean_tokens": 450.0,
-        "cost_usd": 0.024,
-        "mean_cost_usd": 0.003
+        "latency_ms": 230,
+        "mean_latency_ms": 28.75,
+        "tokens": 3450,
+        "mean_tokens": 431.25,
+        "cost_usd": 0.023,
+        "mean_cost_usd": 0.002875
       }
     },
     "all": {
@@ -1389,12 +1397,12 @@
         "overpromotions": 0,
         "evidence_coverage": 1.0,
         "stability": 1.0,
-        "latency_ms": 480,
-        "mean_latency_ms": 30.0,
-        "tokens": 7200,
-        "mean_tokens": 450.0,
-        "cost_usd": 0.048,
-        "mean_cost_usd": 0.003
+        "latency_ms": 470,
+        "mean_latency_ms": 29.38,
+        "tokens": 7050,
+        "mean_tokens": 440.62,
+        "cost_usd": 0.047,
+        "mean_cost_usd": 0.002938
       },
       "no_control": {
         "n": 16,
@@ -1411,12 +1419,12 @@
         "overpromotions": 0,
         "evidence_coverage": 1.0,
         "stability": 1.0,
-        "latency_ms": 480,
-        "mean_latency_ms": 30.0,
-        "tokens": 7200,
-        "mean_tokens": 450.0,
-        "cost_usd": 0.048,
-        "mean_cost_usd": 0.003
+        "latency_ms": 470,
+        "mean_latency_ms": 29.38,
+        "tokens": 7050,
+        "mean_tokens": 440.62,
+        "cost_usd": 0.047,
+        "mean_cost_usd": 0.002938
       }
     }
   },
@@ -1425,5 +1433,5 @@
     "They do not measure live model retrieval or reasoning quality.",
     "Live quality and candidate count require a separately bounded production canary."
   ],
-  "result_digest": "acdfe389595b17c5cd62397cfd3b38122034618e3cb001f0954ca9eb9a6cc533"
+  "result_digest": "33e63cf110d20b175755764ec55f2054820456ec42fdfe0c925b8a041c486c5c"
 }

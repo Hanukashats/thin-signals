@@ -432,10 +432,10 @@ class _Provider:
 @dataclass
 class _Gateway:
     outputs: dict[str, dict]
-    failure_role: str | None = None
+    failure_roles: frozenset[str] = frozenset()
 
     def call(self, role, _messages, _schema, _budget, model):
-        if role == self.failure_role:
+        if role in self.failure_roles:
             raise RuntimeError("deterministic provider failure fixture")
         return RoleCallResult(
             payload=deepcopy(self.outputs[role]),
@@ -523,6 +523,10 @@ def _has_unresolved_critical(outputs: dict[str, dict]) -> bool:
         finding["objection_id"]: finding
         for finding in outputs["control_critic"].get("findings", [])
     }
+    rebuttals = {
+        rebuttal["objection_id"]: rebuttal
+        for rebuttal in outputs["defender"].get("rebuttals", [])
+    }
     for objection in outputs["critic"].get("objections", []):
         claim = claims.get(objection.get("claim_id"))
         critical = bool(claim and claim.get("critical")) or objection.get("severity") in {
@@ -531,11 +535,31 @@ def _has_unresolved_critical(outputs: dict[str, dict]) -> bool:
         if not critical:
             continue
         finding = findings.get(objection.get("objection_id"))
+        rebuttal = rebuttals.get(objection.get("objection_id"))
         if (
             not isinstance(finding, dict)
+            or not isinstance(rebuttal, dict)
             or finding.get("residual_status") != "resolved"
             or finding.get("evidence_valid") is not True
+            or finding.get("rebuttal_id") != rebuttal.get("rebuttal_id")
         ):
+            return True
+        accepted_ids = set(rebuttal.get("evidence_ids", []))
+        replacement = rebuttal.get("replacement_claim")
+        if isinstance(replacement, dict):
+            accepted_ids.update(replacement.get("evidence_ids", []))
+        if not accepted_ids <= set(finding.get("evidence_ids", [])):
+            return True
+        action = rebuttal.get("action")
+        if action == "ADD_EVIDENCE" and finding.get("origin_independent") is not True:
+            return True
+        if action in {"CORRECT", "NARROW"} and (
+            not isinstance(replacement, dict)
+            or replacement.get("status") == "unknown"
+            or replacement.get("critical") is not True
+        ):
+            return True
+        if action == "CONCEDE":
             return True
     return False
 
@@ -551,18 +575,21 @@ def _role_errors(round_result) -> list[list[str]]:
 def evaluate_case(case: dict) -> dict[str, dict[str, Any]]:
     """Evaluate paths without consulting gold_accept, gold_verdict or adjudication."""
     candidate, evidence, output_payloads = _fixture(case)
-    proposed_failure_role = "critic" if case["scenario"] == "provider_failure" else None
+    scenario_failures = {"critic"} if case["scenario"] == "provider_failure" else set()
 
     def execute(path: str):
         unavailable_role = {
-            "proposed": proposed_failure_role,
+            "proposed": None,
             "no_defender": "defender",
             "no_control": "control_critic",
         }[path]
+        failure_roles = set(scenario_failures)
+        if unavailable_role is not None:
+            failure_roles.add(unavailable_role)
         return run_review(
             run_id=f"eval-{case['case_id']}-{path}",
             candidate=candidate,
-            gateway=_Gateway(output_payloads, unavailable_role),
+            gateway=_Gateway(output_payloads, frozenset(failure_roles)),
             evidence_provider=_Provider(evidence),
             budget=_BUDGET,
             models=_MODELS,

@@ -1,6 +1,6 @@
 # ADR-014: attested promotion gate and executed role ablations
 
-Date: 2026-10-13  
+Date: 2026-10-13
 Status: accepted as a remediation candidate; production activation remains gated.
 
 ## Context
@@ -23,10 +23,14 @@ instead of executing the reduced paths.
   by an unrelated non-critical claim cannot satisfy this gate. Role-provided
   `status` cannot weaken it.
 - Evaluate every unknown critical claim before returning a reframe.
+- A resolved control finding must name the exact defender rebuttal and cite all
+  evidence used by that rebuttal or its replacement claim. Objection-only
+  findings remain valid for unresolved/fatal outcomes but cannot validate a
+  defense. A critical replacement must remain critical and cannot be `unknown`.
 - Run `no_defender` and `no_control` ablations twice through the same typed
-  runner with the selected role unavailable. Record actual validation errors,
-  resources and replay stability; do not call the arbiter on post-hoc-mutated
-  outputs.
+  runner with the selected role unavailable while preserving every failure in
+  the original scenario. Record actual validation errors, resources and replay
+  stability; do not call the arbiter on post-hoc-mutated outputs.
 - Derive evidence-less and unresolved-critical safety metrics from evaluated
   provenance and typed records, not editable fixture annotations. Report exact
   verdict accuracy so `PROMOTE` cannot silently substitute for `REFRAME`.

@@ -315,6 +315,29 @@ def test_unresolved_critical_objection_is_hold():
     assert result.decision.blocking_ids == ["objection-1"]
 
 
+@pytest.mark.parametrize(
+    ("rebuttal_id", "evidence_ids"),
+    [
+        (None, ["evidence-2"]),
+        ("rebuttal-1", ["evidence-2"]),
+    ],
+)
+def test_resolved_control_must_bind_and_validate_defender_evidence(
+    rebuttal_id, evidence_ids,
+):
+    scripted = outputs()
+    scripted["control_critic"]["findings"][0].update({
+        "rebuttal_id": rebuttal_id,
+        "evidence_ids": evidence_ids,
+    })
+
+    result = review(Gateway(scripted))
+
+    assert result.decision.verdict == "HOLD"
+    assert result.events[3].state == "invalid"
+    assert result.events[3].error_code == "invalid_citation"
+
+
 def test_verified_fatal_objection_is_reject_not_model_directed_rejection():
     scripted = outputs()
     scripted["critic"]["objections"][0].update({"severity": "fatal", "status": "verified"})
@@ -357,6 +380,37 @@ def test_valid_narrowing_creates_reframe_instead_of_direct_promotion():
     }
 
     assert review(Gateway(scripted)).decision.verdict == "REFRAME"
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [("status", "unknown"), ("critical", False)],
+)
+def test_reframe_requires_a_resolved_critical_replacement(field, value):
+    scripted = outputs()
+    replacement = {
+        "claim_id": "claim-1-narrow",
+        "statement": "A laboratory prototype reports the mechanism.",
+        "critical": True,
+        "evidence_ids": ["evidence-3"],
+        "status": "verified",
+        "reason_codes": ["P01"],
+    }
+    replacement[field] = value
+    scripted["defender"]["rebuttals"][0] = {
+        "rebuttal_id": "rebuttal-1",
+        "objection_id": "objection-1",
+        "action": "NARROW",
+        "evidence_ids": ["evidence-3"],
+        "replacement_claim": replacement,
+        "changed_fields": ["statement", "scope"],
+        "statement": "Deployment language is removed.",
+    }
+
+    result = review(Gateway(scripted))
+
+    assert result.decision.verdict == "HOLD"
+    assert result.decision.reason_codes == ["unresolved_critical"]
 
 
 def test_reframe_cannot_hide_another_unknown_critical_claim():

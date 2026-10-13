@@ -114,6 +114,12 @@ versions the arbiter to 0.2, derives safety/exact-verdict metrics, executes each
 role-unavailability ablation twice and fails invalid replay closed. Fresh
 independent re-verification and the optional live-yield target remain open.
 
+The second verifier rejected `26b4e8d`: a resolved control finding was not bound
+to the defender evidence, a critical replacement could remain unknown, and the
+provider-failure ablations erased the original critic failure. The next frozen
+candidate adds those three fail-closed checks and must receive a third independent
+verdict before Wave 5.
+
 - Correct primary-pattern non-monotonicity in a new rules version.
 - Run baseline, proposed, without-defender and without-control-critic paths on
   frozen replay plus a separate adjudicated holdout.
@@ -132,7 +138,8 @@ exactly and changes no historical labels. The 16-case review evaluation records
 all required quality/resource metrics and passes both safety gates. These are
 fixture and stored-extraction evaluations; live search quality is not inferred.
 The rejection receipt is `reports/ASTRA_WAVE4_AUDIT_74445DE_2026-10-13.md`;
-ADR-014 records the remediation contract.
+the second receipt is `reports/ASTRA_WAVE4_REAUDIT_26B4E8D_2026-10-13.md`;
+ADR-014 records the evolving remediation contract.
 
 ## Wave 5 — canary, deploy and publish
 
