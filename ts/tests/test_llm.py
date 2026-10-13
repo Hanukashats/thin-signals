@@ -80,7 +80,8 @@ def test_unallowed_model_returned_by_provider_is_rejected_before_zdr_lookup(tmp_
     c = make_client(tmp_path, model="untrusted/surprise-model")
     lookups = 0
 
-    def zdr_once(force=False):
+    def zdr_once(force=False, timeout_seconds=None):
+        _ = force, timeout_seconds
         nonlocal lookups
         lookups += 1
         if lookups > 1:
@@ -92,6 +93,71 @@ def test_unallowed_model_returned_by_provider_is_rejected_before_zdr_lookup(tmp_
     with pytest.raises(llm_mod.ModelNotAllowed):
         c.probe()
     assert lookups == 1
+
+
+def test_role_timeout_covers_registry_and_completion_requests(tmp_path):
+    timeouts = []
+
+    def handler(req: httpx.Request) -> httpx.Response:
+        timeouts.append(dict(req.extensions.get("timeout") or {}))
+        if req.url.path.endswith("/endpoints/zdr"):
+            return httpx.Response(200, json=ZDR)
+        return httpx.Response(200, json={
+            "model": "qwen/qwen3.6-35b-a3b",
+            "provider": "Venice",
+            "choices": [{"message": {"content": "Париж"}}],
+            "usage": {"total_tokens": 12},
+        })
+
+    client = llm_mod.OpenRouterClient(
+        settings(tmp_path),
+        transport=httpx.MockTransport(handler),
+    )
+    client.chat(
+        [{"role": "user", "content": "x"}],
+        timeout_seconds=0.5,
+    )
+
+    assert len(timeouts) == 2
+    assert all(timeout for timeout in timeouts)
+    assert all(
+        0 < value <= 0.5
+        for timeout in timeouts
+        for value in timeout.values()
+        if value is not None
+    )
+
+
+def test_registry_time_consumes_the_shared_role_deadline(tmp_path, monkeypatch):
+    ticks = iter((0.0, 0.1, 0.6))
+    paths = []
+
+    class Clock:
+        @staticmethod
+        def monotonic():
+            return next(ticks)
+
+        @staticmethod
+        def time():
+            return 0.0
+
+    def handler(req: httpx.Request) -> httpx.Response:
+        paths.append(req.url.path)
+        return httpx.Response(200, json=ZDR)
+
+    monkeypatch.setattr(llm_mod, "time", Clock)
+    client = llm_mod.OpenRouterClient(
+        settings(tmp_path),
+        transport=httpx.MockTransport(handler),
+    )
+
+    with pytest.raises(TimeoutError, match="role deadline"):
+        client.chat(
+            [{"role": "user", "content": "x"}],
+            timeout_seconds=0.5,
+        )
+
+    assert paths == ["/api/v1/endpoints/zdr"]
 
 
 def test_non_zdr_provider_in_response_rejected(tmp_path):

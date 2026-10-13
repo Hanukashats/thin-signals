@@ -6,6 +6,7 @@ import socket
 from collections import Counter
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
+from threading import RLock
 from time import monotonic
 
 import httpx
@@ -31,7 +32,13 @@ from ts.harness import (
     retrieval_fingerprint,
     transport_timeout,
 )
-from ts.persist import load_report, public_report, save_report
+from ts.persist import (
+    fail_reserved_report,
+    load_report,
+    public_report,
+    reserve_report,
+    save_report,
+)
 from ts.plain import REASONS, say
 from ts.potential import rank_potential_cards
 from ts.reach import annotate_reach
@@ -62,6 +69,11 @@ from ts.sources.researcher import GptResearcherConnector
 
 CORPUS = "live-w21"
 THEME_LOOKBACK_DAYS = 365
+_REVIEW_LOCKS = tuple(RLock() for _ in range(64))
+
+
+def _review_lock(key: str) -> RLock:
+    return _REVIEW_LOCKS[int(key[:8], 16) % len(_REVIEW_LOCKS)]
 
 
 def _today() -> str:
@@ -309,6 +321,86 @@ def _maker(session_factory):
     return session_factory
 
 
+def _review_and_store_locked(
+    report: RunReport,
+    settings: Settings,
+    factory,
+    *,
+    gateway=None,
+    evidence_provider=None,
+) -> dict:
+    """Reserve an enabled review before model spend, then atomically finalize it."""
+    enabled = bool(getattr(settings, "adversarial_review_enabled", False))
+    reserved = False
+    if enabled:
+        with factory() as session:
+            stored = load_report(session, report.idempotency_key)
+        if stored is not None:
+            stored["repeated"] = True
+            return stored
+        with factory() as session:
+            reserved, stored = reserve_report(
+                session,
+                run_id=report.id,
+                query=report.query,
+                idempotency_key=report.idempotency_key,
+                corpus_version=report.corpus_version,
+                rules_version=report.card["rules_version"],
+                review_enabled=True,
+            )
+        if stored is not None:
+            stored["repeated"] = True
+            return stored
+    try:
+        report = attach_candidate_review(
+            report,
+            settings,
+            gateway=gateway,
+            evidence_provider=evidence_provider,
+        )
+        with factory() as session:
+            if reserved:
+                save_report(session, report, reserved=True)
+            else:
+                save_report(session, report)
+            if report.repeated:
+                stored = load_report(session, report.idempotency_key)
+                if stored is not None:
+                    stored["repeated"] = True
+                    return stored
+    except Exception:
+        if not reserved:
+            raise
+        with factory() as session:
+            failed = fail_reserved_report(
+                session,
+                idempotency_key=report.idempotency_key,
+                review_enabled=True,
+            )
+        if failed is not None:
+            return failed
+        raise
+    return public_report(report)
+
+
+def _review_and_store(
+    report: RunReport,
+    settings: Settings,
+    factory,
+    *,
+    gateway=None,
+    evidence_provider=None,
+) -> dict:
+    with _review_lock(report.idempotency_key):
+        return _review_and_store_locked(
+            report,
+            settings,
+            factory,
+            gateway=gateway,
+            evidence_provider=evidence_provider,
+        )
+
+
 def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Settings | None = None,
               connectors=None, session_factory=None, _theme: bool = False, _day: str | None = None,
               _deadline_at: float | None = None,
@@ -361,6 +453,14 @@ def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Se
     factory = _maker(session_factory)
     with factory() as session:
         stored = load_report(session, key)
+    if (
+        stored is not None
+        and stored.get("run_status") == "running"
+        and not _theme
+        and bool(getattr(s, "adversarial_review_enabled", False))
+    ):
+        with _review_lock(key), factory() as session:
+            stored = load_report(session, key)
     if stored is not None:
         stored["repeated"] = True
         return stored
@@ -401,9 +501,10 @@ def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Se
                 report.exclusion_registry,
                 report.unread,
             )
-        report = attach_candidate_review(
+        return _review_and_store(
             report,
             s,
+            factory,
             gateway=_review_gateway,
             evidence_provider=_review_evidence_provider,
         )
@@ -446,6 +547,13 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
     factory = _maker(session_factory)
     with factory() as session:
         stored = load_report(session, key)
+    if (
+        stored is not None
+        and stored.get("run_status") == "running"
+        and bool(getattr(settings, "adversarial_review_enabled", False))
+    ):
+        with _review_lock(key), factory() as session:
+            stored = load_report(session, key)
     if stored is not None:
         stored["repeated"] = True
         return stored
@@ -602,20 +710,13 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
             "unique_child_exclusions": len(child_exclusion_groups),
         },
     )
-    report = attach_candidate_review(
+    return _review_and_store(
         report,
         settings,
+        factory,
         gateway=_review_gateway,
         evidence_provider=_review_evidence_provider,
     )
-    with factory() as session:
-        save_report(session, report)
-        if report.repeated:
-            stored = load_report(session, key)
-            if stored is not None:
-                stored["repeated"] = True
-                return stored
-    return public_report(report)
 
 
 def _public_refetcher(s: Settings, headers: dict, *, resolver=socket.getaddrinfo):

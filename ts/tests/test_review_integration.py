@@ -9,6 +9,8 @@ from contextlib import nullcontext
 from dataclasses import replace
 from time import monotonic
 
+import pytest
+
 from ts.harness import RunReport
 from ts.live import _review_bound_fingerprint, _run_wide, run_query
 from ts.llm import MANDATORY_PROVIDER_POLICY
@@ -104,6 +106,27 @@ class AdaptiveGateway:
         )
 
 
+class MaliciousRouteGateway(AdaptiveGateway):
+    def call(self, role, messages, schema, budget, model):
+        result = super().call(role, messages, schema, budget, model)
+        return replace(
+            result,
+            model_id="https://example.org/private-prompt",
+            provider="raw secret marker and hidden reasoning",
+        )
+
+
+class WrongApprovedModelGateway(AdaptiveGateway):
+    def call(self, role, messages, schema, budget, model):
+        result = super().call(role, messages, schema, budget, model)
+        return replace(result, model_id="openai/gpt-4.1")
+
+
+class BrokenEvidenceProvider:
+    def retrieve(self, *_args, **_kwargs):
+        raise OSError("private filesystem location and secret marker")
+
+
 def _enabled(settings: Settings) -> Settings:
     return replace(settings, adversarial_review_enabled=True)
 
@@ -122,8 +145,28 @@ def test_review_defaults_off_and_configuration_changes_repeat_identity(tmp_path)
         settings,
         llm_judge="openai/gpt-4.1",
     ))
+    changed_policy = review_configuration_fingerprint(replace(
+        settings,
+        llm_provider_policy={**settings.llm_provider_policy, "allow_fallbacks": False},
+    ))
+    changed_allowlist = review_configuration_fingerprint(replace(
+        settings,
+        allowed_models=(*settings.allowed_models, "fixture/reserve"),
+    ))
+    changed_url = review_configuration_fingerprint(replace(
+        settings,
+        openrouter_url="https://alternate.test/api/v1",
+    ))
 
-    assert len({base, enabled, changed_budget, changed_model}) == 4
+    assert len({
+        base,
+        enabled,
+        changed_budget,
+        changed_model,
+        changed_policy,
+        changed_allowlist,
+        changed_url,
+    }) == 7
     assert _review_bound_fingerprint("retrieval-v1", settings, enabled=False) == "retrieval-v1"
     assert _review_bound_fingerprint(
         "retrieval-v1", _enabled(settings), enabled=True,
@@ -197,6 +240,80 @@ def test_enabled_review_skips_empty_run_without_model_calls(tmp_path):
     assert reviewed.review_enabled is True
     assert reviewed.review_status == "skipped_no_candidate"
     assert gateway.calls == []
+
+
+def test_untrusted_route_metadata_is_rejected_without_public_echo(tmp_path):
+    reviewed = attach_candidate_review(
+        _report(), _enabled(make_settings(tmp_path)), gateway=MaliciousRouteGateway(),
+    )
+
+    trace = repr(public_report(reviewed)["review"])
+    assert reviewed.review.decision.verdict == "HOLD"
+    assert "https://example.org" not in trace
+    assert "secret marker" not in trace
+    assert all(event.model_id is None for event in reviewed.review.events[:4])
+    assert all(event.provider is None for event in reviewed.review.events[:4])
+
+
+def test_response_route_must_match_the_requested_approved_model(tmp_path):
+    reviewed = attach_candidate_review(
+        _report(),
+        _enabled(make_settings(tmp_path)),
+        gateway=WrongApprovedModelGateway(),
+    )
+
+    assert reviewed.review.decision.verdict == "HOLD"
+    assert [event.error_code for event in reviewed.review.events[:4]] == [
+        "provider_metadata_invalid",
+    ] * 4
+
+
+def test_unexpected_evidence_provider_failure_becomes_hold_without_leak(tmp_path):
+    gateway = AdaptiveGateway()
+    reviewed = attach_candidate_review(
+        _report(),
+        _enabled(make_settings(tmp_path)),
+        gateway=gateway,
+        evidence_provider=BrokenEvidenceProvider(),
+    )
+
+    trace = repr(public_report(reviewed)["review"])
+    assert reviewed.review.decision.verdict == "HOLD"
+    assert [event.error_code for event in reviewed.review.events[:4]] == [
+        "evidence_provider_invalid",
+    ] * 4
+    assert gateway.calls == []
+    assert "private filesystem" not in trace
+
+
+@pytest.mark.parametrize("error", [OSError("filesystem unavailable"), ValueError("bad URL")])
+def test_client_construction_failure_becomes_hold(tmp_path, monkeypatch, error):
+    from ts.review import integration
+
+    def fail_client(_settings):
+        raise error
+
+    monkeypatch.setattr(integration, "OpenRouterClient", fail_client)
+    reviewed = attach_candidate_review(_report(), _enabled(make_settings(tmp_path)))
+
+    assert reviewed.review.decision.verdict == "HOLD"
+    assert [event.error_code for event in reviewed.review.events[:4]] == [
+        "role_call_failed",
+    ] * 4
+
+
+def test_invalid_review_budget_becomes_hold(tmp_path):
+    settings = replace(
+        _enabled(make_settings(tmp_path)),
+        review_time_seconds=float("nan"),
+    )
+
+    reviewed = attach_candidate_review(_report(), settings)
+
+    assert reviewed.review.decision.verdict == "HOLD"
+    assert [event.error_code for event in reviewed.review.events[:4]] == [
+        "role_call_failed",
+    ] * 4
 
 
 def test_enabled_review_persists_and_reloads_safe_trace_across_sessions(tmp_path):
@@ -324,3 +441,121 @@ def test_wide_parent_is_reviewed_but_theme_children_are_not(tmp_path, monkeypatc
 
     assert out["review"]["verdict"] == "PROMOTE"
     assert len(gateway.calls) == 4
+
+
+def test_concurrent_enabled_request_reuses_durable_pre_spend_reservation(
+    tmp_path,
+    monkeypatch,
+):
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Event
+
+    from ts.db import session_factory
+
+    card = _card()
+    settings = _enabled(make_settings(tmp_path))
+    query = f"concurrent-review-{uuid.uuid4().hex}"
+    entered = Event()
+    release = Event()
+
+    class BlockingGateway(AdaptiveGateway):
+        def call(self, role, messages, schema, budget, model):
+            if not self.calls:
+                entered.set()
+                assert release.wait(10)
+            return super().call(role, messages, schema, budget, model)
+
+    gateway = BlockingGateway()
+    monkeypatch.setattr("ts.live.annotate_checklist", lambda *_args, **_kwargs: {
+        "top": [card], "excluded": [], "overflow": [], "unread": [], "stats": {},
+    })
+    monkeypatch.setattr("ts.live._near_miss", lambda *_args, **_kwargs: [])
+    monkeypatch.setattr("ts.live._potential", lambda *_args, **_kwargs: [])
+    connector = Scripted("arxiv", [Hit(
+        "arxiv",
+        f"https://arxiv.org/abs/{uuid.uuid4().hex}",
+        "Concurrent review candidate",
+        "prototype",
+        "paper",
+        doi=f"10.1234/{uuid.uuid4().hex}",
+    )])
+
+    def execute():
+        return run_query(
+            query,
+            settings=settings,
+            connectors=[connector],
+            session_factory=session_factory(),
+            _day="2026-10-13",
+            _review_gateway=gateway,
+        )
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        owner = pool.submit(execute)
+        assert entered.wait(10)
+        concurrent_result = pool.submit(execute)
+        release.set()
+        completed = owner.result(timeout=20)
+        concurrent = concurrent_result.result(timeout=20)
+
+    replay = execute()
+
+    assert concurrent["run_id"] == completed["run_id"] == replay["run_id"]
+    assert concurrent["run_status"] == "succeeded"
+    assert concurrent["repeated"] is True
+    assert completed["review"]["verdict"] == "PROMOTE"
+    assert replay["review"]["verdict"] == "PROMOTE"
+    assert replay["repeated"] is True
+    assert len(gateway.calls) == 4
+
+
+def test_interrupted_reserved_save_becomes_stable_hold_without_respend(
+    tmp_path,
+    monkeypatch,
+):
+    from ts import live
+    from ts.db import session_factory
+
+    card = _card()
+    settings = _enabled(make_settings(tmp_path))
+    query = f"interrupted-review-{uuid.uuid4().hex}"
+    gateway = AdaptiveGateway()
+    monkeypatch.setattr(live, "annotate_checklist", lambda *_args, **_kwargs: {
+        "top": [card], "excluded": [], "overflow": [], "unread": [], "stats": {},
+    })
+    monkeypatch.setattr(live, "_near_miss", lambda *_args, **_kwargs: [])
+    monkeypatch.setattr(live, "_potential", lambda *_args, **_kwargs: [])
+    monkeypatch.setattr(
+        live,
+        "save_report",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(OSError("private disk path")),
+    )
+    connector = Scripted("arxiv", [Hit(
+        "arxiv",
+        f"https://arxiv.org/abs/{uuid.uuid4().hex}",
+        "Interrupted review candidate",
+        "prototype",
+        "paper",
+        doi=f"10.1234/{uuid.uuid4().hex}",
+    )])
+
+    def execute():
+        return run_query(
+            query,
+            settings=settings,
+            connectors=[connector],
+            session_factory=session_factory(),
+            _day="2026-10-13",
+            _review_gateway=gateway,
+        )
+
+    first = execute()
+    replay = execute()
+
+    assert first["run_status"] == replay["run_status"] == "failed"
+    assert first["policy_action"] == "HOLD"
+    assert first["review"]["status"] == "interrupted"
+    assert first["review"]["verdict"] == "HOLD"
+    assert replay["repeated"] is True
+    assert len(gateway.calls) == 4
+    assert "private disk path" not in repr(first)

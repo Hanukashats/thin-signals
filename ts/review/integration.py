@@ -37,11 +37,14 @@ def review_configuration_fingerprint(settings, *, enabled: bool | None = None) -
         ),
         "primary_model": str(getattr(settings, "llm_primary", "")),
         "judge_model": str(getattr(settings, "llm_judge", "")),
-        "time_seconds": float(getattr(settings, "review_time_seconds", 45.0)),
-        "max_output_tokens": int(getattr(settings, "review_max_output_tokens", 1200)),
-        "max_cost_usd": float(getattr(settings, "review_max_cost_usd", 0.03)),
-        "evidence_limit": int(getattr(settings, "review_evidence_limit", 12)),
-        "provider_policy": MANDATORY_PROVIDER_POLICY,
+        "time_seconds": repr(getattr(settings, "review_time_seconds", 45.0)),
+        "max_output_tokens": repr(getattr(settings, "review_max_output_tokens", 1200)),
+        "max_cost_usd": repr(getattr(settings, "review_max_cost_usd", 0.03)),
+        "evidence_limit": repr(getattr(settings, "review_evidence_limit", 12)),
+        "mandatory_provider_policy": MANDATORY_PROVIDER_POLICY,
+        "configured_provider_policy": getattr(settings, "llm_provider_policy", None),
+        "allowed_models": sorted(str(row) for row in getattr(settings, "allowed_models", ())),
+        "openrouter_url": str(getattr(settings, "openrouter_url", "")),
     }
     encoded = json.dumps(body, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
     return hashlib.sha256(encoded.encode()).hexdigest()
@@ -184,15 +187,25 @@ def attach_candidate_review(
     if gateway is None:
         try:
             gateway = OpenRouterRoleGateway(OpenRouterClient(settings))
-        except LLMError:
+        except Exception:  # noqa: BLE001 - local construction failures become HOLD
             gateway = _UnavailableGateway()
+    try:
+        budget = _role_budget(settings)
+    except (TypeError, ValueError, OverflowError):
+        gateway = _UnavailableGateway()
+        budget = RoleBudget(
+            time_seconds=1.0,
+            max_output_tokens=1,
+            max_cost_usd=0.000001,
+            evidence_limit=1,
+        )
     evidence_provider = evidence_provider or CandidateEvidenceProvider(report.card)
     round_ = run_review(
         run_id=report.id,
         candidate=report.card,
         gateway=gateway,
         evidence_provider=evidence_provider,
-        budget=_role_budget(settings),
+        budget=budget,
         models=ReviewModels(
             primary=str(getattr(settings, "llm_primary", "")),
             judge=str(getattr(settings, "llm_judge", "")),

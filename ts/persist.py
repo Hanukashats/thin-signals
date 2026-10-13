@@ -12,7 +12,7 @@ from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
 from ts.db.models import Candidate, Decision, ReviewEvent, Run
-from ts.harness import RunReport
+from ts.harness import RUN_CONTRACT_VERSION, TOP_N, RunReport
 from ts.llm import MANDATORY_PROVIDER_POLICY
 from ts.nearest import build_nearest
 from ts.review.contracts import ArbiterDecision, parse_role_output
@@ -22,6 +22,8 @@ from ts.review.runner import (
     review_candidate_hash,
     review_event_id,
     review_hash,
+    validated_model_id,
+    validated_provider_id,
 )
 
 _HASH = re.compile(r"^[0-9a-f]{64}$")
@@ -206,9 +208,9 @@ def _persist_review(session: Session, report: RunReport, candidate_id: str) -> s
             raise ValueError("review event error code is invalid")
         if _safe_label(event.template_version, 64) != event.template_version:
             raise ValueError("review template version is invalid")
-        if event.model_id is not None and _safe_label(event.model_id, 128) != event.model_id:
+        if event.model_id is not None and validated_model_id(event.model_id) != event.model_id:
             raise ValueError("review model ID is invalid")
-        if event.provider is not None and _safe_label(event.provider, 64) != event.provider:
+        if event.provider is not None and validated_provider_id(event.provider) != event.provider:
             raise ValueError("review provider is invalid")
         if event.state == "succeeded" and event.role != "arbiter" and (
             event.model_id is None or event.provider is None
@@ -263,8 +265,8 @@ def _persist_review(session: Session, report: RunReport, candidate_id: str) -> s
             output_hash=event.output_hash,
             template_version=event.template_version,
             template_hash=event.template_hash,
-            model_id=_safe_label(event.model_id, 128),
-            provider=_safe_label(event.provider, 64),
+            model_id=validated_model_id(event.model_id),
+            provider=validated_provider_id(event.provider),
             provider_policy=provider_policy,
             started_at=event.started_at,
             finished_at=event.finished_at,
@@ -283,7 +285,148 @@ def _persist_review(session: Session, report: RunReport, candidate_id: str) -> s
     return events[-1].event_id
 
 
-def save_report(session: Session, report: RunReport) -> str:
+def _reservation_stats(
+    *,
+    run_id: str,
+    query: str,
+    rules_version: str,
+    review_enabled: bool,
+    interrupted: bool = False,
+) -> dict:
+    review_status = "interrupted" if interrupted else (
+        "pending" if review_enabled else "disabled"
+    )
+    review = {"enabled": review_enabled, "status": review_status}
+    if interrupted:
+        review.update({
+            "verdict": "HOLD",
+            "blocking_ids": [],
+            "reason_codes": ["run_interrupted"],
+            "events": [],
+        })
+    return {
+        "run_id": run_id,
+        "run_status": "failed" if interrupted else "running",
+        "run_contract_version": RUN_CONTRACT_VERSION,
+        "query": query,
+        "repeated": False,
+        "signal_label": None,
+        "confidence": None,
+        "policy_action": "HOLD",
+        "policy_reason": "run_interrupted" if interrupted else "run_in_progress",
+        "reason_codes": ["run_interrupted"] if interrupted else [],
+        "predictors": [],
+        "sources": [],
+        "events": 0,
+        "top": [],
+        "shortfall": TOP_N,
+        "exclusion_registry": [],
+        "unread": [],
+        "near_miss": [],
+        "potential": [],
+        "model_id": None,
+        "provider": None,
+        "review": review,
+        "rules_version": rules_version,
+        "chain_link": None,
+        "fanout": None,
+        "retrieval": {
+            "fingerprint": None,
+            "connectors": [],
+            "stages": [],
+            "failures": 0,
+            "theme_failures": 0,
+            "theme_degraded": 0,
+            "deadline_skipped_themes": [],
+            "deadline_exhausted": False,
+            "funnel": None,
+        },
+        "decision_scope": "run_empty",
+        "decision_card": None,
+        "counters": {
+            "sources": 0,
+            "admitted": 0,
+            "excluded": 0,
+            "unread": 0,
+            "confident": 0,
+        },
+        "nearest": [],
+    }
+
+
+def reserve_report(
+    session: object,
+    *,
+    run_id: str,
+    query: str,
+    idempotency_key: str,
+    corpus_version: str,
+    rules_version: str,
+    review_enabled: bool,
+) -> tuple[bool, dict | None]:
+    """Commit a durable pre-spend reservation; unsupported test sessions opt out."""
+    if not isinstance(session, Session):
+        return False, None
+    session.execute(
+        text("SELECT pg_advisory_xact_lock(hashtextextended(:scope, 0))"),
+        {"scope": f"thin-signals:run:{idempotency_key}"},
+    )
+    existing = session.scalar(select(Run).where(Run.idempotency_key == idempotency_key))
+    if existing is not None:
+        stored = {"run_id": existing.id, "run_status": existing.status, **(existing.stats or {})}
+        return False, stored
+    session.add(Run(
+        id=run_id,
+        query=query,
+        corpus_version=corpus_version,
+        rules_version=rules_version,
+        model_id=None,
+        provider=None,
+        idempotency_key=idempotency_key,
+        status="running",
+        stats=_reservation_stats(
+            run_id=run_id,
+            query=query,
+            rules_version=rules_version,
+            review_enabled=review_enabled,
+        ),
+        finished_at=None,
+    ))
+    session.commit()
+    return True, None
+
+
+def fail_reserved_report(
+    session: object,
+    *,
+    idempotency_key: str,
+    review_enabled: bool,
+) -> dict | None:
+    """Close an interrupted reservation as a stable HOLD without raw errors."""
+    if not isinstance(session, Session):
+        return None
+    session.execute(
+        text("SELECT pg_advisory_xact_lock(hashtextextended(:scope, 0))"),
+        {"scope": f"thin-signals:run:{idempotency_key}"},
+    )
+    row = session.scalar(select(Run).where(Run.idempotency_key == idempotency_key))
+    if row is None:
+        return None
+    if row.status == "running" and row.finished_at is None:
+        row.status = "failed"
+        row.stats = _reservation_stats(
+            run_id=row.id,
+            query=row.query,
+            rules_version=row.rules_version,
+            review_enabled=review_enabled,
+            interrupted=True,
+        )
+        row.finished_at = datetime.now(tz=UTC)
+        session.commit()
+    return {"run_id": row.id, "run_status": row.status, **(row.stats or {})}
+
+
+def save_report(session: Session, report: RunReport, *, reserved: bool = False) -> str:
     # Serialize all persistence for one live candidate. This covers both the
     # idempotency key and the candidate's (origin, technology) uniqueness.
     session.execute(
@@ -291,7 +434,14 @@ def save_report(session: Session, report: RunReport) -> str:
         {"scope": f"thin-signals:live:{report.query}"},
     )
     existing = session.scalar(select(Run).where(Run.idempotency_key == report.idempotency_key))
-    if existing is not None:
+    finalizing_reservation = bool(
+        reserved
+        and existing is not None
+        and existing.id == report.id
+        and existing.status == "running"
+        and existing.finished_at is None
+    )
+    if existing is not None and not finalizing_reservation:
         report.repeated = True
         return existing.id
     candidate = session.scalar(
@@ -309,18 +459,28 @@ def save_report(session: Session, report: RunReport) -> str:
         session.flush()
     else:
         candidate_id = candidate.id
-    session.add(Run(
-        id=report.id,
-        query=report.query,
-        corpus_version=report.corpus_version,
-        rules_version=report.card["rules_version"],
-        model_id=report.model_id,
-        provider=report.provider,
-        idempotency_key=report.idempotency_key,
-        status=report.status,
-        stats=public_report(report),
-        finished_at=datetime.now(tz=UTC),
-    ))
+    if finalizing_reservation:
+        existing.query = report.query
+        existing.corpus_version = report.corpus_version
+        existing.rules_version = report.card["rules_version"]
+        existing.model_id = report.model_id
+        existing.provider = report.provider
+        existing.status = report.status
+        existing.stats = public_report(report)
+        existing.finished_at = datetime.now(tz=UTC)
+    else:
+        session.add(Run(
+            id=report.id,
+            query=report.query,
+            corpus_version=report.corpus_version,
+            rules_version=report.card["rules_version"],
+            model_id=report.model_id,
+            provider=report.provider,
+            idempotency_key=report.idempotency_key,
+            status=report.status,
+            stats=public_report(report),
+            finished_at=datetime.now(tz=UTC),
+        ))
     session.flush()
     review_event_id = _persist_review(session, report, candidate_id)
     session.add(Decision(

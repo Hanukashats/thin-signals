@@ -31,7 +31,11 @@ from ts.review.prompts import REVIEW_PROMPT_VERSION, build_messages, template_ha
 
 REVIEW_CONTRACT_VERSION = "review-round-0.1"
 _ROLES: tuple[RoleName, ...] = ("researcher", "critic", "defender", "control_critic")
-_PUBLIC_LABEL = re.compile(r"^[A-Za-z0-9._:/ -]{1,128}$")
+_MODEL_ID = re.compile(
+    r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}"
+    r"(?:/[A-Za-z0-9][A-Za-z0-9._:-]{0,95})?$",
+)
+_PROVIDER_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 
 
 def review_hash(value: object) -> str:
@@ -381,14 +385,14 @@ def _usage_is_valid(usage: object) -> bool:
     return total_tokens >= prompt_tokens + completion_tokens
 
 
-def _public_label(value: object, limit: int) -> str | None:
-    if (
-        not isinstance(value, str)
-        or len(value) > limit
-        or not _PUBLIC_LABEL.fullmatch(value)
-    ):
-        return None
-    return value
+def validated_model_id(value: object) -> str | None:
+    """Return a compact route identifier, never URL/prose-shaped metadata."""
+    return value if isinstance(value, str) and _MODEL_ID.fullmatch(value) else None
+
+
+def validated_provider_id(value: object) -> str | None:
+    """Return a compact provider identifier suitable for public attribution."""
+    return value if isinstance(value, str) and _PROVIDER_ID.fullmatch(value) else None
 
 
 def _public_provider_policy(value: object) -> dict:
@@ -452,7 +456,7 @@ def run_review(
         try:
             raw_rows = list(evidence_provider.retrieve(role, candidate, budget))[:budget.evidence_limit]
             rows = [EvidenceItem.model_validate(row) for row in raw_rows]
-        except (TypeError, ValueError, ValidationError):
+        except Exception:  # noqa: BLE001 - retrieval failures become typed HOLD events
             rows = []
             retrieved_error = "evidence_provider_invalid"
         unique_rows = []
@@ -476,38 +480,43 @@ def run_review(
         result: RoleCallResult | None = None
         state = "succeeded"
         error_code = retrieved_error
-        try:
-            candidate_result = gateway.call(
-                role,
-                build_messages(role, input_payload),
-                role_schema(role),
-                budget,
-                models.for_role(role),
-            )
-            if not isinstance(candidate_result, RoleCallResult):
-                raise TypeError("role gateway returned an invalid result")
-            result = candidate_result
-            raw_output = result.payload
-            parsed = parse_role_output(role, raw_output)
-        except TimeoutError:
-            state, error_code = "timeout", "role_timeout"
-        except (TypeError, ValueError, ValidationError, json.JSONDecodeError):
-            state, error_code = "invalid", "invalid_role_output"
-        except Exception:  # noqa: BLE001 - provider failures become typed HOLD events
-            state, error_code = "failed", "role_call_failed"
+        if retrieved_error is None:
+            try:
+                requested_model = models.for_role(role)
+                candidate_result = gateway.call(
+                    role,
+                    build_messages(role, input_payload),
+                    role_schema(role),
+                    budget,
+                    requested_model,
+                )
+                if not isinstance(candidate_result, RoleCallResult):
+                    raise TypeError("role gateway returned an invalid result")
+                result = candidate_result
+                raw_output = result.payload
+                parsed = parse_role_output(role, raw_output)
+            except TimeoutError:
+                state, error_code = "timeout", "role_timeout"
+            except (TypeError, ValueError, ValidationError, json.JSONDecodeError):
+                state, error_code = "invalid", "invalid_role_output"
+            except Exception:  # noqa: BLE001 - provider failures become typed HOLD events
+                state, error_code = "failed", "role_call_failed"
+        else:
+            state, error_code = "invalid", retrieved_error
 
         elapsed_s = monotonic() - started
         usage = result.usage if result is not None and isinstance(result.usage, Mapping) else {}
         provider_policy = _public_provider_policy(
             result.provider_policy if result is not None else None,
         )
-        model_id = _public_label(result.model_id, 128) if result is not None else None
-        provider = _public_label(result.provider, 64) if result is not None else None
+        model_id = validated_model_id(result.model_id) if result is not None else None
+        provider = validated_provider_id(result.provider) if result is not None else None
         claimed_latency = _nonnegative_float(result.latency_s) if result is not None else None
         if result is not None and (
             claimed_latency is None
             or model_id is None
             or provider is None
+            or model_id != models.for_role(role)
             or not _usage_is_valid(result.usage)
         ) and state == "succeeded":
             state, error_code, parsed = "invalid", "provider_metadata_invalid", None

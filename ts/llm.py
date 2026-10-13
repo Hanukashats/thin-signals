@@ -96,10 +96,15 @@ class OpenRouterClient:
         self._zdr_at = 0.0
 
     # -- ZDR endpoint registry ------------------------------------------------------------------
-    def zdr_providers(self, force: bool = False) -> dict[str, set[str]]:
+    def zdr_providers(
+        self,
+        force: bool = False,
+        timeout_seconds: float | None = None,
+    ) -> dict[str, set[str]]:
         """model_id -> set(provider_name) for endpoints OpenRouter marks as ZDR."""
         if self._zdr is None or force or time.time() - self._zdr_at > ZDR_CACHE_TTL_S:
-            r = self._http.get("/endpoints/zdr")
+            options = {"timeout": timeout_seconds} if timeout_seconds is not None else {}
+            r = self._http.get("/endpoints/zdr", **options)
             r.raise_for_status()
             reg: dict[str, set[str]] = {}
             for e in r.json().get("data", []):
@@ -107,17 +112,22 @@ class OpenRouterClient:
             self._zdr, self._zdr_at = reg, time.time()
         return self._zdr
 
-    def check_model(self, model: str) -> None:
+    def check_model(self, model: str, timeout_seconds: float | None = None) -> None:
         if model not in self.s.allowed_models:
             raise ModelNotAllowed(f"{model} is not in the TZ allowlist {self.s.allowed_models}")
-        if model not in self.zdr_providers():
+        if model not in self.zdr_providers(timeout_seconds=timeout_seconds):
             raise ZDRViolation(f"{model} has no ZDR-capable endpoints on OpenRouter right now")
 
-    def validate_response_route(self, model_id: str, provider: str) -> None:
+    def validate_response_route(
+        self,
+        model_id: str,
+        provider: str,
+        timeout_seconds: float | None = None,
+    ) -> None:
         """Apply the same allowlist and live ZDR route check to network and cached responses."""
         if model_id not in self.s.allowed_models:
             raise ModelNotAllowed(f"response model {model_id!r} is not in the TZ allowlist {self.s.allowed_models}")
-        allowed = self.zdr_providers().get(model_id, set())
+        allowed = self.zdr_providers(timeout_seconds=timeout_seconds).get(model_id, set())
         if provider not in allowed:
             raise ZDRViolation(f"response from provider {provider!r} for {model_id} is not in ZDR list {sorted(allowed)}")
 
@@ -135,7 +145,22 @@ class OpenRouterClient:
         timeout_seconds: float | None = None,
     ) -> LLMResponse:
         model = model or self.s.llm_primary
-        self.check_model(model)
+        deadline_at = (
+            time.monotonic() + timeout_seconds if timeout_seconds is not None else None
+        )
+
+        def remaining() -> float | None:
+            if deadline_at is None:
+                return None
+            value = deadline_at - time.monotonic()
+            if value <= 0:
+                raise TimeoutError("OpenRouter role deadline exceeded")
+            return value
+
+        try:
+            self.check_model(model, timeout_seconds=remaining())
+        except httpx.TimeoutException as exc:
+            raise TimeoutError("OpenRouter role deadline exceeded") from exc
         body: dict[str, Any] = {
             "model": model,
             "messages": messages,
@@ -156,14 +181,25 @@ class OpenRouterClient:
                 "json_schema": {"name": json_schema.get("title", "result"), "strict": True, "schema": json_schema},
             }
         t0 = time.time()
-        request_options = {"timeout": timeout_seconds} if timeout_seconds is not None else {}
-        r = self._http.post("/chat/completions", json=body, **request_options)
+        request_timeout = remaining()
+        request_options = {"timeout": request_timeout} if request_timeout is not None else {}
+        try:
+            r = self._http.post("/chat/completions", json=body, **request_options)
+        except httpx.TimeoutException as exc:
+            raise TimeoutError("OpenRouter role deadline exceeded") from exc
         data = r.json()
         if r.status_code >= 400 or "error" in data:
             raise LLMError(f"OpenRouter {r.status_code}: {json.dumps(data.get('error', data), ensure_ascii=False)[:400]}")
         provider = data.get("provider", "")
         model_id = data.get("model", model)
-        self.validate_response_route(model_id, provider)
+        try:
+            self.validate_response_route(
+                model_id,
+                provider,
+                timeout_seconds=remaining(),
+            )
+        except httpx.TimeoutException as exc:
+            raise TimeoutError("OpenRouter role deadline exceeded") from exc
         content = (data["choices"][0]["message"].get("content") or "").strip()
         return LLMResponse(
             model_id=model_id,
