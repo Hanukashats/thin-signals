@@ -107,6 +107,9 @@ evidence or a narrower re-evaluated claim.
 
 ## Wave 4 — quality and target evaluation
 
+Status 2026-10-13: replay/holdout implementation complete; independent verifier
+and the optional live-yield target remain open.
+
 - Correct primary-pattern non-monotonicity in a new rules version.
 - Run baseline, proposed, without-defender and without-control-critic paths on
   frozen replay plus a separate adjudicated holdout.
@@ -118,6 +121,12 @@ evidence or a narrower re-evaluated claim.
 The ten-signal target is optional evidence of improved recall, not a release
 gate. Required release gates are zero evidence-less promotions, zero unresolved
 critical promotions and no worse false-promotion rate than baseline.
+
+Evidence: `reports/eval/review-2026-10-13/` and
+`reports/eval/rules-0.2-2026-10-13/`. The 170-row rules replay reproduces v0.1
+exactly and changes no historical labels. The 16-case review evaluation records
+all required quality/resource metrics and passes both safety gates. These are
+fixture and stored-extraction evaluations; live search quality is not inferred.
 
 ## Wave 5 — canary, deploy and publish
 

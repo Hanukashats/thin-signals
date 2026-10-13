@@ -48,8 +48,20 @@ non-monotonicity by separating semantic-primary explanation from strongest-first
 scoring slots, while retaining v0.1 weights and thresholds. All executable
 threshold consumers use the versioned scorer contract. Historical v0.1 rows are
 unchanged and production still requires replay, holdout and independent review.
-The candidate repository gate is **413 passed**, Ruff clean, with exhaustive
+The candidate repository gate is **423 passed** on a disposable migrated
+PostgreSQL database, Ruff clean, with exhaustive
 primary-choice/status monotonicity and dynamic-threshold regressions.
+
+Wave 4 deterministic evaluation is now implemented. The `rules-0.2` scorer
+reproduces all 170 frozen `rules-0.1` rows exactly: 0 baseline mismatches,
+0 changed labels and 0 confidence decreases; holdout F1 remains 0.9541. On a
+separate 8-case replay and structurally distinct 8-case sealed holdout, the full
+researcher/critic/defender/control path has P/R 1.0/1.0, zero false or
+evidence-less promotions, zero unresolved-critical promotions and stability
+1.0. Defender/control ablations remain fail-closed but reduce recall to 0.3333.
+These are deterministic fixture/stored-extraction results, not a claim about
+live model quality or the ten-signal target; independent review and bounded
+production canary remain release gates.
 
 The public route is `https://tsignal.aispaces.ru` through Caddy on VM105 to
 VM232's private `:18443` listener. Account hashes and provider/database
@@ -211,7 +223,10 @@ containers, so live search no longer depends on backend VM101. Receipt:
 
 ## Open audit findings
 
-1. **Rules change required:** score can be non-monotonic when adding a positive secondary feature because primary reassignment changes weights. Do not hotfix; create a new rules version, eval and independent acceptance.
+1. **Rules release pending:** versioned `rules-0.2` fixes the known
+   non-monotonicity, passes exhaustive property tests and reproduces all 170
+   historical rows without change. Independent acceptance and canary are still
+   required before production activation.
 2. **Persistence:** canonical step/evidence ledgers are not fully populated for existing live runs; JSON payloads are not a substitute for the intended durable ledger.
 3. **Research integration:** GPT Researcher and SearXNG work together inside the
    research service. The Thin Signals adapter and preserved-source boundary are
@@ -250,7 +265,7 @@ containers, so live search no longer depends on backend VM101. Receipt:
 - tested: `TZ-04`, `TZ-06`, `LLM-01`, `SC-12`, `TS-INV-02`, `TS-INV-03`
 - implemented: `LP-01…07`, `DN-01`, `RM-01`, `TZ-03`, `TZ-07`, `SC-06`, `SC-07`, `RS-01`
 - tested: `RS-02`, `RS-03`, `RS-04`, `RS-06`
-- in progress and feature-off: `RS-05`; implemented and feature-off: `AR-01` (evaluation pending)
+- in progress and feature-off: `RS-05`; tested and feature-off: `AR-01` (independent review and canary pending)
 - implemented: `TZ-14` (15-slide editable PPTX/PDF and complete render/visual checks; personal team fields still require factual input)
 - tested: `TZ-15` (public GitHub default branch resolves to exact delivery SHA)
 - removed to lineage: `SC-01`, `SC-04`, `SC-05`, `SC-08`, `SC-10`, `TS-AG-01…16`, `TS-AG-18`
@@ -270,9 +285,9 @@ containers, so live search no longer depends on backend VM101. Receipt:
 
 ## Next trigger
 
-1. Complete W11 frozen replay, holdout and ablation without lowering scientific
-   gates; record qualified signals, reserve list and honest shortfall separately.
-2. Independently verify the frozen candidate, deploy it first with the review
+1. Independently verify the frozen Wave 4 candidate, including its replay,
+   sealed holdout, ablations and 170-row rules regression.
+2. Deploy it first with the review
    flag off, run the production canary, then publish the same SHA to SourceCraft
    and GitHub feature branches.
 3. Fill the factual personal team fields in slides 2–4 before external submission;

@@ -1,0 +1,2308 @@
+{
+  "baseline_rules": "rules-0.1",
+  "candidate_rules": "rules-0.2",
+  "records_digest": "042aab83a94926a6e20767118a93882da1dad715c17167e33d887a580bb71ab7",
+  "n": 170,
+  "baseline_reproduction_mismatches": 0,
+  "changed_labels": 0,
+  "decreased_confidence": 0,
+  "increased_confidence": 0,
+  "metrics": {
+    "train": {
+      "baseline": {
+        "n": 75,
+        "accuracy": 0.9333,
+        "precision": 0.9184,
+        "recall": 0.9783,
+        "f1": 0.9474,
+        "tp": 45,
+        "fp": 4,
+        "fn": 1,
+        "tn": 25,
+        "false_promotions": 4
+      },
+      "candidate": {
+        "n": 75,
+        "accuracy": 0.9333,
+        "precision": 0.9184,
+        "recall": 0.9783,
+        "f1": 0.9474,
+        "tp": 45,
+        "fp": 4,
+        "fn": 1,
+        "tn": 25,
+        "false_promotions": 4
+      }
+    },
+    "holdout": {
+      "baseline": {
+        "n": 95,
+        "accuracy": 0.9474,
+        "precision": 0.9455,
+        "recall": 0.963,
+        "f1": 0.9541,
+        "tp": 52,
+        "fp": 3,
+        "fn": 2,
+        "tn": 38,
+        "false_promotions": 3
+      },
+      "candidate": {
+        "n": 95,
+        "accuracy": 0.9474,
+        "precision": 0.9455,
+        "recall": 0.963,
+        "f1": 0.9541,
+        "tp": 52,
+        "fp": 3,
+        "fn": 2,
+        "tn": 38,
+        "false_promotions": 3
+      }
+    },
+    "all": {
+      "baseline": {
+        "n": 170,
+        "accuracy": 0.9412,
+        "precision": 0.9327,
+        "recall": 0.97,
+        "f1": 0.951,
+        "tp": 97,
+        "fp": 7,
+        "fn": 3,
+        "tn": 63,
+        "false_promotions": 7
+      },
+      "candidate": {
+        "n": 170,
+        "accuracy": 0.9412,
+        "precision": 0.9327,
+        "recall": 0.97,
+        "f1": 0.951,
+        "tp": 97,
+        "fp": 7,
+        "fn": 3,
+        "tn": 63,
+        "false_promotions": 7
+      }
+    }
+  },
+  "records": [
+    {
+      "id": "1",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.55
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.55
+      }
+    },
+    {
+      "id": "2",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "3",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "4",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "5",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "6",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.625
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.625
+      }
+    },
+    {
+      "id": "7",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.55
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.55
+      }
+    },
+    {
+      "id": "8",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "9",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "10",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "11",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.625
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.625
+      }
+    },
+    {
+      "id": "12",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "13",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.55
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.55
+      }
+    },
+    {
+      "id": "14",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "15",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "16",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "17",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "18",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "19",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "20",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "21",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "22",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "23",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "24",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "25",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "26",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "27",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "28",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "29",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "30",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "31",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.55
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.55
+      }
+    },
+    {
+      "id": "32",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.4
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.4
+      }
+    },
+    {
+      "id": "33",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "34",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "35",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "36",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "37",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "38",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.625
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.625
+      }
+    },
+    {
+      "id": "39",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "40",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "41",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.55
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.55
+      }
+    },
+    {
+      "id": "42",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "43",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "44",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "45",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "46",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "47",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "noise",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "noise",
+        "confidence": null
+      }
+    },
+    {
+      "id": "48",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "49",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "50",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "51",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "52",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "53",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "54",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.55
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.55
+      }
+    },
+    {
+      "id": "55",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "56",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "57",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "58",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "59",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "60",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "61",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "62",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "63",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "64",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "65",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "66",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "67",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "68",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "69",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "70",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "71",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "72",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "73",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "74",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "75",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "76",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "77",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "78",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.425
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.425
+      }
+    },
+    {
+      "id": "79",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.55
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.55
+      }
+    },
+    {
+      "id": "80",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "81",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.5
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.5
+      }
+    },
+    {
+      "id": "82",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "83",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "84",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "85",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "86",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "87",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.625
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.625
+      }
+    },
+    {
+      "id": "88",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.625
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.625
+      }
+    },
+    {
+      "id": "89",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "90",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "91",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "92",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.55
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.55
+      }
+    },
+    {
+      "id": "93",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "94",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "95",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "96",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "97",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.55
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.55
+      }
+    },
+    {
+      "id": "98",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "99",
+      "split": "train",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "100",
+      "split": "holdout",
+      "gold": "weak_signal",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "N001",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N002",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N003",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N004",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N005",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N006",
+      "split": "train",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N007",
+      "split": "train",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N008",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N009",
+      "split": "train",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N010",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N011",
+      "split": "holdout",
+      "gold": "noise",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N012",
+      "split": "holdout",
+      "gold": "noise",
+      "baseline": {
+        "label": "noise",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "noise",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N013",
+      "split": "train",
+      "gold": "noise",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N014",
+      "split": "holdout",
+      "gold": "noise",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N015",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N016",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N017",
+      "split": "train",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N018",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "N019",
+      "split": "holdout",
+      "gold": "watchlist",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "N020",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N021",
+      "split": "train",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N022",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N023",
+      "split": "train",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N024",
+      "split": "train",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N025",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N026",
+      "split": "train",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N027",
+      "split": "train",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N028",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N029",
+      "split": "holdout",
+      "gold": "noise",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N030",
+      "split": "train",
+      "gold": "noise",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N031",
+      "split": "holdout",
+      "gold": "noise",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "N032",
+      "split": "train",
+      "gold": "watchlist",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "N033",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N034",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N035",
+      "split": "train",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N036",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N037",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N038",
+      "split": "train",
+      "gold": "noise",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N039",
+      "split": "train",
+      "gold": "watchlist",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "N040",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N041",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N042",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N043",
+      "split": "train",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N044",
+      "split": "train",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N045",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N046",
+      "split": "holdout",
+      "gold": "noise",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N047",
+      "split": "train",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N048",
+      "split": "train",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N049",
+      "split": "holdout",
+      "gold": "noise",
+      "baseline": {
+        "label": "noise",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "noise",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N050",
+      "split": "train",
+      "gold": "noise",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N051",
+      "split": "train",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N052",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N053",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N054",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N055",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N056",
+      "split": "train",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N057",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N058",
+      "split": "train",
+      "gold": "noise",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.6
+      }
+    },
+    {
+      "id": "N059",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N060",
+      "split": "train",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N061",
+      "split": "train",
+      "gold": "watchlist",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N062",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N063",
+      "split": "train",
+      "gold": "watchlist",
+      "baseline": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      },
+      "candidate": {
+        "label": "weak_signal",
+        "confidence": 0.675
+      }
+    },
+    {
+      "id": "N064",
+      "split": "train",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N065",
+      "split": "train",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N066",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N067",
+      "split": "holdout",
+      "gold": "watchlist",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N068",
+      "split": "train",
+      "gold": "noise",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N069",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    },
+    {
+      "id": "N070",
+      "split": "holdout",
+      "gold": "mature",
+      "baseline": {
+        "label": "mature",
+        "confidence": null
+      },
+      "candidate": {
+        "label": "mature",
+        "confidence": null
+      }
+    }
+  ],
+  "limitations": [
+    "This is a frozen description-mode replay using stored extraction outputs.",
+    "It isolates deterministic scoring and does not rerun retrieval or model extraction.",
+    "Live search yield is measured only by the separately bounded release canary."
+  ],
+  "result_digest": "c9e97cadbccea1385e92a7405f695cbcf806ccc686030daad69120bca662e039"
+}

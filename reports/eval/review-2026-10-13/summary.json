@@ -1,0 +1,1006 @@
+{
+  "dataset_version": "review-eval-0.1",
+  "fixture_version": "review-fixtures-0.1",
+  "frozen_code_sha": "9f3a1398fc3a82bb024e81d1c72e4fadb46eb4fc",
+  "dataset_digest": "07371c1af0f2d8efa0d65d5d085012a635c186c87e2b891070fe7a1c66dbd175",
+  "cases": [
+    {
+      "case_id": "R01-clean-positive",
+      "split": "replay",
+      "scenario": "clean_positive",
+      "gold_accept": true,
+      "gold_verdict": "PROMOTE",
+      "risk_flags": [],
+      "paths": {
+        "baseline": {
+          "verdict": "PROMOTE",
+          "ledger_revision": "a6489d978fcab911a2d7770fd27f1eb646a3f9d284ebeaec10bfd455e2f86f82",
+          "stable": true,
+          "latency_ms": 0,
+          "tokens": 0,
+          "cost_usd": 0.0,
+          "evidence_covered": true
+        },
+        "proposed": {
+          "verdict": "PROMOTE",
+          "ledger_revision": "0f3bf2ba333682a073dc12fa3650631ba54ee438fb51aefacdfa5d76928da2cc",
+          "stable": true,
+          "latency_ms": 40,
+          "tokens": 600,
+          "cost_usd": 0.004,
+          "evidence_covered": true
+        },
+        "no_defender": {
+          "verdict": "PROMOTE",
+          "ledger_revision": "dd799e823765cf37723a729b3d144959e01502f3ab7f4a12319e0f21cc28d933",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": true
+        },
+        "no_control": {
+          "verdict": "PROMOTE",
+          "ledger_revision": "1f1096c40e2ff4232da61e05e9a51ce28ad5a8f27e45c210bb0599f2633b4a3d",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": true
+        }
+      }
+    },
+    {
+      "case_id": "R02-defended-positive",
+      "split": "replay",
+      "scenario": "defended_positive",
+      "gold_accept": true,
+      "gold_verdict": "PROMOTE",
+      "risk_flags": [],
+      "paths": {
+        "baseline": {
+          "verdict": "PROMOTE",
+          "ledger_revision": "bd6185dfacc8142f1c1dd2d346e12fd54658e661bfc5920ff2cd23918f661872",
+          "stable": true,
+          "latency_ms": 0,
+          "tokens": 0,
+          "cost_usd": 0.0,
+          "evidence_covered": true
+        },
+        "proposed": {
+          "verdict": "PROMOTE",
+          "ledger_revision": "c04638b9d58325ccd9c18f80675f7810e5dba1ab5a9709a1a4df286a0fe4ccb4",
+          "stable": true,
+          "latency_ms": 40,
+          "tokens": 600,
+          "cost_usd": 0.004,
+          "evidence_covered": true
+        },
+        "no_defender": {
+          "verdict": "HOLD",
+          "ledger_revision": "59594a9a3095570ece36713771d6883a3f59d9db727d7c1391f98e27ac81e938",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": true
+        },
+        "no_control": {
+          "verdict": "HOLD",
+          "ledger_revision": "1abe163ef82911a71c84923c91d1dee26d89c29418f8af2fa891b579131c27fc",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": true
+        }
+      }
+    },
+    {
+      "case_id": "R03-false-novelty",
+      "split": "replay",
+      "scenario": "fatal_false_novelty",
+      "gold_accept": false,
+      "gold_verdict": "REJECT",
+      "risk_flags": [],
+      "paths": {
+        "baseline": {
+          "verdict": "PROMOTE",
+          "ledger_revision": "c69a14ed69f2278a6b880a3965082c2618b2c7d806dc1824250f898a0528aacf",
+          "stable": true,
+          "latency_ms": 0,
+          "tokens": 0,
+          "cost_usd": 0.0,
+          "evidence_covered": true
+        },
+        "proposed": {
+          "verdict": "REJECT",
+          "ledger_revision": "0b763973ffb4ea82f6b16a5ab0a9f2432530b5f15ff50270a6e17361fb125a33",
+          "stable": true,
+          "latency_ms": 40,
+          "tokens": 600,
+          "cost_usd": 0.004,
+          "evidence_covered": true
+        },
+        "no_defender": {
+          "verdict": "REJECT",
+          "ledger_revision": "3c0e2cd6c9a568a30b49f848363ef04c40aa4a597e616ada9db73afc26506e73",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": true
+        },
+        "no_control": {
+          "verdict": "HOLD",
+          "ledger_revision": "202ea16765b9a813872b290ba1618aa8f9cac1daf64f43daf235e7abb4b2aba3",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": true
+        }
+      }
+    },
+    {
+      "case_id": "R04-unresolved-transition",
+      "split": "replay",
+      "scenario": "unresolved_critical",
+      "gold_accept": false,
+      "gold_verdict": "HOLD",
+      "risk_flags": [
+        "unresolved_critical"
+      ],
+      "paths": {
+        "baseline": {
+          "verdict": "PROMOTE",
+          "ledger_revision": "be83a449245228b73f1217f3ac711cd6483bb04515a8db95a85d5af2a7da950c",
+          "stable": true,
+          "latency_ms": 0,
+          "tokens": 0,
+          "cost_usd": 0.0,
+          "evidence_covered": true
+        },
+        "proposed": {
+          "verdict": "HOLD",
+          "ledger_revision": "d305f0bd9e6214e660357ae98272e201c4944c2898f854f675a1134eeef20dac",
+          "stable": true,
+          "latency_ms": 40,
+          "tokens": 600,
+          "cost_usd": 0.004,
+          "evidence_covered": true
+        },
+        "no_defender": {
+          "verdict": "HOLD",
+          "ledger_revision": "e72b35431301b480bbb3a1da414dd5208f39c6f5fbbb1e9c9a4541f4fc57797c",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": true
+        },
+        "no_control": {
+          "verdict": "HOLD",
+          "ledger_revision": "f7faf3f5a6475e94511ae67b0a2723398cd025c0f34ed398c32f7925ec75bd8c",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": true
+        }
+      }
+    },
+    {
+      "case_id": "R05-single-origin",
+      "split": "replay",
+      "scenario": "insufficient_origins",
+      "gold_accept": false,
+      "gold_verdict": "HOLD",
+      "risk_flags": [],
+      "paths": {
+        "baseline": {
+          "verdict": "PROMOTE",
+          "ledger_revision": "81d8b59c2287eee0838d8a006af0b5c6636961afc1b4958bd496d4d2fb98e6a2",
+          "stable": true,
+          "latency_ms": 0,
+          "tokens": 0,
+          "cost_usd": 0.0,
+          "evidence_covered": false
+        },
+        "proposed": {
+          "verdict": "HOLD",
+          "ledger_revision": "ebb07402dd39917377276ce5f6d7bdc76129bc10dce627f3cc319cf6d81c8e27",
+          "stable": true,
+          "latency_ms": 40,
+          "tokens": 600,
+          "cost_usd": 0.004,
+          "evidence_covered": false
+        },
+        "no_defender": {
+          "verdict": "HOLD",
+          "ledger_revision": "e6d80f30c2744f0a6c53855988aa7c5d61a019d1fd594e4da152cda4f4833d34",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": false
+        },
+        "no_control": {
+          "verdict": "HOLD",
+          "ledger_revision": "c6af5d1144e99b31d1765b7fa04004cbbfb7561ea385eccb555a89ac31e77dfb",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": false
+        }
+      }
+    },
+    {
+      "case_id": "R06-base-watchlist",
+      "split": "replay",
+      "scenario": "base_watchlist",
+      "gold_accept": false,
+      "gold_verdict": "HOLD",
+      "risk_flags": [],
+      "paths": {
+        "baseline": {
+          "verdict": "HOLD",
+          "ledger_revision": "dd28f50717713b75b3caaea50f9b93ae578634db23e2b093c88e696531791ace",
+          "stable": true,
+          "latency_ms": 0,
+          "tokens": 0,
+          "cost_usd": 0.0,
+          "evidence_covered": true
+        },
+        "proposed": {
+          "verdict": "HOLD",
+          "ledger_revision": "6cb45b980956eb526dbb9575cc6e30767d4559a2b7e775d7b111d1c34b59b0d5",
+          "stable": true,
+          "latency_ms": 40,
+          "tokens": 600,
+          "cost_usd": 0.004,
+          "evidence_covered": true
+        },
+        "no_defender": {
+          "verdict": "HOLD",
+          "ledger_revision": "1dacc2afea11f9a668b9bfc065256e777f32a5056ca5a15b7bde8ef455a8130f",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": true
+        },
+        "no_control": {
+          "verdict": "HOLD",
+          "ledger_revision": "abfe1a7a2033ff5b808a3a388e88b9b22dabcaad1f2b32f7efc658f01f363388",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": true
+        }
+      }
+    },
+    {
+      "case_id": "R07-valid-narrowing",
+      "split": "replay",
+      "scenario": "valid_narrowing",
+      "gold_accept": true,
+      "gold_verdict": "REFRAME",
+      "risk_flags": [],
+      "paths": {
+        "baseline": {
+          "verdict": "PROMOTE",
+          "ledger_revision": "aa36d99d791a495f94f51ab0f99cac22bc83c77285424db7797ef56a4f9a0ada",
+          "stable": true,
+          "latency_ms": 0,
+          "tokens": 0,
+          "cost_usd": 0.0,
+          "evidence_covered": true
+        },
+        "proposed": {
+          "verdict": "REFRAME",
+          "ledger_revision": "374ff85e68e28ec077d83334f08a3bcd08e6d8c049f96173e0c79e72cd386915",
+          "stable": true,
+          "latency_ms": 40,
+          "tokens": 600,
+          "cost_usd": 0.004,
+          "evidence_covered": true
+        },
+        "no_defender": {
+          "verdict": "HOLD",
+          "ledger_revision": "6d390ca02d0659031be98495f5fbc501aaacc1adfc446f1e2de4576b7cc52483",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": true
+        },
+        "no_control": {
+          "verdict": "HOLD",
+          "ledger_revision": "8a5ffea553f485218fffd8af6bcb665409578de1594382cb76edf91eab41aaa3",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": true
+        }
+      }
+    },
+    {
+      "case_id": "R08-no-evidence",
+      "split": "replay",
+      "scenario": "evidence_less",
+      "gold_accept": false,
+      "gold_verdict": "HOLD",
+      "risk_flags": [
+        "evidence_less"
+      ],
+      "paths": {
+        "baseline": {
+          "verdict": "PROMOTE",
+          "ledger_revision": "927867598facacc4560429b5f1f2cfb208e2e09c55f397215687497f02d4a64b",
+          "stable": true,
+          "latency_ms": 0,
+          "tokens": 0,
+          "cost_usd": 0.0,
+          "evidence_covered": false
+        },
+        "proposed": {
+          "verdict": "HOLD",
+          "ledger_revision": "177f5ec898c9bb69129f3659bbc5bf786cffaa911b4b3801e35c6ac6a43a137a",
+          "stable": true,
+          "latency_ms": 40,
+          "tokens": 600,
+          "cost_usd": 0.004,
+          "evidence_covered": false
+        },
+        "no_defender": {
+          "verdict": "HOLD",
+          "ledger_revision": "96f898acbf3fda3bd0f0bc5af7948721c4daaea938c51d455f15291d966d0928",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": false
+        },
+        "no_control": {
+          "verdict": "HOLD",
+          "ledger_revision": "d364868dee2fcc5b95635212dff02335a96260b55102cecb43d0da6fab203c00",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": false
+        }
+      }
+    },
+    {
+      "case_id": "H01-noncritical-caveat",
+      "split": "holdout",
+      "scenario": "noncritical_objection",
+      "gold_accept": true,
+      "gold_verdict": "PROMOTE",
+      "risk_flags": [],
+      "paths": {
+        "baseline": {
+          "verdict": "PROMOTE",
+          "ledger_revision": "72ffe41e68a57994af6edb579dd30fa4e006fec1371ef377af11d17d3975af1f",
+          "stable": true,
+          "latency_ms": 0,
+          "tokens": 0,
+          "cost_usd": 0.0,
+          "evidence_covered": true
+        },
+        "proposed": {
+          "verdict": "PROMOTE",
+          "ledger_revision": "919d48c57d026cb7e256906ac88b8d055286f33992bcbb0c427624d682c381c1",
+          "stable": true,
+          "latency_ms": 40,
+          "tokens": 600,
+          "cost_usd": 0.004,
+          "evidence_covered": true
+        },
+        "no_defender": {
+          "verdict": "PROMOTE",
+          "ledger_revision": "132b45c66f1064a80b096d1510d9441dcaaa40a59d72bd8bae3f32caf5aafdbb",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": true
+        },
+        "no_control": {
+          "verdict": "PROMOTE",
+          "ledger_revision": "bc7cdef72fa7e4cff2fbce068910fad2b63bd5d527f69f74f9bd04232dbe0d0e",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": true
+        }
+      }
+    },
+    {
+      "case_id": "H02-multi-objection-defense",
+      "split": "holdout",
+      "scenario": "defended_multi_objection",
+      "gold_accept": true,
+      "gold_verdict": "PROMOTE",
+      "risk_flags": [],
+      "paths": {
+        "baseline": {
+          "verdict": "PROMOTE",
+          "ledger_revision": "996f5f55b89b4f14189fae2af8008234f72b8a19416e6193d35a75d295c646fb",
+          "stable": true,
+          "latency_ms": 0,
+          "tokens": 0,
+          "cost_usd": 0.0,
+          "evidence_covered": true
+        },
+        "proposed": {
+          "verdict": "PROMOTE",
+          "ledger_revision": "032dcade6d3739f63a9e20f3fc4c9d5f5f1265d0475117d8717d11e04c379194",
+          "stable": true,
+          "latency_ms": 40,
+          "tokens": 600,
+          "cost_usd": 0.004,
+          "evidence_covered": true
+        },
+        "no_defender": {
+          "verdict": "HOLD",
+          "ledger_revision": "5c0ef9ba96f35a1be52974a75cda6174e9475469952ac880a2ce035bf8a7cbd5",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": true
+        },
+        "no_control": {
+          "verdict": "HOLD",
+          "ledger_revision": "d0c44594cbf03b926761d8db8827bf29a688ea4fbe3e7f71f7a74ea773988e73",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": true
+        }
+      }
+    },
+    {
+      "case_id": "H03-fatal-chronology",
+      "split": "holdout",
+      "scenario": "fatal_chronology",
+      "gold_accept": false,
+      "gold_verdict": "REJECT",
+      "risk_flags": [],
+      "paths": {
+        "baseline": {
+          "verdict": "PROMOTE",
+          "ledger_revision": "74708091018c0d25f619fe623a9f17c6a6deaedf476a92aa28316c405a62b4dc",
+          "stable": true,
+          "latency_ms": 0,
+          "tokens": 0,
+          "cost_usd": 0.0,
+          "evidence_covered": true
+        },
+        "proposed": {
+          "verdict": "REJECT",
+          "ledger_revision": "e3e1f3725ac3b47bb2573f51b54b27b71c870b4e786073e396c37f586920d2a4",
+          "stable": true,
+          "latency_ms": 40,
+          "tokens": 600,
+          "cost_usd": 0.004,
+          "evidence_covered": true
+        },
+        "no_defender": {
+          "verdict": "REJECT",
+          "ledger_revision": "f2bbd89ad10429188ef3a86659602a1bc3dc84c909856155f2b3dc73c027b22f",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": true
+        },
+        "no_control": {
+          "verdict": "HOLD",
+          "ledger_revision": "1da7b93962f6cff15c89a40ffca4ea101af5474667ac2b0d301645a7c240cf5d",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": true
+        }
+      }
+    },
+    {
+      "case_id": "H04-critical-unknown",
+      "split": "holdout",
+      "scenario": "critical_unknown",
+      "gold_accept": false,
+      "gold_verdict": "HOLD",
+      "risk_flags": [
+        "unresolved_critical"
+      ],
+      "paths": {
+        "baseline": {
+          "verdict": "PROMOTE",
+          "ledger_revision": "226a7cf5a68c06b70842407ef3652e84b49ec9226ba8793b18e921565cc68b8e",
+          "stable": true,
+          "latency_ms": 0,
+          "tokens": 0,
+          "cost_usd": 0.0,
+          "evidence_covered": true
+        },
+        "proposed": {
+          "verdict": "HOLD",
+          "ledger_revision": "65945fdedb2e36f5a6e4ba2e7d87122ff7874d1313cfb6e864138ea81a2b3200",
+          "stable": true,
+          "latency_ms": 40,
+          "tokens": 600,
+          "cost_usd": 0.004,
+          "evidence_covered": true
+        },
+        "no_defender": {
+          "verdict": "HOLD",
+          "ledger_revision": "1f78b5eed67e0312df98d5f23c3426914597510c3cebb4487b878683d02b983a",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": true
+        },
+        "no_control": {
+          "verdict": "HOLD",
+          "ledger_revision": "e273b7516bcb743f888584274ca244ed8e2085de86a6db6f75c4eed49c017319",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": true
+        }
+      }
+    },
+    {
+      "case_id": "H05-weak-provenance",
+      "split": "holdout",
+      "scenario": "weak_provenance",
+      "gold_accept": false,
+      "gold_verdict": "HOLD",
+      "risk_flags": [
+        "evidence_less"
+      ],
+      "paths": {
+        "baseline": {
+          "verdict": "PROMOTE",
+          "ledger_revision": "4553af0a088816a0076279134d9ca202e7331549f56a487c52c2e5eeea697b10",
+          "stable": true,
+          "latency_ms": 0,
+          "tokens": 0,
+          "cost_usd": 0.0,
+          "evidence_covered": false
+        },
+        "proposed": {
+          "verdict": "HOLD",
+          "ledger_revision": "1540a6e2f58de18aec1fc8add36288dca79c0250b84f5d69f3a8f32de54f13e3",
+          "stable": true,
+          "latency_ms": 40,
+          "tokens": 600,
+          "cost_usd": 0.004,
+          "evidence_covered": false
+        },
+        "no_defender": {
+          "verdict": "HOLD",
+          "ledger_revision": "d8b6c729a0b4b13713bcdf53bccb0ef0549834e633be875807a6eb9076155b48",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": false
+        },
+        "no_control": {
+          "verdict": "HOLD",
+          "ledger_revision": "ad44f64d2e112a9d8e4b498dea23f19678760bffcb655853c1548794271da4dd",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": false
+        }
+      }
+    },
+    {
+      "case_id": "H06-base-mature",
+      "split": "holdout",
+      "scenario": "base_mature",
+      "gold_accept": false,
+      "gold_verdict": "HOLD",
+      "risk_flags": [],
+      "paths": {
+        "baseline": {
+          "verdict": "HOLD",
+          "ledger_revision": "c0e544ae5a6ffeb7298aff4a28dfc8b1d2b41a73c9b645fec2c2e3daff875875",
+          "stable": true,
+          "latency_ms": 0,
+          "tokens": 0,
+          "cost_usd": 0.0,
+          "evidence_covered": true
+        },
+        "proposed": {
+          "verdict": "HOLD",
+          "ledger_revision": "861d6da1ac92c3a3e16c3d14852fe2d394f397c8acb87fd5735f1fb7c7ea9ad9",
+          "stable": true,
+          "latency_ms": 40,
+          "tokens": 600,
+          "cost_usd": 0.004,
+          "evidence_covered": true
+        },
+        "no_defender": {
+          "verdict": "HOLD",
+          "ledger_revision": "7329da6b57c2d701ac3afb9ef85e2d70430a5dad6c01ab2c843ce9ed8b187f29",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": true
+        },
+        "no_control": {
+          "verdict": "HOLD",
+          "ledger_revision": "9ada005a15a5fc969a80ffd991af648d41e4dddd0b57ce568f89d7fba9c37b9f",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": true
+        }
+      }
+    },
+    {
+      "case_id": "H07-valid-correction",
+      "split": "holdout",
+      "scenario": "valid_correction",
+      "gold_accept": true,
+      "gold_verdict": "REFRAME",
+      "risk_flags": [],
+      "paths": {
+        "baseline": {
+          "verdict": "PROMOTE",
+          "ledger_revision": "7bd68d0af86cfe4b590e363a7e6def48c74e597af1fd0ab006569522799d5e6e",
+          "stable": true,
+          "latency_ms": 0,
+          "tokens": 0,
+          "cost_usd": 0.0,
+          "evidence_covered": true
+        },
+        "proposed": {
+          "verdict": "REFRAME",
+          "ledger_revision": "f3773183e5dc9cffa2558c64231aae95ac58dbfba1fe3f9c35a1ac91ad262e2a",
+          "stable": true,
+          "latency_ms": 40,
+          "tokens": 600,
+          "cost_usd": 0.004,
+          "evidence_covered": true
+        },
+        "no_defender": {
+          "verdict": "HOLD",
+          "ledger_revision": "9474c94c845d02261d52bde4393008b0a08e0b3283c08161bf9d412cb8c65d6f",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": true
+        },
+        "no_control": {
+          "verdict": "HOLD",
+          "ledger_revision": "1ec472a7f6ace50a7a246440bc3d28c45b06a7e8b869336a8c21ea2a62f0e22b",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": true
+        }
+      }
+    },
+    {
+      "case_id": "H08-provider-failure",
+      "split": "holdout",
+      "scenario": "provider_failure",
+      "gold_accept": false,
+      "gold_verdict": "HOLD",
+      "risk_flags": [],
+      "paths": {
+        "baseline": {
+          "verdict": "PROMOTE",
+          "ledger_revision": "fb03d0bd8cdb33750e73256bdfa431106068bae60510d12f49c96871510640c5",
+          "stable": true,
+          "latency_ms": 0,
+          "tokens": 0,
+          "cost_usd": 0.0,
+          "evidence_covered": true
+        },
+        "proposed": {
+          "verdict": "HOLD",
+          "ledger_revision": "1bea7e52349896c29cf300704e7878185c3964985b458020c8564a24cdbe10b5",
+          "stable": true,
+          "latency_ms": 30,
+          "tokens": 450,
+          "cost_usd": 0.003,
+          "evidence_covered": true
+        },
+        "no_defender": {
+          "verdict": "HOLD",
+          "ledger_revision": "f397f31ec1c873fa412415ab5044d52279cb2989b4c6985c21a4b949c7945244",
+          "stable": true,
+          "latency_ms": 20,
+          "tokens": 300,
+          "cost_usd": 0.002,
+          "evidence_covered": true
+        },
+        "no_control": {
+          "verdict": "HOLD",
+          "ledger_revision": "41356fe970dce9f4378213f3ea9a1c5934c3c37bbfbff3bad13eb88cf3d99619",
+          "stable": true,
+          "latency_ms": 20,
+          "tokens": 300,
+          "cost_usd": 0.002,
+          "evidence_covered": true
+        }
+      }
+    }
+  ],
+  "metrics": {
+    "replay": {
+      "baseline": {
+        "n": 8,
+        "tp": 3,
+        "fp": 4,
+        "fn": 0,
+        "tn": 1,
+        "precision": 0.4286,
+        "recall": 1.0,
+        "false_promotions": 4,
+        "evidence_less_promotions": 1,
+        "unresolved_critical_promotions": 1,
+        "evidence_coverage": 0.7143,
+        "stability": 1.0,
+        "latency_ms": 0,
+        "mean_latency_ms": 0.0,
+        "tokens": 0,
+        "mean_tokens": 0.0,
+        "cost_usd": 0.0,
+        "mean_cost_usd": 0.0
+      },
+      "proposed": {
+        "n": 8,
+        "tp": 3,
+        "fp": 0,
+        "fn": 0,
+        "tn": 5,
+        "precision": 1.0,
+        "recall": 1.0,
+        "false_promotions": 0,
+        "evidence_less_promotions": 0,
+        "unresolved_critical_promotions": 0,
+        "evidence_coverage": 1.0,
+        "stability": 1.0,
+        "latency_ms": 320,
+        "mean_latency_ms": 40.0,
+        "tokens": 4800,
+        "mean_tokens": 600.0,
+        "cost_usd": 0.032,
+        "mean_cost_usd": 0.004
+      },
+      "no_defender": {
+        "n": 8,
+        "tp": 1,
+        "fp": 0,
+        "fn": 2,
+        "tn": 5,
+        "precision": 1.0,
+        "recall": 0.3333,
+        "false_promotions": 0,
+        "evidence_less_promotions": 0,
+        "unresolved_critical_promotions": 0,
+        "evidence_coverage": 1.0,
+        "stability": 1.0,
+        "latency_ms": 240,
+        "mean_latency_ms": 30.0,
+        "tokens": 3600,
+        "mean_tokens": 450.0,
+        "cost_usd": 0.024,
+        "mean_cost_usd": 0.003
+      },
+      "no_control": {
+        "n": 8,
+        "tp": 1,
+        "fp": 0,
+        "fn": 2,
+        "tn": 5,
+        "precision": 1.0,
+        "recall": 0.3333,
+        "false_promotions": 0,
+        "evidence_less_promotions": 0,
+        "unresolved_critical_promotions": 0,
+        "evidence_coverage": 1.0,
+        "stability": 1.0,
+        "latency_ms": 240,
+        "mean_latency_ms": 30.0,
+        "tokens": 3600,
+        "mean_tokens": 450.0,
+        "cost_usd": 0.024,
+        "mean_cost_usd": 0.003
+      }
+    },
+    "holdout": {
+      "baseline": {
+        "n": 8,
+        "tp": 3,
+        "fp": 4,
+        "fn": 0,
+        "tn": 1,
+        "precision": 0.4286,
+        "recall": 1.0,
+        "false_promotions": 4,
+        "evidence_less_promotions": 1,
+        "unresolved_critical_promotions": 1,
+        "evidence_coverage": 0.8571,
+        "stability": 1.0,
+        "latency_ms": 0,
+        "mean_latency_ms": 0.0,
+        "tokens": 0,
+        "mean_tokens": 0.0,
+        "cost_usd": 0.0,
+        "mean_cost_usd": 0.0
+      },
+      "proposed": {
+        "n": 8,
+        "tp": 3,
+        "fp": 0,
+        "fn": 0,
+        "tn": 5,
+        "precision": 1.0,
+        "recall": 1.0,
+        "false_promotions": 0,
+        "evidence_less_promotions": 0,
+        "unresolved_critical_promotions": 0,
+        "evidence_coverage": 1.0,
+        "stability": 1.0,
+        "latency_ms": 310,
+        "mean_latency_ms": 38.75,
+        "tokens": 4650,
+        "mean_tokens": 581.25,
+        "cost_usd": 0.031,
+        "mean_cost_usd": 0.003875
+      },
+      "no_defender": {
+        "n": 8,
+        "tp": 1,
+        "fp": 0,
+        "fn": 2,
+        "tn": 5,
+        "precision": 1.0,
+        "recall": 0.3333,
+        "false_promotions": 0,
+        "evidence_less_promotions": 0,
+        "unresolved_critical_promotions": 0,
+        "evidence_coverage": 1.0,
+        "stability": 1.0,
+        "latency_ms": 230,
+        "mean_latency_ms": 28.75,
+        "tokens": 3450,
+        "mean_tokens": 431.25,
+        "cost_usd": 0.023,
+        "mean_cost_usd": 0.002875
+      },
+      "no_control": {
+        "n": 8,
+        "tp": 1,
+        "fp": 0,
+        "fn": 2,
+        "tn": 5,
+        "precision": 1.0,
+        "recall": 0.3333,
+        "false_promotions": 0,
+        "evidence_less_promotions": 0,
+        "unresolved_critical_promotions": 0,
+        "evidence_coverage": 1.0,
+        "stability": 1.0,
+        "latency_ms": 230,
+        "mean_latency_ms": 28.75,
+        "tokens": 3450,
+        "mean_tokens": 431.25,
+        "cost_usd": 0.023,
+        "mean_cost_usd": 0.002875
+      }
+    },
+    "all": {
+      "baseline": {
+        "n": 16,
+        "tp": 6,
+        "fp": 8,
+        "fn": 0,
+        "tn": 2,
+        "precision": 0.4286,
+        "recall": 1.0,
+        "false_promotions": 8,
+        "evidence_less_promotions": 2,
+        "unresolved_critical_promotions": 2,
+        "evidence_coverage": 0.7857,
+        "stability": 1.0,
+        "latency_ms": 0,
+        "mean_latency_ms": 0.0,
+        "tokens": 0,
+        "mean_tokens": 0.0,
+        "cost_usd": 0.0,
+        "mean_cost_usd": 0.0
+      },
+      "proposed": {
+        "n": 16,
+        "tp": 6,
+        "fp": 0,
+        "fn": 0,
+        "tn": 10,
+        "precision": 1.0,
+        "recall": 1.0,
+        "false_promotions": 0,
+        "evidence_less_promotions": 0,
+        "unresolved_critical_promotions": 0,
+        "evidence_coverage": 1.0,
+        "stability": 1.0,
+        "latency_ms": 630,
+        "mean_latency_ms": 39.38,
+        "tokens": 9450,
+        "mean_tokens": 590.62,
+        "cost_usd": 0.063,
+        "mean_cost_usd": 0.003938
+      },
+      "no_defender": {
+        "n": 16,
+        "tp": 2,
+        "fp": 0,
+        "fn": 4,
+        "tn": 10,
+        "precision": 1.0,
+        "recall": 0.3333,
+        "false_promotions": 0,
+        "evidence_less_promotions": 0,
+        "unresolved_critical_promotions": 0,
+        "evidence_coverage": 1.0,
+        "stability": 1.0,
+        "latency_ms": 470,
+        "mean_latency_ms": 29.38,
+        "tokens": 7050,
+        "mean_tokens": 440.62,
+        "cost_usd": 0.047,
+        "mean_cost_usd": 0.002938
+      },
+      "no_control": {
+        "n": 16,
+        "tp": 2,
+        "fp": 0,
+        "fn": 4,
+        "tn": 10,
+        "precision": 1.0,
+        "recall": 0.3333,
+        "false_promotions": 0,
+        "evidence_less_promotions": 0,
+        "unresolved_critical_promotions": 0,
+        "evidence_coverage": 1.0,
+        "stability": 1.0,
+        "latency_ms": 470,
+        "mean_latency_ms": 29.38,
+        "tokens": 7050,
+        "mean_tokens": 440.62,
+        "cost_usd": 0.047,
+        "mean_cost_usd": 0.002938
+      }
+    }
+  },
+  "limitations": [
+    "Frozen fixtures measure contract, fail-closed and arbiter behavior.",
+    "They do not measure live model retrieval or reasoning quality.",
+    "Live quality and candidate count require a separately bounded production canary."
+  ],
+  "result_digest": "b26922c55e9d3e100d6510387de53eaafd239aac04d87de37f93051a9616bf0a"
+}

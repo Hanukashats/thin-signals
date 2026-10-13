@@ -113,6 +113,13 @@ wall-clock пределом для DNS, registry, response body и completion. D
 сохраняется, поэтому HTTPX штатно обрабатывает несколько адресов, proxy bypass и
 TLS/SNI, а отменённый lookup не порождает поздний POST.
 
+Evaluation не обращается к модели или сети. `score-replay` реконструирует
+FeatureVector из 170 сохранённых записей и требует точного совпадения v0.1 перед
+сравнением v0.2. `review-eval` исполняет реальный runner/arbiter поверх
+детерминированных typed fixtures: 8 frozen replay и 8 структурно отличных
+sealed holdout, плюс `no_defender`/`no_control` ablations. Gold не входит в путь
+решения. Живой поиск, latency провайдера и yield проверяются только canary.
+
 ## 5. Сеть и reuse (ADR 007 бэкенда)
 
 На VM232 продукт обращается к SearXNG по loopback, а GPT Researcher — к нему

@@ -1,0 +1,179 @@
+{
+  "version": "review-eval-0.1",
+  "fixture_version": "review-fixtures-0.1",
+  "frozen_code_sha": "9f3a1398fc3a82bb024e81d1c72e4fadb46eb4fc",
+  "frozen_at": "2026-10-13T12:00:00Z",
+  "purpose": "Deterministic contract replay and untouched holdout for review-arbiter evaluation; not a live-model quality benchmark.",
+  "replay": {
+    "source": "Frozen C05 contract and incident scenarios accepted at the referenced code SHA",
+    "tuning_allowed": true
+  },
+  "holdout": {
+    "sealed": true,
+    "sealed_at": "2026-10-13T12:00:00Z",
+    "adjudication_method": "Predeclared expected verdict from the written evidence and arbiter contract; the evaluator never reads gold fields when producing decisions.",
+    "tuning_allowed": false
+  },
+  "cases": [
+    {
+      "case_id": "R01-clean-positive",
+      "split": "replay",
+      "scenario": "clean_positive",
+      "technology": "Replay clean independent mechanism",
+      "gold_accept": true,
+      "gold_verdict": "PROMOTE",
+      "risk_flags": [],
+      "adjudication": "Two attested independent origins support a critical novel-mechanism claim and no objection remains."
+    },
+    {
+      "case_id": "R02-defended-positive",
+      "split": "replay",
+      "scenario": "defended_positive",
+      "technology": "Replay independently defended mechanism",
+      "gold_accept": true,
+      "gold_verdict": "PROMOTE",
+      "risk_flags": [],
+      "adjudication": "A valid new attested origin resolves the single-origin objection."
+    },
+    {
+      "case_id": "R03-false-novelty",
+      "split": "replay",
+      "scenario": "fatal_false_novelty",
+      "technology": "Replay established mechanism presented as novel",
+      "gold_accept": false,
+      "gold_verdict": "REJECT",
+      "risk_flags": [],
+      "adjudication": "Attested prior evidence verifies a fatal false-novelty objection."
+    },
+    {
+      "case_id": "R04-unresolved-transition",
+      "split": "replay",
+      "scenario": "unresolved_critical",
+      "technology": "Replay transition claim with unresolved objection",
+      "gold_accept": false,
+      "gold_verdict": "HOLD",
+      "risk_flags": ["unresolved_critical"],
+      "adjudication": "The control critic leaves a critical transition objection unresolved."
+    },
+    {
+      "case_id": "R05-single-origin",
+      "split": "replay",
+      "scenario": "insufficient_origins",
+      "technology": "Replay single-origin laboratory claim",
+      "gold_accept": false,
+      "gold_verdict": "HOLD",
+      "risk_flags": [],
+      "adjudication": "Only one attested origin remains after review."
+    },
+    {
+      "case_id": "R06-base-watchlist",
+      "split": "replay",
+      "scenario": "base_watchlist",
+      "technology": "Replay candidate below the base admission gate",
+      "gold_accept": false,
+      "gold_verdict": "HOLD",
+      "risk_flags": [],
+      "adjudication": "The deterministic base policy is not rank eligible."
+    },
+    {
+      "case_id": "R07-valid-narrowing",
+      "split": "replay",
+      "scenario": "valid_narrowing",
+      "technology": "Replay overbroad deployment claim narrowed to prototype",
+      "gold_accept": true,
+      "gold_verdict": "REFRAME",
+      "risk_flags": [],
+      "adjudication": "Attested evidence supports a narrower claim, not the original deployment scope."
+    },
+    {
+      "case_id": "R08-no-evidence",
+      "split": "replay",
+      "scenario": "evidence_less",
+      "technology": "Replay eligible-looking claim without evidence",
+      "gold_accept": false,
+      "gold_verdict": "HOLD",
+      "risk_flags": ["evidence_less"],
+      "adjudication": "No attested evidence is available for the claimed signal."
+    },
+    {
+      "case_id": "H01-noncritical-caveat",
+      "split": "holdout",
+      "scenario": "noncritical_objection",
+      "technology": "Holdout clean independent materials mechanism",
+      "gold_accept": true,
+      "gold_verdict": "PROMOTE",
+      "risk_flags": [],
+      "adjudication": "Two preserved origins support the claim; a material noncritical caveat does not invalidate it."
+    },
+    {
+      "case_id": "H02-multi-objection-defense",
+      "split": "holdout",
+      "scenario": "defended_multi_objection",
+      "technology": "Holdout defended manufacturing mechanism",
+      "gold_accept": true,
+      "gold_verdict": "PROMOTE",
+      "risk_flags": [],
+      "adjudication": "Two distinct critical objections are each resolved by new independently attested evidence."
+    },
+    {
+      "case_id": "H03-fatal-chronology",
+      "split": "holdout",
+      "scenario": "fatal_chronology",
+      "technology": "Holdout already mass-adopted product category",
+      "gold_accept": false,
+      "gold_verdict": "REJECT",
+      "risk_flags": [],
+      "adjudication": "Preserved prior evidence verifies a fatal chronology conflict."
+    },
+    {
+      "case_id": "H04-critical-unknown",
+      "split": "holdout",
+      "scenario": "critical_unknown",
+      "technology": "Holdout novelty claim with unresolved chronology",
+      "gold_accept": false,
+      "gold_verdict": "HOLD",
+      "risk_flags": ["unresolved_critical"],
+      "adjudication": "A critical claim remains unknown and cannot be promoted."
+    },
+    {
+      "case_id": "H05-weak-provenance",
+      "split": "holdout",
+      "scenario": "weak_provenance",
+      "technology": "Holdout single-origin computational result",
+      "gold_accept": false,
+      "gold_verdict": "HOLD",
+      "risk_flags": ["evidence_less"],
+      "adjudication": "Only non-primary provenance exists, so no qualifying attested evidence supports promotion."
+    },
+    {
+      "case_id": "H06-base-mature",
+      "split": "holdout",
+      "scenario": "base_mature",
+      "technology": "Holdout observation below rank eligibility",
+      "gold_accept": false,
+      "gold_verdict": "HOLD",
+      "risk_flags": [],
+      "adjudication": "Review roles cannot override a mature base-policy decision."
+    },
+    {
+      "case_id": "H07-valid-correction",
+      "split": "holdout",
+      "scenario": "valid_correction",
+      "technology": "Holdout field-deployment claim narrowed to lab prototype",
+      "gold_accept": true,
+      "gold_verdict": "REFRAME",
+      "risk_flags": [],
+      "adjudication": "A cited corrected claim is valid while the original mechanism wording is not."
+    },
+    {
+      "case_id": "H08-provider-failure",
+      "split": "holdout",
+      "scenario": "provider_failure",
+      "technology": "Holdout attractive claim without preserved evidence",
+      "gold_accept": false,
+      "gold_verdict": "HOLD",
+      "risk_flags": [],
+      "adjudication": "A failed critical role makes the round incomplete and must HOLD."
+    }
+  ]
+}

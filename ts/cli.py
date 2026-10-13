@@ -90,6 +90,39 @@ def cmd_run(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_review_eval(args: argparse.Namespace) -> int:
+    from pathlib import Path
+
+    from ts.review.evaluation import write_review_evaluation
+
+    summary = write_review_evaluation(Path(args.dataset), Path(args.out))
+    print(json.dumps({
+        "dataset_digest": summary["dataset_digest"],
+        "result_digest": summary["result_digest"],
+        "replay": summary["metrics"]["replay"],
+        "holdout": summary["metrics"]["holdout"],
+        "out_dir": str(Path(args.out)),
+    }, ensure_ascii=False, indent=1))
+    return 0
+
+
+def cmd_score_replay(args: argparse.Namespace) -> int:
+    from pathlib import Path
+
+    from ts.scoring.replay import write_scoring_replay
+
+    summary = write_scoring_replay(Path(args.records), Path(args.out))
+    print(json.dumps({
+        "records_digest": summary["records_digest"],
+        "result_digest": summary["result_digest"],
+        "n": summary["n"],
+        "changed_labels": summary["changed_labels"],
+        "metrics": summary["metrics"],
+        "out_dir": str(Path(args.out)),
+    }, ensure_ascii=False, indent=1))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="ts", description="Thin Signals harness")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -118,6 +151,22 @@ def main(argv: list[str] | None = None) -> int:
     ev.add_argument("--workers", type=int, default=4)
     ev.add_argument("--limit", type=int)
     ev.set_defaults(fn=cmd_eval)
+
+    review_ev = sub.add_parser(
+        "review-eval",
+        help="deterministic replay/holdout/ablation evaluation for adversarial review",
+    )
+    review_ev.add_argument("--dataset", default="data/review_eval_v1.json")
+    review_ev.add_argument("--out", default="reports/eval/review-2026-10-13")
+    review_ev.set_defaults(fn=cmd_review_eval)
+
+    score_replay = sub.add_parser(
+        "score-replay",
+        help="replay frozen scoring rows across rules-0.1 and rules-0.2",
+    )
+    score_replay.add_argument("--records", default="reports/eval/2026-09-23/records.jsonl")
+    score_replay.add_argument("--out", default="reports/eval/rules-0.2-2026-10-13")
+    score_replay.set_defaults(fn=cmd_score_replay)
 
     run = sub.add_parser("run", help="live query: search, dedup, countersearch, rank")
     run.add_argument("--query", required=True)

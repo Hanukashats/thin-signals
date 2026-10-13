@@ -106,10 +106,14 @@ requirements:
     title: Precision/Recall/F1 report on labelled data
     priority: P0
     owner: AI/evaluation
-    state: planned
+    state: tested
     wave: W2-scorer-eval
     acceptance: reports/eval_<date>.md with accuracy, P, R, F1, confusion matrix, denominator, split description, rules version; >=75% or explicit shortfall
-    evidence: []
+    evidence:
+      - reports/eval/2026-09-23/report.md
+      - reports/eval/2026-09-23/summary.json
+      - reports/eval/rules-0.2-2026-10-13/report.md
+      - ts/tests/test_scoring_replay.py
 
   - id: TZ-03
     title: Live open search beyond seed 100
@@ -624,7 +628,7 @@ requirements:
     title: Evidence-gated researcher critic defender methodology
     priority: P1
     owner: AI/domain
-    state: implemented
+    state: tested
     wave: W11-adversarial-eval
     forks: [adversarial.review]
     acceptance: >
@@ -650,6 +654,10 @@ requirements:
       - ts/tests/test_review_runner.py
       - ts/tests/test_review_persistence.py
       - ts/tests/test_review_integration.py
+      - data/review_eval_v1.json
+      - ts/review/evaluation.py
+      - ts/tests/test_review_evaluation.py
+      - reports/eval/review-2026-10-13/report.md
       - ts/tests/test_scorer.py
       - ts/tests/test_llm.py::test_registry_slow_stream_is_abandoned_at_absolute_deadline
       - ts/tests/test_llm.py::test_completion_slow_stream_is_abandoned_at_absolute_deadline
