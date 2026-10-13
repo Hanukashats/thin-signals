@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -12,6 +13,7 @@ from typing import Protocol
 
 from pydantic import ValidationError
 
+from ts.llm import MANDATORY_PROVIDER_POLICY
 from ts.review.arbiter import arbitrate
 from ts.review.contracts import (
     ArbiterDecision,
@@ -29,9 +31,10 @@ from ts.review.prompts import REVIEW_PROMPT_VERSION, build_messages, template_ha
 
 REVIEW_CONTRACT_VERSION = "review-round-0.1"
 _ROLES: tuple[RoleName, ...] = ("researcher", "critic", "defender", "control_critic")
+_PUBLIC_LABEL = re.compile(r"^[A-Za-z0-9._:/ -]{1,128}$")
 
 
-def _hash(value: object) -> str:
+def review_hash(value: object) -> str:
     encoded = json.dumps(
         value,
         sort_keys=True,
@@ -51,9 +54,19 @@ class RoleBudget:
 
     def __post_init__(self):
         if (
-            self.time_seconds <= 0
+            not isinstance(self.time_seconds, (int, float))
+            or isinstance(self.time_seconds, bool)
+            or not math.isfinite(float(self.time_seconds))
+            or self.time_seconds <= 0
+            or not isinstance(self.max_output_tokens, int)
+            or isinstance(self.max_output_tokens, bool)
             or self.max_output_tokens <= 0
+            or not isinstance(self.max_cost_usd, (int, float))
+            or isinstance(self.max_cost_usd, bool)
+            or not math.isfinite(float(self.max_cost_usd))
             or self.max_cost_usd <= 0
+            or not isinstance(self.evidence_limit, int)
+            or isinstance(self.evidence_limit, bool)
             or self.evidence_limit <= 0
         ):
             raise ValueError("review role budgets must be positive")
@@ -84,6 +97,7 @@ class RoleCallResult:
     usage: dict
     latency_s: float
     cost_usd: float | None
+    provider_policy: dict
 
 
 class RoleGateway(Protocol):
@@ -126,8 +140,14 @@ class OpenRouterRoleGateway:
         )
         usage = dict(response.usage or {})
         cost = usage.get("cost")
+        try:
+            payload = response.json()
+        except (json.JSONDecodeError, TypeError, ValueError):
+            # Preserve accounting and an opaque rejection hash even when the
+            # provider returned malformed JSON. Raw text is never persisted.
+            payload = response.content
         return RoleCallResult(
-            payload=response.json(),
+            payload=payload,
             model_id=response.model_id,
             provider=response.provider,
             usage=usage,
@@ -137,6 +157,7 @@ class OpenRouterRoleGateway:
                 if isinstance(cost, (int, float)) and not isinstance(cost, bool)
                 else None
             ),
+            provider_policy=dict(MANDATORY_PROVIDER_POLICY),
         )
 
 
@@ -152,14 +173,16 @@ class ReviewEventRecord:
     template_hash: str
     model_id: str | None
     provider: str | None
+    provider_policy: dict
     started_at: datetime
     finished_at: datetime
     duration_ms: int
-    prompt_tokens: int
-    completion_tokens: int
-    total_tokens: int
+    prompt_tokens: int | None
+    completion_tokens: int | None
+    total_tokens: int | None
     cost_usd: float | None
     evidence_ids: tuple[str, ...]
+    provenance: tuple[dict, ...]
     budget: RoleBudget
     error_code: str | None
     payload: dict | None
@@ -167,6 +190,8 @@ class ReviewEventRecord:
 
 @dataclass(frozen=True)
 class ReviewRound:
+    run_id: str
+    candidate_hash: str
     decision: ArbiterDecision
     events: tuple[ReviewEventRecord, ...]
     ledger_revision: str
@@ -182,6 +207,10 @@ def _candidate_view(candidate: Mapping) -> dict:
     }
 
 
+def review_candidate_hash(candidate: Mapping) -> str:
+    return review_hash(_candidate_view(candidate))
+
+
 def _typed_payload(value: StrictContract | None) -> dict | None:
     return value.model_dump(mode="json") if value is not None else None
 
@@ -194,10 +223,10 @@ def _blind_pairs(critic: CriticOutput | None, defender: DefenderOutput | None, r
         left = objection.model_dump(mode="json")
         rebuttal = rebuttals.get(objection.objection_id)
         right = rebuttal.model_dump(mode="json") if rebuttal is not None else None
-        if int(_hash([run_id, objection.objection_id])[-1], 16) % 2:
+        if int(review_hash([run_id, objection.objection_id])[-1], 16) % 2:
             left, right = right, left
         pairs.append({
-            "pair_id": _hash([run_id, objection.objection_id])[:16],
+            "pair_id": review_hash([run_id, objection.objection_id])[:16],
             "record_a": left,
             "record_b": right,
         })
@@ -337,9 +366,42 @@ def _validate_references(
     return None
 
 
-def _usage_int(usage: Mapping, key: str) -> int:
+def _usage_int(usage: Mapping, key: str) -> int | None:
     value = usage.get(key)
-    return value if isinstance(value, int) and not isinstance(value, bool) and value >= 0 else 0
+    return value if isinstance(value, int) and not isinstance(value, bool) and value >= 0 else None
+
+
+def _usage_is_valid(usage: object) -> bool:
+    if not isinstance(usage, Mapping):
+        return False
+    values = [usage.get(key) for key in ("prompt_tokens", "completion_tokens", "total_tokens")]
+    if not all(isinstance(value, int) and not isinstance(value, bool) and value >= 0 for value in values):
+        return False
+    prompt_tokens, completion_tokens, total_tokens = values
+    return total_tokens >= prompt_tokens + completion_tokens
+
+
+def _public_label(value: object, limit: int) -> str | None:
+    if (
+        not isinstance(value, str)
+        or len(value) > limit
+        or not _PUBLIC_LABEL.fullmatch(value)
+    ):
+        return None
+    return value
+
+
+def _public_provider_policy(value: object) -> dict:
+    """Retain only the two policy fields that are safe and decision-relevant."""
+    if not isinstance(value, Mapping):
+        return {}
+    public = {}
+    if isinstance(value.get("zdr"), bool):
+        public["zdr"] = value["zdr"]
+    data_collection = value.get("data_collection")
+    if isinstance(data_collection, str) and data_collection in {"allow", "deny"}:
+        public["data_collection"] = data_collection
+    return public
 
 
 def _nonnegative_float(value: object) -> float | None:
@@ -349,8 +411,24 @@ def _nonnegative_float(value: object) -> float | None:
     return converted if math.isfinite(converted) and converted >= 0 else None
 
 
-def _event_id(run_id: str, sequence: int, role: str, input_hash: str, output_hash: str) -> str:
-    return "review-" + _hash([run_id, sequence, role, input_hash, output_hash])[:40]
+def review_event_id(
+    run_id: str,
+    sequence: int,
+    role: str,
+    input_hash: str,
+    output_hash: str,
+) -> str:
+    return "review-" + review_hash([run_id, sequence, role, input_hash, output_hash])[:40]
+
+
+def _provenance(rows: Sequence[EvidenceItem]) -> tuple[dict, ...]:
+    return tuple({
+        "evidence_id": row.evidence_id,
+        "provenance": row.provenance,
+        "snapshot_ref": row.snapshot_ref,
+        "origin_group_id": row.origin_group_id,
+        "url_hash": hashlib.sha256(row.url.encode()).hexdigest(),
+    } for row in rows)
 
 
 def run_review(
@@ -377,14 +455,22 @@ def run_review(
         except (TypeError, ValueError, ValidationError):
             rows = []
             retrieved_error = "evidence_provider_invalid"
+        unique_rows = []
+        role_evidence_ids: set[str] = set()
         for row in rows:
+            if row.evidence_id in role_evidence_ids:
+                retrieved_error = "evidence_provider_invalid"
+                continue
+            role_evidence_ids.add(row.evidence_id)
             prior = evidence_by_id.get(row.evidence_id)
             if prior is not None and prior != row:
                 retrieved_error = "evidence_identity_conflict"
                 continue
             evidence_by_id[row.evidence_id] = row
+            unique_rows.append(row)
+        rows = unique_rows
         input_payload = _input_payload(role, candidate, rows, outputs, budget, run_id)
-        input_hash = _hash(input_payload)
+        input_hash = review_hash(input_payload)
         raw_output: object = None
         parsed: StrictContract | None = None
         result: RoleCallResult | None = None
@@ -412,9 +498,29 @@ def run_review(
 
         elapsed_s = monotonic() - started
         usage = result.usage if result is not None and isinstance(result.usage, Mapping) else {}
+        provider_policy = _public_provider_policy(
+            result.provider_policy if result is not None else None,
+        )
+        model_id = _public_label(result.model_id, 128) if result is not None else None
+        provider = _public_label(result.provider, 64) if result is not None else None
         claimed_latency = _nonnegative_float(result.latency_s) if result is not None else None
-        if result is not None and claimed_latency is None and state == "succeeded":
+        if result is not None and (
+            claimed_latency is None
+            or model_id is None
+            or provider is None
+            or not _usage_is_valid(result.usage)
+        ) and state == "succeeded":
             state, error_code, parsed = "invalid", "provider_metadata_invalid", None
+        if (
+            result is not None
+            and (
+                not isinstance(result.provider_policy, Mapping)
+                or dict(result.provider_policy) != MANDATORY_PROVIDER_POLICY
+                or provider_policy != MANDATORY_PROVIDER_POLICY
+            )
+            and state == "succeeded"
+        ):
+            state, error_code, parsed = "invalid", "provider_policy_invalid", None
         if claimed_latency is not None:
             elapsed_s = max(elapsed_s, claimed_latency)
         completion_tokens = _usage_int(usage, "completion_tokens")
@@ -422,7 +528,8 @@ def run_review(
         if state == "succeeded" and elapsed_s > budget.time_seconds:
             state, error_code, parsed = "timeout", "role_timeout", None
         if state == "succeeded" and (
-            completion_tokens > budget.max_output_tokens
+            completion_tokens is None
+            or completion_tokens > budget.max_output_tokens
             or result is None
             or cost_usd is None
             or cost_usd > budget.max_cost_usd
@@ -438,10 +545,11 @@ def run_review(
         if error_code:
             failures.append((role, error_code))
 
-        output_hash = _hash(raw_output)
+        typed_payload = _typed_payload(parsed)
+        output_hash = review_hash(typed_payload if state == "succeeded" else raw_output)
         finished_at = datetime.now(UTC)
         events.append(ReviewEventRecord(
-            event_id=_event_id(run_id, sequence, role, input_hash, output_hash),
+            event_id=review_event_id(run_id, sequence, role, input_hash, output_hash),
             sequence=sequence,
             role=role,
             state=state,
@@ -449,8 +557,9 @@ def run_review(
             output_hash=output_hash,
             template_version=REVIEW_PROMPT_VERSION,
             template_hash=template_hash(role),
-            model_id=result.model_id if result else None,
-            provider=result.provider if result else None,
+            model_id=model_id,
+            provider=provider,
+            provider_policy=provider_policy,
             started_at=started_at,
             finished_at=finished_at,
             duration_ms=max(0, round(elapsed_s * 1000)),
@@ -459,9 +568,10 @@ def run_review(
             total_tokens=_usage_int(usage, "total_tokens"),
             cost_usd=cost_usd,
             evidence_ids=tuple(row.evidence_id for row in rows),
+            provenance=_provenance(rows),
             budget=budget,
             error_code=error_code,
-            payload=_typed_payload(parsed),
+            payload=typed_payload,
         ))
 
     semantic_ledger = {
@@ -473,7 +583,7 @@ def run_review(
         "outputs": {key: _typed_payload(outputs.get(key)) for key in _ROLES},
         "failures": failures,
     }
-    ledger_revision = _hash(semantic_ledger)
+    ledger_revision = review_hash(semantic_ledger)
     decision = arbitrate(
         candidate=candidate,
         researcher=(
@@ -493,21 +603,22 @@ def run_review(
         failures=failures,
         ledger_revision=ledger_revision,
     )
-    arbiter_input_hash = _hash(semantic_ledger)
+    arbiter_input_hash = review_hash(semantic_ledger)
     arbiter_output = decision.model_dump(mode="json")
-    arbiter_output_hash = _hash(arbiter_output)
+    arbiter_output_hash = review_hash(arbiter_output)
     now = datetime.now(UTC)
     events.append(ReviewEventRecord(
-        event_id=_event_id(run_id, 5, "arbiter", arbiter_input_hash, arbiter_output_hash),
+        event_id=review_event_id(run_id, 5, "arbiter", arbiter_input_hash, arbiter_output_hash),
         sequence=5,
         role="arbiter",
         state="succeeded",
         input_hash=arbiter_input_hash,
         output_hash=arbiter_output_hash,
         template_version=decision.rule_version,
-        template_hash=_hash(decision.rule_version),
+        template_hash=review_hash(decision.rule_version),
         model_id=None,
         provider=None,
+        provider_policy={},
         started_at=now,
         finished_at=now,
         duration_ms=0,
@@ -516,8 +627,15 @@ def run_review(
         total_tokens=0,
         cost_usd=0.0,
         evidence_ids=tuple(sorted(evidence_by_id)),
+        provenance=_provenance([evidence_by_id[key] for key in sorted(evidence_by_id)]),
         budget=budget,
         error_code=None,
         payload=arbiter_output,
     ))
-    return ReviewRound(decision=decision, events=tuple(events), ledger_revision=ledger_revision)
+    return ReviewRound(
+        run_id=run_id,
+        candidate_hash=review_candidate_hash(candidate),
+        decision=decision,
+        events=tuple(events),
+        ledger_revision=ledger_revision,
+    )

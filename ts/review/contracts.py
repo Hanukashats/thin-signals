@@ -1,14 +1,21 @@
 """Closed typed contracts for one bounded adversarial-review round."""
 from __future__ import annotations
 
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 RoleName = Literal["researcher", "critic", "defender", "control_critic"]
 ClaimStatus = Literal["verified", "supported", "unknown"]
-EvidenceId = str
+ReasonCode = Annotated[str, Field(pattern=r"^[A-Z][A-Z0-9_:-]{0,31}$")]
+ChangedField = Literal["statement", "scope", "status", "evidence_ids", "critical", "reason_codes"]
 _ID = r"^[a-z0-9][a-z0-9._:-]{0,63}$"
+EvidenceId = Annotated[str, Field(pattern=_ID)]
+ArbiterCode = Annotated[str, Field(pattern=r"^[A-Za-z][A-Za-z0-9_:-]{0,63}$")]
+OriginGroupId = Annotated[
+    str,
+    Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9._:/() -]{0,127}$"),
+]
 
 
 class StrictContract(BaseModel):
@@ -20,8 +27,8 @@ class EvidenceItem(StrictContract):
     quote: str = Field(min_length=1, max_length=1500)
     url: str = Field(min_length=1, max_length=2048)
     provenance: Literal["preserved_primary", "preserved_non_primary", "snippet_only"]
-    snapshot_ref: str | None
-    origin_group_id: str | None
+    snapshot_ref: Annotated[str, Field(pattern=r"^sha256:[0-9a-f]{64}$")] | None
+    origin_group_id: OriginGroupId | None
 
 
 class ReviewClaim(StrictContract):
@@ -30,7 +37,7 @@ class ReviewClaim(StrictContract):
     critical: bool
     evidence_ids: list[EvidenceId] = Field(min_length=1, max_length=12)
     status: ClaimStatus
-    reason_codes: list[str] = Field(max_length=12)
+    reason_codes: list[ReasonCode] = Field(max_length=12)
 
 
 class ResearcherOutput(StrictContract):
@@ -72,7 +79,7 @@ class Rebuttal(StrictContract):
     action: Literal["ADD_EVIDENCE", "CORRECT", "NARROW", "CONCEDE"]
     evidence_ids: list[EvidenceId] = Field(max_length=12)
     replacement_claim: ReviewClaim | None
-    changed_fields: list[str] = Field(max_length=12)
+    changed_fields: list[ChangedField] = Field(max_length=6)
     statement: str = Field(min_length=1, max_length=1000)
 
     @model_validator(mode="after")
@@ -120,8 +127,8 @@ class ArbiterDecision(StrictContract):
     verdict: Literal["PROMOTE", "REFRAME", "HOLD", "REJECT"]
     rule_version: str = Field(pattern=_ID)
     ledger_revision: str = Field(pattern=r"^[0-9a-f]{64}$")
-    blocking_ids: list[str] = Field(max_length=24)
-    reason_codes: list[str] = Field(min_length=1, max_length=24)
+    blocking_ids: list[EvidenceId] = Field(max_length=24)
+    reason_codes: list[ArbiterCode] = Field(min_length=1, max_length=24)
 
 
 _ROLE_MODELS = {

@@ -1,6 +1,12 @@
 """One bounded role round and deterministic fail-closed arbitration."""
 from __future__ import annotations
 
+import json
+from dataclasses import replace
+
+import pytest
+
+from ts.llm import MANDATORY_PROVIDER_POLICY
 from ts.review.contracts import EvidenceItem
 from ts.review.runner import (
     OpenRouterRoleGateway,
@@ -121,6 +127,7 @@ class Gateway:
             },
             latency_s=self.role_latency.get(role, 0.01),
             cost_usd=self.role_costs.get(role, 0.001),
+            provider_policy=dict(MANDATORY_PROVIDER_POLICY),
         )
 
 
@@ -307,10 +314,82 @@ def test_openrouter_gateway_passes_schema_token_and_transport_caps():
     )
 
     assert result.cost_usd == 0.002
+    assert result.provider_policy == MANDATORY_PROVIDER_POLICY
     assert seen["max_tokens"] == 321
     assert seen["timeout_seconds"] == 3.5
     assert seen["json_schema"] == {"type": "object"}
     assert seen["require_parameters"] is True
+
+
+def test_openrouter_gateway_retains_accounting_when_json_is_malformed():
+    class Response:
+        model_id = "model-primary"
+        provider = "FixtureZDR"
+        latency_s = 0.02
+        content = '{"claims":'
+
+        def __init__(self):
+            self.usage = {
+                "prompt_tokens": 7,
+                "completion_tokens": 3,
+                "total_tokens": 10,
+                "cost": 0.004,
+            }
+
+        def json(self):
+            return json.loads(self.content)
+
+    class Client:
+        def chat(self, *_args, **_options):
+            return Response()
+
+    result = OpenRouterRoleGateway(Client()).call(
+        "researcher", [], {"type": "object"}, RoleBudget(3.5, 321, 0.02, 3),
+        "model-primary",
+    )
+
+    assert result.payload == Response.content
+    assert result.model_id == "model-primary"
+    assert result.provider == "FixtureZDR"
+    assert result.usage["total_tokens"] == 10
+    assert result.cost_usd == 0.004
+
+
+def test_malformed_role_json_holds_but_retains_route_usage_cost_and_unique_hashes():
+    class Response:
+        provider = "FixtureZDR"
+        latency_s = 0.02
+
+        def __init__(self, model, index):
+            self.model_id = model
+            self.content = f'{{"malformed":{index}'
+            self.usage = {
+                "prompt_tokens": 7,
+                "completion_tokens": 3,
+                "total_tokens": 10,
+                "cost": 0.004,
+            }
+
+        def json(self):
+            return json.loads(self.content)
+
+    class Client:
+        calls = 0
+
+        def chat(self, _messages, model, **_options):
+            self.calls += 1
+            return Response(model, self.calls)
+
+    result = review(OpenRouterRoleGateway(Client()))
+    model_events = result.events[:4]
+
+    assert result.decision.verdict == "HOLD"
+    assert all(event.state == "invalid" for event in model_events)
+    assert all(event.error_code == "invalid_role_output" for event in model_events)
+    assert all(event.provider == "FixtureZDR" for event in model_events)
+    assert all(event.total_tokens == 10 and event.cost_usd == 0.004 for event in model_events)
+    assert all(event.payload is None for event in model_events)
+    assert len({event.output_hash for event in model_events}) == 4
 
 
 def test_control_cannot_resolve_with_evidence_outside_its_typed_pair():
@@ -342,3 +421,80 @@ def test_non_finite_provider_accounting_fails_closed_without_crashing():
     assert result.decision.verdict == "HOLD"
     assert result.events[1].state == "budget_exceeded"
     assert result.events[1].cost_usd is None
+
+
+def test_weakened_provider_policy_fails_closed():
+    class WeakenedPolicyGateway(Gateway):
+        def call(self, role, messages, schema, budget, model):
+            result = super().call(role, messages, schema, budget, model)
+            if role == "critic":
+                return replace(
+                    result,
+                    provider_policy={"zdr": False, "data_collection": "allow"},
+                )
+            return result
+
+    result = review(WeakenedPolicyGateway())
+
+    assert result.decision.verdict == "HOLD"
+    assert result.events[1].state == "invalid"
+    assert result.events[1].error_code == "provider_policy_invalid"
+
+
+def test_provider_policy_extra_fields_fail_closed_and_are_not_retained():
+    class ExtraPolicyGateway(Gateway):
+        def call(self, role, messages, schema, budget, model):
+            return replace(
+                super().call(role, messages, schema, budget, model),
+                provider_policy={**MANDATORY_PROVIDER_POLICY, "api_key": "must-not-persist"},
+            )
+
+    result = review(ExtraPolicyGateway())
+
+    assert result.decision.verdict == "HOLD"
+    assert all(event.error_code == "provider_policy_invalid" for event in result.events[:4])
+    assert all("api_key" not in event.provider_policy for event in result.events)
+
+
+def test_malformed_provider_policy_value_holds_without_crashing_or_retaining_it():
+    class MalformedPolicyGateway(Gateway):
+        def call(self, role, messages, schema, budget, model):
+            return replace(
+                super().call(role, messages, schema, budget, model),
+                provider_policy={"zdr": True, "data_collection": {"secret": "drop-me"}},
+            )
+
+    result = review(MalformedPolicyGateway())
+
+    assert result.decision.verdict == "HOLD"
+    assert all(event.error_code == "provider_policy_invalid" for event in result.events[:4])
+    assert all(event.provider_policy == {"zdr": True} for event in result.events[:4])
+
+
+def test_integer_one_cannot_impersonate_boolean_zdr_attestation():
+    class IntegerZdrGateway(Gateway):
+        def call(self, role, messages, schema, budget, model):
+            return replace(
+                super().call(role, messages, schema, budget, model),
+                provider_policy={"zdr": 1, "data_collection": "deny"},
+            )
+
+    result = review(IntegerZdrGateway())
+
+    assert result.decision.verdict == "HOLD"
+    assert all(event.error_code == "provider_policy_invalid" for event in result.events[:4])
+    assert all(event.provider_policy == {"data_collection": "deny"} for event in result.events[:4])
+
+
+@pytest.mark.parametrize(
+    "budget",
+    [
+        (float("nan"), 100, 0.01, 3),
+        (5.0, True, 0.01, 3),
+        (5.0, 100, float("inf"), 3),
+        (5.0, 100, 0.01, False),
+    ],
+)
+def test_role_budget_rejects_non_finite_or_boolean_limits(budget):
+    with pytest.raises(ValueError):
+        RoleBudget(*budget)

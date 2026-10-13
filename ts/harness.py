@@ -245,6 +245,7 @@ class RunReport:
     unread: list[dict] = field(default_factory=list)
     near_miss: list[dict] = field(default_factory=list)
     potential: list[dict] = field(default_factory=list)
+    review: object | None = None
 
 
 @dataclass

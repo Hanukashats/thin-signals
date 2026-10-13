@@ -162,6 +162,7 @@ class Decision(Base):
     unresolved: Mapped[list] = mapped_column(JSONB, default=list)
     next_action: Mapped[str | None] = mapped_column(Text)
     review_at: Mapped[date | None] = mapped_column(Date)
+    review_event_id: Mapped[str | None] = mapped_column(ForeignKey("review_events.id"), index=True)
 
 
 class Run(Base):
@@ -179,3 +180,39 @@ class Run(Base):
     stats: Mapped[dict] = mapped_column(JSONB, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class ReviewEvent(Base):
+    """Append-only structured role event; database triggers reject mutation."""
+
+    __tablename__ = "review_events"
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    run_id: Mapped[str] = mapped_column(ForeignKey("runs.id"), index=True)
+    candidate_id: Mapped[str] = mapped_column(ForeignKey("candidates.id"), index=True)
+    round_no: Mapped[int] = mapped_column("round", Integer)
+    sequence: Mapped[int] = mapped_column(Integer)
+    role: Mapped[str] = mapped_column(String(32), index=True)
+    state: Mapped[str] = mapped_column(String(32))
+    input_hash: Mapped[str] = mapped_column(String(64))
+    output_hash: Mapped[str] = mapped_column(String(64))
+    template_version: Mapped[str] = mapped_column(String(64))
+    template_hash: Mapped[str] = mapped_column(String(64))
+    model_id: Mapped[str | None] = mapped_column(String(128))
+    provider: Mapped[str | None] = mapped_column(String(64))
+    provider_policy: Mapped[dict] = mapped_column(JSONB)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    finished_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    duration_ms: Mapped[int] = mapped_column(Integer)
+    prompt_tokens: Mapped[int | None] = mapped_column(Integer)
+    completion_tokens: Mapped[int | None] = mapped_column(Integer)
+    total_tokens: Mapped[int | None] = mapped_column(Integer)
+    cost_usd: Mapped[float | None] = mapped_column(Float)
+    evidence_ids: Mapped[list] = mapped_column(JSONB)
+    provenance: Mapped[list] = mapped_column(JSONB)
+    budget: Mapped[dict] = mapped_column(JSONB)
+    error_code: Mapped[str | None] = mapped_column(String(64))
+    payload: Mapped[dict | None] = mapped_column(JSONB)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    __table_args__ = (
+        UniqueConstraint("run_id", "round", "sequence", name="uq_review_event_run_round_sequence"),
+    )

@@ -4,14 +4,278 @@ Run status (`succeeded`) is not the signal label (TS-INV-03).
 """
 from __future__ import annotations
 
+import math
+import re
 from datetime import UTC, datetime
 
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
-from ts.db.models import Candidate, Decision, Run
+from ts.db.models import Candidate, Decision, ReviewEvent, Run
 from ts.harness import RunReport
+from ts.llm import MANDATORY_PROVIDER_POLICY
 from ts.nearest import build_nearest
+from ts.review.contracts import ArbiterDecision, parse_role_output
+from ts.review.runner import (
+    ReviewRound,
+    review_candidate_hash,
+    review_event_id,
+    review_hash,
+)
+
+_HASH = re.compile(r"^[0-9a-f]{64}$")
+_SAFE_LABEL = re.compile(r"^[A-Za-z0-9._:/ -]{1,128}$")
+_EVIDENCE_ID = re.compile(r"^[a-z0-9][a-z0-9._:-]{0,63}$")
+_ORIGIN_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/() -]{0,127}$")
+_SNAPSHOT_REF = re.compile(r"^sha256:[0-9a-f]{64}$")
+_EXPECTED_ROLES = ("researcher", "critic", "defender", "control_critic", "arbiter")
+_ROLE_STATES = frozenset({"succeeded", "timeout", "invalid", "failed", "budget_exceeded"})
+_ERROR_CODES = frozenset({
+    "defender_no_new_evidence",
+    "evidence_identity_conflict",
+    "evidence_provider_invalid",
+    "invalid_citation",
+    "invalid_role_output",
+    "provider_metadata_invalid",
+    "provider_policy_invalid",
+    "role_budget_exceeded",
+    "role_call_failed",
+    "role_timeout",
+})
+
+
+def _safe_label(value: object, limit: int) -> str | None:
+    if not isinstance(value, str) or len(value) > limit or not _SAFE_LABEL.fullmatch(value):
+        return None
+    return value
+
+
+def _valid_hash(value: object) -> bool:
+    return isinstance(value, str) and bool(_HASH.fullmatch(value)) and value != "0" * 64
+
+
+def _claim_payload(value: dict) -> dict:
+    return {
+        key: value[key]
+        for key in ("claim_id", "critical", "evidence_ids", "status", "reason_codes")
+    }
+
+
+def _structural_review_payload(role: str, value: dict | None) -> dict | None:
+    """Whitelist only fields that drive typed state transitions."""
+    if value is None:
+        return None
+    if role == "researcher":
+        return {"claims": [_claim_payload(row) for row in value["claims"]]}
+    if role == "critic":
+        fields = (
+            "objection_id", "claim_id", "failure_mode", "counterevidence_ids",
+            "severity", "status",
+        )
+        return {"objections": [
+            {key: row[key] for key in fields} for row in value["objections"]
+        ]}
+    if role == "defender":
+        fields = (
+            "rebuttal_id", "objection_id", "action", "evidence_ids", "changed_fields",
+        )
+        rebuttals = []
+        for row in value["rebuttals"]:
+            stored = {key: row[key] for key in fields}
+            stored["replacement_claim"] = (
+                _claim_payload(row["replacement_claim"])
+                if row["replacement_claim"] is not None else None
+            )
+            rebuttals.append(stored)
+        return {"rebuttals": rebuttals}
+    if role == "control_critic":
+        fields = (
+            "finding_id", "objection_id", "rebuttal_id", "evidence_ids",
+            "evidence_valid", "origin_independent", "residual_status",
+        )
+        return {"findings": [
+            {key: row[key] for key in fields} for row in value["findings"]
+        ]}
+    fields = ("verdict", "rule_version", "ledger_revision", "blocking_ids", "reason_codes")
+    return {key: value[key] for key in fields}
+
+
+def _validated_payload(event) -> dict | None:
+    if event.role == "arbiter":
+        if event.state != "succeeded" or event.payload is None:
+            raise ValueError("arbiter event must contain a successful typed decision")
+        return ArbiterDecision.model_validate(event.payload).model_dump(mode="json")
+    if event.state != "succeeded":
+        if event.payload is not None:
+            raise ValueError("failed review events cannot retain raw model payloads")
+        return None
+    if event.payload is None:
+        raise ValueError("successful review event is missing its typed payload")
+    return parse_role_output(event.role, event.payload).model_dump(mode="json")
+
+
+def _validated_provenance(event) -> list[dict]:
+    if not isinstance(event.provenance, (list, tuple)):
+        raise TypeError("review provenance must be a bounded sequence")
+    if len(event.provenance) != len(event.evidence_ids):
+        raise ValueError("review provenance does not match evidence IDs")
+    stored = []
+    for expected_id, row in zip(event.evidence_ids, event.provenance, strict=True):
+        if not isinstance(row, dict) or set(row) != {
+            "evidence_id", "provenance", "snapshot_ref", "origin_group_id", "url_hash",
+        }:
+            raise ValueError("review provenance contains unexpected fields")
+        snapshot_ref = row["snapshot_ref"]
+        origin_group_id = row["origin_group_id"]
+        if (
+            row["evidence_id"] != expected_id
+            or not isinstance(expected_id, str)
+            or not _EVIDENCE_ID.fullmatch(expected_id)
+            or row["provenance"] not in {
+                "preserved_primary", "preserved_non_primary", "snippet_only",
+            }
+            or (snapshot_ref is not None and not _SNAPSHOT_REF.fullmatch(snapshot_ref))
+            or (origin_group_id is not None and not _ORIGIN_ID.fullmatch(origin_group_id))
+            or not _valid_hash(row["url_hash"])
+        ):
+            raise ValueError("review provenance is invalid")
+        stored.append({
+            "evidence_id": expected_id,
+            "provenance": row["provenance"],
+            "snapshot_ref": snapshot_ref,
+            "origin_group_id": origin_group_id,
+            "url_hash": row["url_hash"],
+        })
+    return stored
+
+
+def _validated_policy(event) -> dict:
+    policy = event.provider_policy
+    if not isinstance(policy, dict) or not set(policy) <= {"zdr", "data_collection"}:
+        raise ValueError("review provider policy contains unexpected fields")
+    if "zdr" in policy and not isinstance(policy["zdr"], bool):
+        raise ValueError("review provider ZDR policy is invalid")
+    if "data_collection" in policy:
+        data_collection = policy["data_collection"]
+        if not isinstance(data_collection, str) or data_collection not in {"allow", "deny"}:
+            raise ValueError("review provider data policy is invalid")
+    if event.role == "arbiter" and policy:
+        raise ValueError("deterministic arbiter cannot have a provider policy")
+    if event.role != "arbiter" and event.state == "succeeded" and policy != MANDATORY_PROVIDER_POLICY:
+        raise ValueError("successful review event lacks the mandatory provider policy")
+    return dict(policy)
+
+
+def _persist_review(session: Session, report: RunReport, candidate_id: str) -> str | None:
+    review = report.review
+    if review is None:
+        return None
+    if not isinstance(review, ReviewRound):
+        raise TypeError("report review must be a validated ReviewRound")
+    events = list(review.events)
+    if (
+        review.run_id != report.id
+        or review.candidate_hash != review_candidate_hash(report.card)
+        or len(events) != 5
+        or [event.sequence for event in events] != [1, 2, 3, 4, 5]
+        or tuple(event.role for event in events) != _EXPECTED_ROLES
+        or events[-1].payload != review.decision.model_dump(mode="json")
+        or review.decision.ledger_revision != review.ledger_revision
+        or events[-1].input_hash != review.ledger_revision
+    ):
+        raise ValueError("review round is incomplete or inconsistent")
+    for event in events:
+        if (
+            event.state not in _ROLE_STATES
+            or not _valid_hash(event.input_hash)
+            or not _valid_hash(event.output_hash)
+            or not _valid_hash(event.template_hash)
+            or event.event_id != review_event_id(
+                report.id, event.sequence, event.role, event.input_hash, event.output_hash,
+            )
+        ):
+            raise ValueError("review event hashes are invalid")
+        if (event.state == "succeeded") != (event.error_code is None):
+            raise ValueError("review event state and error code disagree")
+        if event.error_code is not None and event.error_code not in _ERROR_CODES:
+            raise ValueError("review event error code is invalid")
+        if _safe_label(event.template_version, 64) != event.template_version:
+            raise ValueError("review template version is invalid")
+        if event.model_id is not None and _safe_label(event.model_id, 128) != event.model_id:
+            raise ValueError("review model ID is invalid")
+        if event.provider is not None and _safe_label(event.provider, 64) != event.provider:
+            raise ValueError("review provider is invalid")
+        if event.state == "succeeded" and event.role != "arbiter" and (
+            event.model_id is None or event.provider is None
+        ):
+            raise ValueError("successful model event lacks route attribution")
+        if len(event.evidence_ids) != len(set(event.evidence_ids)):
+            raise ValueError("review evidence IDs must be unique")
+        if (
+            not isinstance(event.duration_ms, int)
+            or isinstance(event.duration_ms, bool)
+            or event.duration_ms < 0
+            or event.finished_at < event.started_at
+            or any(
+                value is not None
+                and (not isinstance(value, int) or isinstance(value, bool) or value < 0)
+                for value in (event.prompt_tokens, event.completion_tokens, event.total_tokens)
+            )
+            or (
+                event.state == "succeeded"
+                and (
+                    event.prompt_tokens is None
+                    or event.completion_tokens is None
+                    or event.total_tokens is None
+                    or event.total_tokens < event.prompt_tokens + event.completion_tokens
+                )
+            )
+            or (
+                event.cost_usd is not None
+                and (
+                    not isinstance(event.cost_usd, (int, float))
+                    or isinstance(event.cost_usd, bool)
+                    or not math.isfinite(float(event.cost_usd))
+                    or event.cost_usd < 0
+                )
+            )
+        ):
+            raise ValueError("review event accounting is invalid")
+        payload = _validated_payload(event)
+        if event.state == "succeeded" and event.output_hash != review_hash(payload):
+            raise ValueError("review event output hash does not match its typed payload")
+        provenance = _validated_provenance(event)
+        provider_policy = _validated_policy(event)
+        session.add(ReviewEvent(
+            id=event.event_id,
+            run_id=report.id,
+            candidate_id=candidate_id,
+            round_no=1,
+            sequence=event.sequence,
+            role=event.role,
+            state=event.state,
+            input_hash=event.input_hash,
+            output_hash=event.output_hash,
+            template_version=event.template_version,
+            template_hash=event.template_hash,
+            model_id=_safe_label(event.model_id, 128),
+            provider=_safe_label(event.provider, 64),
+            provider_policy=provider_policy,
+            started_at=event.started_at,
+            finished_at=event.finished_at,
+            duration_ms=event.duration_ms,
+            prompt_tokens=event.prompt_tokens,
+            completion_tokens=event.completion_tokens,
+            total_tokens=event.total_tokens,
+            cost_usd=event.cost_usd,
+            evidence_ids=list(event.evidence_ids),
+            provenance=provenance,
+            budget=event.budget.public(),
+            error_code=event.error_code,
+            payload=_structural_review_payload(event.role, payload),
+        ))
+    session.flush()
+    return events[-1].event_id
 
 
 def save_report(session: Session, report: RunReport) -> str:
@@ -53,6 +317,7 @@ def save_report(session: Session, report: RunReport) -> str:
         finished_at=datetime.now(tz=UTC),
     ))
     session.flush()
+    review_event_id = _persist_review(session, report, candidate_id)
     session.add(Decision(
         id=f"dec-{report.id}",
         candidate_id=candidate_id,
@@ -64,6 +329,7 @@ def save_report(session: Session, report: RunReport) -> str:
         confidence=report.card["confidence"],
         reason_codes=report.card["reason_codes"],
         predictors=report.card["predictors"],
+        review_event_id=review_event_id,
     ))
     session.commit()
     return report.id
