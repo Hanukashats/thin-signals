@@ -580,6 +580,8 @@ requirements:
       product invokes local GPT Researcher through its verified synchronous API
       under a global deadline; source URLs and artifacts are captured as advisory
       provenance; OpenAlex adds prior-art, retraction and independence evidence;
+      an explicit OpenAlex OA location is preferred over a DOI for snapshot
+      acquisition but passes the same SSRF, final-URL trust and attestation gates;
       no advisory text directly changes gates or scores
     evidence:
       - docs/adr/ADR-012-RELIABILITY-FIRST-RESEARCH-LOOP.md
@@ -592,6 +594,7 @@ requirements:
       - ts/tests/test_research_adapter.py
       - ts/tests/test_harness.py::test_openalex_emits_bounded_role_specific_work_evidence
       - ts/tests/test_harness.py::test_openalex_correction_and_retraction_flags_are_not_overinterpreted
+      - ts/tests/test_harness.py::test_openalex_open_access_location_is_used_for_snapshot_instead_of_doi
       - ts/tests/test_fanout.py::test_openalex_work_mirrors_are_one_document_and_one_origin_group
 
   - id: RS-06

@@ -18,6 +18,11 @@ Revision: **7.8** · Date: **2026-10-12** · Living contract
   -> Streamlit RU UI / отчёт
 ```
 
+`retrieval-0.9` использует allowlisted OpenAlex `open_access.url` как цель
+snapshot вместо DOI, когда upstream явно ставит `is_oa=true`. URL всё равно
+заново проходит public-address/redirect защиту, а уровень trust берётся как
+минимум исходного и фактически полученного источника.
+
 Один PostgreSQL 16 (+pgvector) — единственный источник истины фактов, runs и решений. Граф связей — таблицы `nodes`/`edges` в PG.
 
 ## 2. Компоненты

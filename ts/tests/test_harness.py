@@ -379,6 +379,43 @@ def test_redirected_snapshot_uses_final_url_for_conservative_source_trust(tmp_pa
     assert source["trust"] == "indicator"
 
 
+def test_openalex_open_access_location_is_used_for_snapshot_instead_of_doi(tmp_path: Path):
+    open_url = "https://arxiv.org/abs/2601.23456"
+    hit = Hit(
+        "openalex",
+        "https://doi.org/10.1000/paywalled",
+        "Open version of a primary experiment",
+        "search snippet",
+        "paper",
+        doi="10.1000/paywalled",
+        scholarly_evidence={
+            "version": "openalex-work-0.1",
+            "provider": "openalex",
+            "roles": ["access"],
+            "open_access": {"is_oa": True, "status": "green", "url": open_url},
+        },
+    )
+    calls = []
+
+    def fetch(url):
+        calls.append(url)
+        return Hit(
+            "refetch", url, "Open primary copy", "body", "paper",
+            fetched_body=b"Open attested primary experiment text.",
+            fetched_text="Open attested primary experiment text.",
+            fetched_content_type="text/plain",
+        )
+
+    report = Harness(snapshot_dir=tmp_path, corpus_version="openalex-oa-snapshot").run(
+        "open primary experiment", [Scripted("openalex", [hit])], limit=1, fetch_body=fetch,
+    )
+
+    assert calls == [open_url]
+    assert report.sources[0]["url"] == "https://doi.org/10.1000/paywalled"
+    assert report.sources[0]["evidence"]["fetched_url"] == open_url
+    assert report.sources[0]["evidence"]["status"] == "preserved"
+
+
 def test_explicit_origin_ids_are_normalized_and_bounded_at_the_hit_boundary():
     hit = Hit(
         "openalex",

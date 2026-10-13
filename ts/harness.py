@@ -31,7 +31,7 @@ from ts.sources.trust import classify, load_trust
 STEPS = ("search", "snapshot", "dedup", "countersearch", "score", "rank")
 TOP_N = 15
 RUN_CONTRACT_VERSION = "run-status-0.2"
-RETRIEVAL_CONTRACT_VERSION = "retrieval-0.8"
+RETRIEVAL_CONTRACT_VERSION = "retrieval-0.9"
 SNAPSHOT_EVIDENCE_VERSION = "snapshot-evidence-0.3"
 CHAIN_CONNECTORS = frozenset({"searxng", "openalex", "crossref", "sec"})
 _DEEP = frozenset({"arxiv", "openalex", "crossref", "europepmc", "doaj", "hal"})
@@ -50,6 +50,36 @@ def transport_timeout(max_seconds: float = 40.0) -> float:
     if deadline_at is None:
         return max_seconds
     return max(0.001, min(max_seconds, deadline_at - monotonic()))
+
+
+def _snapshot_target_url(hit: Hit) -> str:
+    """Prefer an explicit OpenAlex open-access copy over a DOI paywall."""
+    scholarly = hit.scholarly_evidence
+    if not isinstance(scholarly, dict):
+        return hit.url
+    if (
+        scholarly.get("version") != "openalex-work-0.1"
+        or scholarly.get("provider") != "openalex"
+    ):
+        return hit.url
+    access = scholarly.get("open_access")
+    if not isinstance(access, dict) or access.get("is_oa") is not True:
+        return hit.url
+    target = access.get("url")
+    if not isinstance(target, str) or not 0 < len(target) <= 2048:
+        return hit.url
+    try:
+        parsed = urlsplit(target)
+    except ValueError:
+        return hit.url
+    if (
+        parsed.scheme not in {"http", "https"}
+        or not parsed.hostname
+        or parsed.username
+        or parsed.password
+    ):
+        return hit.url
+    return target
 
 
 def retrieval_fingerprint(
@@ -617,8 +647,9 @@ class Harness:
                         deadline_exceeded = True
                         break
                     attempted += 1
+                    target_url = _snapshot_target_url(hit)
 
-                    def invoke(url=hit.url):
+                    def invoke(url=target_url):
                         token = _ACTIVE_SEARCH_DEADLINE.set(deadline_at)
                         try:
                             return fetch_body(url)

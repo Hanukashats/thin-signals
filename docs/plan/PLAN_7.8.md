@@ -71,6 +71,9 @@ open.
   discarded, and only re-fetched preserved sources admitted to evidence.
 - Enrich OpenAlex identities, chronology, affiliations, OA locations and
   correction/retraction metadata.
+- Prefer an explicit OpenAlex OA location for the snapshot fetch instead of a
+  paywalled DOI, while retaining the same SSRF, final-URL trust and attestation
+  boundary (`retrieval-0.9`).
 
 Acceptance: deterministic ordering under concurrency; timeout/cancel tests;
 snippet-only claims cannot be verified; joint DOI/Work/URL aliases make duplicate
