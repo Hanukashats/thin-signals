@@ -29,7 +29,7 @@ from ts.review.contracts import (
 )
 from ts.review.prompts import REVIEW_PROMPT_VERSION, build_messages, template_hash
 
-REVIEW_CONTRACT_VERSION = "review-round-0.1"
+REVIEW_CONTRACT_VERSION = "review-round-0.2"
 _ROLES: tuple[RoleName, ...] = ("researcher", "critic", "defender", "control_critic")
 _MODEL_ID = re.compile(
     r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}"
@@ -373,7 +373,8 @@ def _reference_bindings(
 
 
 def _set_array_item_enum(schema: dict, definition: str, field: str, values: list[str]) -> None:
-    schema["$defs"][definition]["properties"][field]["items"]["enum"] = values
+    if values:
+        schema["$defs"][definition]["properties"][field]["items"]["enum"] = values
 
 
 def _constrained_role_schema(role: RoleName, allowed: Mapping[str, list[str]]) -> dict:
@@ -387,20 +388,23 @@ def _constrained_role_schema(role: RoleName, allowed: Mapping[str, list[str]]) -
         _set_array_item_enum(schema, "ReviewClaim", "evidence_ids", evidence_ids)
     elif role == "critic":
         objection = schema["$defs"]["Objection"]["properties"]
-        objection["claim_id"]["enum"] = claim_ids
+        if claim_ids:
+            objection["claim_id"]["enum"] = claim_ids
         _set_array_item_enum(schema, "Objection", "counterevidence_ids", evidence_ids)
         if not claim_ids:
             schema["properties"]["objections"]["maxItems"] = 0
     elif role == "defender":
         rebuttal = schema["$defs"]["Rebuttal"]["properties"]
-        rebuttal["objection_id"]["enum"] = objection_ids
+        if objection_ids:
+            rebuttal["objection_id"]["enum"] = objection_ids
         _set_array_item_enum(schema, "Rebuttal", "evidence_ids", evidence_ids)
         _set_array_item_enum(schema, "ReviewClaim", "evidence_ids", evidence_ids)
         if not objection_ids:
             schema["properties"]["rebuttals"]["maxItems"] = 0
     else:
         finding = schema["$defs"]["ControlFinding"]["properties"]
-        finding["objection_id"]["enum"] = objection_ids
+        if objection_ids:
+            finding["objection_id"]["enum"] = objection_ids
         _set_array_item_enum(
             schema,
             "ControlFinding",

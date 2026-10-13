@@ -242,6 +242,27 @@ def test_each_role_schema_and_payload_allow_only_references_from_its_input():
     }]
 
 
+def test_empty_dependent_role_uses_zero_items_without_invalid_empty_enum():
+    scripted = outputs()
+    scripted["critic"] = {"objections": []}
+    scripted["defender"] = {"rebuttals": []}
+    scripted["control_critic"] = {"findings": []}
+    gateway = Gateway(scripted)
+
+    review(gateway)
+
+    calls = {call[0]: call for call in gateway.calls}
+    defender = calls["defender"][2]
+    control = calls["control_critic"][2]
+    assert defender["properties"]["rebuttals"]["maxItems"] == 0
+    assert "enum" not in defender["$defs"]["Rebuttal"]["properties"]["objection_id"]
+    assert control["properties"]["findings"]["maxItems"] == 0
+    assert "enum" not in control["$defs"]["ControlFinding"]["properties"]["objection_id"]
+    assert "enum" not in control["$defs"]["ControlFinding"]["properties"][
+        "evidence_ids"
+    ]["items"]
+
+
 def test_gateway_attestation_cannot_override_requested_model_equality():
     class WrongApprovedModelGateway(Gateway):
         def call(self, role, messages, schema, budget, model):

@@ -27,7 +27,7 @@
         },
         "proposed": {
           "verdict": "PROMOTE",
-          "ledger_revision": "0f3bf2ba333682a073dc12fa3650631ba54ee438fb51aefacdfa5d76928da2cc",
+          "ledger_revision": "33dd30785b46661ae14024ea4d3f3f1c13aafd2a64b04b998f11f601a3713110",
           "stable": true,
           "role_errors": [],
           "latency_ms": 40,
@@ -39,7 +39,7 @@
         },
         "no_defender": {
           "verdict": "HOLD",
-          "ledger_revision": "1ec457d8e8ca13d3d3757f3501ca00e8d23f87244db1d4b7f49f5fb09b7e3978",
+          "ledger_revision": "4249afef97caf0562346e8a2ccb5c3185a57a4dd53d8beeac58dbb79d05ca8f5",
           "stable": true,
           "role_errors": [
             [
@@ -56,7 +56,7 @@
         },
         "no_control": {
           "verdict": "HOLD",
-          "ledger_revision": "2d8586146f5890200a2f0d8e1c0f035ff5b26f49dd22f69f1711e376abfea572",
+          "ledger_revision": "fe218cce073a9c4b4d735ab93ff8a034bf0ef10271fedb7930dfb905480cb151",
           "stable": true,
           "role_errors": [
             [
@@ -95,7 +95,7 @@
         },
         "proposed": {
           "verdict": "PROMOTE",
-          "ledger_revision": "c04638b9d58325ccd9c18f80675f7810e5dba1ab5a9709a1a4df286a0fe4ccb4",
+          "ledger_revision": "529cb60d6a84eeb6cced6ee680fb4461de607b2e9be3f8fc71ddc1fbde5f8d11",
           "stable": true,
           "role_errors": [],
           "latency_ms": 40,
@@ -107,7 +107,7 @@
         },
         "no_defender": {
           "verdict": "HOLD",
-          "ledger_revision": "c991d6cd32268386e31ed34986a4a557a5a97c7cedb14894799b0548815e1a0d",
+          "ledger_revision": "78952c2454349db2a029f760b9c14309e636e2831df51f385d3fd844de8d4ef4",
           "stable": true,
           "role_errors": [
             [
@@ -128,7 +128,7 @@
         },
         "no_control": {
           "verdict": "HOLD",
-          "ledger_revision": "ea5d54b9280c9a00a2436adde8ca118dcf41410aacdfd60e62e08ccfd583dc74",
+          "ledger_revision": "bef42b5a9600d5341923e214641803498feec9aa1d1cda91ef4c34ec4eeb7efe",
           "stable": true,
           "role_errors": [
             [
@@ -167,7 +167,7 @@
         },
         "proposed": {
           "verdict": "REJECT",
-          "ledger_revision": "0b763973ffb4ea82f6b16a5ab0a9f2432530b5f15ff50270a6e17361fb125a33",
+          "ledger_revision": "44820c784f2eccfe8fb02e84c15157763a3e01452a555aa6a941b93b360cc18b",
           "stable": true,
           "role_errors": [],
           "latency_ms": 40,
@@ -179,7 +179,7 @@
         },
         "no_defender": {
           "verdict": "HOLD",
-          "ledger_revision": "cc8efaf97258452744765f8b3419a0829b836e34d249c303789735ce105fce5f",
+          "ledger_revision": "27efb0089a0af5f21ecaf8bbbcbc6f3b6e38e11c544548aef8b53d327ce174e3",
           "stable": true,
           "role_errors": [
             [
@@ -200,7 +200,7 @@
         },
         "no_control": {
           "verdict": "HOLD",
-          "ledger_revision": "ec7c4a64d11505ceb12f5b834e1f8a03a70bf2745b7c35f82c228acecf8706ed",
+          "ledger_revision": "a105100d83ae61a6efd3734dd56271ae6e63c2ffbbe4c4bd501a5b71e55cbffa",
           "stable": true,
           "role_errors": [
             [
@@ -241,7 +241,7 @@
         },
         "proposed": {
           "verdict": "HOLD",
-          "ledger_revision": "d305f0bd9e6214e660357ae98272e201c4944c2898f854f675a1134eeef20dac",
+          "ledger_revision": "586bc1aaba8eca031471f0815b5aa020b2bcf14b8ab60c0aca40645fbf757dbd",
           "stable": true,
           "role_errors": [],
           "latency_ms": 40,
@@ -253,7 +253,7 @@
         },
         "no_defender": {
           "verdict": "HOLD",
-          "ledger_revision": "c6b2373ccfef7c5e7585f73a4fd2f594e93798c1ea2b8df6387c316badf9e52a",
+          "ledger_revision": "4524c3bc89cdd39fef4d35c16e8c3b30a73ea756fd86330c40be6f988fb6865f",
           "stable": true,
           "role_errors": [
             [
@@ -274,7 +274,7 @@
         },
         "no_control": {
           "verdict": "HOLD",
-          "ledger_revision": "865e25d7a7f95bb8255c4980ce179fc7c770b9c480bfb960e94c2ec5b000dc13",
+          "ledger_revision": "5d4b11e0ea80cc5f8d71e85321416530be7c1f91f59fd1a3751d0624b97151b3",
           "stable": true,
           "role_errors": [
             [
@@ -313,7 +313,7 @@
         },
         "proposed": {
           "verdict": "HOLD",
-          "ledger_revision": "ebb07402dd39917377276ce5f6d7bdc76129bc10dce627f3cc319cf6d81c8e27",
+          "ledger_revision": "33c367f53974a10112d6c728e5f88a8648dcba07f7e39a8903172b1477ee9237",
           "stable": true,
           "role_errors": [],
           "latency_ms": 40,
@@ -325,7 +325,7 @@
         },
         "no_defender": {
           "verdict": "HOLD",
-          "ledger_revision": "1c5819e77cef20478b47dad878c1c8d12997c8251d289aea432859c9d7d67241",
+          "ledger_revision": "2d9ee18248d8fc23bfc1f36691a26e35a2fb345db9003fd7bc9b130950e60ce1",
           "stable": true,
           "role_errors": [
             [
@@ -342,7 +342,7 @@
         },
         "no_control": {
           "verdict": "HOLD",
-          "ledger_revision": "eea0c3b7df2e407691df89f850b0dde7ea963211616fd40f6d332f901725344c",
+          "ledger_revision": "0ce62dbaa1952e3cae23683b63c7e1e98d592e16759a0db5592caa4ff6d46993",
           "stable": true,
           "role_errors": [
             [
@@ -381,7 +381,7 @@
         },
         "proposed": {
           "verdict": "HOLD",
-          "ledger_revision": "6cb45b980956eb526dbb9575cc6e30767d4559a2b7e775d7b111d1c34b59b0d5",
+          "ledger_revision": "245186b050561868d163d8516b53d7b6eb9256d2968f7c6af48dfaf7e41cd83f",
           "stable": true,
           "role_errors": [],
           "latency_ms": 40,
@@ -393,7 +393,7 @@
         },
         "no_defender": {
           "verdict": "HOLD",
-          "ledger_revision": "6670e1d6767caf267d75a9d34b3f8fd85f858d07acd984055d223b9d7ebfd369",
+          "ledger_revision": "32ff88445868c46fd1bd7fda9da9889a92a6f89c6f19a451146050e42835fb7d",
           "stable": true,
           "role_errors": [
             [
@@ -410,7 +410,7 @@
         },
         "no_control": {
           "verdict": "HOLD",
-          "ledger_revision": "67d370f27041f5098ecc4fce216ec6f050e811bdaa56613ac8fce60d41bb39a4",
+          "ledger_revision": "a287e314e04123894ba5019aef4eebe301087d45b259227426422780b9aebe95",
           "stable": true,
           "role_errors": [
             [
@@ -449,7 +449,7 @@
         },
         "proposed": {
           "verdict": "REFRAME",
-          "ledger_revision": "a4bf618ba4acf79c98e65aaffd75c7fadc97c904ae648d64c2f7df02b00bc73d",
+          "ledger_revision": "ee0b4a548bad330ade799db229766d445a04b3fc671a6691de7eba26dbc8657a",
           "stable": true,
           "role_errors": [],
           "latency_ms": 40,
@@ -461,7 +461,7 @@
         },
         "no_defender": {
           "verdict": "HOLD",
-          "ledger_revision": "7196da279180e33840b5774b819791e82b3f91f624a647a62bde1c9ff8213f67",
+          "ledger_revision": "d8b34c3b8de1c684cbe273bd72d36d324f1ad5d1642abe58a8063596162f8bb7",
           "stable": true,
           "role_errors": [
             [
@@ -482,7 +482,7 @@
         },
         "no_control": {
           "verdict": "HOLD",
-          "ledger_revision": "fb37198bd5635d4258ced5f3b90a3cc1bacc6ff83b553b636365b2d356948723",
+          "ledger_revision": "6dd79f16663c09783618bfc2448cc24496936f5fbd96d76a7dfceef2a8d80f48",
           "stable": true,
           "role_errors": [
             [
@@ -523,7 +523,7 @@
         },
         "proposed": {
           "verdict": "HOLD",
-          "ledger_revision": "177f5ec898c9bb69129f3659bbc5bf786cffaa911b4b3801e35c6ac6a43a137a",
+          "ledger_revision": "c63dea2b1a6f3cf43c7c09b79a500560a586dbb3fb0522225d3cdd3149e5b757",
           "stable": true,
           "role_errors": [
             [
@@ -540,7 +540,7 @@
         },
         "no_defender": {
           "verdict": "HOLD",
-          "ledger_revision": "6457cc29b317a19d9299e7e61db2141e7580ac4a71542f2f30e66e42e5fc7916",
+          "ledger_revision": "c9ca6ec13159dfd7c9e8cc86485d4e369d3fd61f5c82327234a17dfe8921ed2e",
           "stable": true,
           "role_errors": [
             [
@@ -561,7 +561,7 @@
         },
         "no_control": {
           "verdict": "HOLD",
-          "ledger_revision": "f1aef86ca4addfa40df59f20fa9ff8641d3c767870791f8900036793a58358b7",
+          "ledger_revision": "b950e81ce3621dc4a578dca96afadb96d191ded4801a0469b16f6fbdf00ceb05",
           "stable": true,
           "role_errors": [
             [
@@ -604,7 +604,7 @@
         },
         "proposed": {
           "verdict": "PROMOTE",
-          "ledger_revision": "919d48c57d026cb7e256906ac88b8d055286f33992bcbb0c427624d682c381c1",
+          "ledger_revision": "64ea3d38319b5c019a5697f6f3c6d34120969269cb47eb80a0b06914405265ef",
           "stable": true,
           "role_errors": [],
           "latency_ms": 40,
@@ -616,7 +616,7 @@
         },
         "no_defender": {
           "verdict": "HOLD",
-          "ledger_revision": "1209222948150a253727c7c2726a1c252f04a7fb581c140de182b43ef4651926",
+          "ledger_revision": "36e1dd4d0b9779b079faa94b2f69017f9cba5a4b849a2a6a0f93224415dbd547",
           "stable": true,
           "role_errors": [
             [
@@ -633,7 +633,7 @@
         },
         "no_control": {
           "verdict": "HOLD",
-          "ledger_revision": "fbe36aa19f4f7f7af7afdb2ad1a82ddb602354cfa142a248f904396d5e2ed57d",
+          "ledger_revision": "9c0c0a8abead063bec8824748cda1a34c8d0955fde44851d7eaa925f232d7bc8",
           "stable": true,
           "role_errors": [
             [
@@ -672,7 +672,7 @@
         },
         "proposed": {
           "verdict": "PROMOTE",
-          "ledger_revision": "032dcade6d3739f63a9e20f3fc4c9d5f5f1265d0475117d8717d11e04c379194",
+          "ledger_revision": "f48deaf5c43c083bae4fd4de54d0e0b0c35c71217b4eae35bc5e045d916836db",
           "stable": true,
           "role_errors": [],
           "latency_ms": 40,
@@ -684,7 +684,7 @@
         },
         "no_defender": {
           "verdict": "HOLD",
-          "ledger_revision": "ec403cec08fe7b30ae1009970490c70a85201ef46ee8694b2defe08481952c30",
+          "ledger_revision": "031e6ef06a0e648194a9a1d1bde99f5528ca7d6b67f1e2c9032062bd2f10a842",
           "stable": true,
           "role_errors": [
             [
@@ -705,7 +705,7 @@
         },
         "no_control": {
           "verdict": "HOLD",
-          "ledger_revision": "9261f82b533fc7c905b06bd96e257b2e993f0a2f887878e5cb098abf697c2c7e",
+          "ledger_revision": "61b95dc5995a7e73702bfe76db5c715b1130e7867bf51d713a9e6aa35d6cc5dc",
           "stable": true,
           "role_errors": [
             [
@@ -744,7 +744,7 @@
         },
         "proposed": {
           "verdict": "REJECT",
-          "ledger_revision": "e3e1f3725ac3b47bb2573f51b54b27b71c870b4e786073e396c37f586920d2a4",
+          "ledger_revision": "b53556a4c8ad148dd871e636e126da2b9297f1af422e62eea2924709ba07c99e",
           "stable": true,
           "role_errors": [],
           "latency_ms": 40,
@@ -756,7 +756,7 @@
         },
         "no_defender": {
           "verdict": "HOLD",
-          "ledger_revision": "afa765c7f5ce82fa542c2f9f95d28b20c39c02d94df7bad7b7cd44c84de71bcc",
+          "ledger_revision": "f1ca8c670f077944160b420d1dc5a77b9509041cfeff1f1e5b5bda68df2df5ee",
           "stable": true,
           "role_errors": [
             [
@@ -777,7 +777,7 @@
         },
         "no_control": {
           "verdict": "HOLD",
-          "ledger_revision": "b3e96572785213766ab18e8212a653664236bdacb01836e9e496dcf52b827771",
+          "ledger_revision": "decb94ca2fac490fcb672fcd4c2ec90c6a8cb5f889c1d03ef07e2bc3720385e6",
           "stable": true,
           "role_errors": [
             [
@@ -818,7 +818,7 @@
         },
         "proposed": {
           "verdict": "HOLD",
-          "ledger_revision": "65945fdedb2e36f5a6e4ba2e7d87122ff7874d1313cfb6e864138ea81a2b3200",
+          "ledger_revision": "2c72e9eb2dd211d49e73ae6eee465f7c510cbc14b81a672db678bdf1218ba274",
           "stable": true,
           "role_errors": [],
           "latency_ms": 40,
@@ -830,7 +830,7 @@
         },
         "no_defender": {
           "verdict": "HOLD",
-          "ledger_revision": "636d30f721fceafe1d837328dd92981a7470493c22ea313437fcfffced90efce",
+          "ledger_revision": "fd811220f9f4a1febeb747ab90cf908cf8f9b3038156104d3dff7d5099d8f582",
           "stable": true,
           "role_errors": [
             [
@@ -847,7 +847,7 @@
         },
         "no_control": {
           "verdict": "HOLD",
-          "ledger_revision": "02710905f76d1712eb834fec08835fc6840718b4b443b95156079cffe7bd0f26",
+          "ledger_revision": "6a90bb029caa765217d3359c5db0a788eabb774016819264ddbb36232b57e9df",
           "stable": true,
           "role_errors": [
             [
@@ -888,7 +888,7 @@
         },
         "proposed": {
           "verdict": "HOLD",
-          "ledger_revision": "cae9c9bef0aa97aeb7f1c066ab8d07d9e71882772636f6f10a722f6ed00e64f9",
+          "ledger_revision": "8a34444b9a6b53086833e0fa064506aeed194a002db5eeb2f7c7b09e43e17289",
           "stable": true,
           "role_errors": [],
           "latency_ms": 40,
@@ -900,7 +900,7 @@
         },
         "no_defender": {
           "verdict": "HOLD",
-          "ledger_revision": "e6659cc0214717ac3acac0a79058ff985044a04f6893c7c1d614265a894171dd",
+          "ledger_revision": "c37542c898b0e707b603c197d1a8581f22730dd35935eeb5273f37e5a0999968",
           "stable": true,
           "role_errors": [
             [
@@ -917,7 +917,7 @@
         },
         "no_control": {
           "verdict": "HOLD",
-          "ledger_revision": "ab93c5817f5a43926e3c00d70e457ec36f79a86a4e192badb81b11071bb05312",
+          "ledger_revision": "5a897ce80c957fe1e1a9178a591b4cd693f51861a92fd2b7b1f850460002ff3f",
           "stable": true,
           "role_errors": [
             [
@@ -956,7 +956,7 @@
         },
         "proposed": {
           "verdict": "HOLD",
-          "ledger_revision": "861d6da1ac92c3a3e16c3d14852fe2d394f397c8acb87fd5735f1fb7c7ea9ad9",
+          "ledger_revision": "d8410486498b46b9b26cd99b50f37a237f8838ca845505cf351ee0cd2b6c77c8",
           "stable": true,
           "role_errors": [],
           "latency_ms": 40,
@@ -968,7 +968,7 @@
         },
         "no_defender": {
           "verdict": "HOLD",
-          "ledger_revision": "40aadb33805648f1ff2361cafc20b7006f7f429ccb880c622b5068d32ebd7452",
+          "ledger_revision": "986bd12610a6563f8d00c59f319608f4e821eb4717dc72f411ac81ea262e4d1c",
           "stable": true,
           "role_errors": [
             [
@@ -985,7 +985,7 @@
         },
         "no_control": {
           "verdict": "HOLD",
-          "ledger_revision": "415244293ea86caf9eb1e62b56de4b38258aeedae3a278a9ea6d1e6fe4274ce8",
+          "ledger_revision": "28f9298709078f2448eb2ab5097de78049f9d0fdda6764bde7b94c625b9942dc",
           "stable": true,
           "role_errors": [
             [
@@ -1024,7 +1024,7 @@
         },
         "proposed": {
           "verdict": "REFRAME",
-          "ledger_revision": "466537d7aabd5653296273e042ff0b9315a96674313213d91e494add09a77590",
+          "ledger_revision": "2b23b13856d7f72567105e1cc008a30fa7f9dd47d9ab9f2142ce298a89bc0d2f",
           "stable": true,
           "role_errors": [],
           "latency_ms": 40,
@@ -1036,7 +1036,7 @@
         },
         "no_defender": {
           "verdict": "HOLD",
-          "ledger_revision": "69dbfabf5825352a01efd8b59443fa9875849b7a9f6563ea25893dfe1a9e3c42",
+          "ledger_revision": "2eeb7fe2a1eef107ee5dbd2616020d92cd04407609281d0bb172c78db725f462",
           "stable": true,
           "role_errors": [
             [
@@ -1057,7 +1057,7 @@
         },
         "no_control": {
           "verdict": "HOLD",
-          "ledger_revision": "9658dad2366a5b8c013ca550b569a6ee080258b8d114143ee57b83e8b49ef9f4",
+          "ledger_revision": "c29df877854f2f6f61425fe837225a6e6d1b49e1b0d840c8d6cc002a501995f9",
           "stable": true,
           "role_errors": [
             [
@@ -1096,7 +1096,7 @@
         },
         "proposed": {
           "verdict": "HOLD",
-          "ledger_revision": "1bea7e52349896c29cf300704e7878185c3964985b458020c8564a24cdbe10b5",
+          "ledger_revision": "cc6b9fb445690af83a02786892cc7c63661d06673a781165b11d8e265ebb0c71",
           "stable": true,
           "role_errors": [
             [
@@ -1113,7 +1113,7 @@
         },
         "no_defender": {
           "verdict": "HOLD",
-          "ledger_revision": "ed8285e1703ecda7f71b39ef2b011d7c73c848bd9cd4d505905e2c12737b542b",
+          "ledger_revision": "5fabadce2374ef9898b7b5efa010e31c285d4a9fd92e14b81c2e655de45c31fd",
           "stable": true,
           "role_errors": [
             [
@@ -1134,7 +1134,7 @@
         },
         "no_control": {
           "verdict": "HOLD",
-          "ledger_revision": "8930bc01a8a2b7383c2de8e050110587df8d8908a7a266cbcb5aeaf4c7c6b369",
+          "ledger_revision": "7bced12e89f7819bd34833022e3897acd578e96358c61816fd8bb803001a6864",
           "stable": true,
           "role_errors": [
             [
@@ -1433,5 +1433,5 @@
     "They do not measure live model retrieval or reasoning quality.",
     "Live quality and candidate count require a separately bounded production canary."
   ],
-  "result_digest": "a629f9089fb785441e334425eee74bfcf72b73d26e8fe9ce69cd3626d231d37a"
+  "result_digest": "66de648ca54cfd9b33e405a720f7dec00051d409f0c18f42f45a8cd19cc1e0eb"
 }
