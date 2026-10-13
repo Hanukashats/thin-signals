@@ -6,6 +6,19 @@
 
 Статус: production работает на Home-PVE VM232 и доступен на `https://tsignal.aispaces.ru`; reliability 7.8 и default-off adversarial review проходят отдельные eval/release gates. Текущие ограничения и доказательства — в `STATUS.md`.
 
+## Быстрый запуск полного сервиса в Docker
+
+```bash
+git clone https://git.sourcecraft.dev/shats123/thin-signals.git && cd thin-signals
+scripts/docker-quickstart.sh up
+```
+
+Скрипт локально запросит OpenRouter-ключ и пароль администратора, соберёт
+зафиксированные образы и дождётся готовности PostgreSQL, миграций, API, UI,
+SearXNG и GPT Researcher. Секреты не попадают ни в Git, ни в образы; все порты
+по умолчанию слушают только `127.0.0.1`. Полная инструкция, обновление и откат:
+[`docs/ops/DOCKER_QUICKSTART.md`](docs/ops/DOCKER_QUICKSTART.md).
+
 ## Быстрый старт (разработка)
 
 ```bash
@@ -30,7 +43,8 @@ cp .env.example .env
 | `data/` | P01–P18, предикторы D01–D06, разметка 100 строк (seed, не ground truth) |
 | `sources/` | ТЗ и XLSX организаторов |
 | `docs/lineage/`, `lineage_copies/` | История планов v4–v7.1, донорский handoff 21.09 |
-| `compose.yaml` | PostgreSQL 16 + pgvector; профили `laptop` / `vm101` |
+| `compose.quickstart.yaml`, `Dockerfile` | Полный воспроизводимый Docker-комплект без секретов |
+| `compose.yaml` | Минимальный PostgreSQL/SearXNG-контур для разработки |
 | `deploy/systemd/`, `docs/ops/SYSTEMD.md` | Версионированные loopback-only API/UI units для VM101 |
 
 ## Волны

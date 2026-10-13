@@ -23,6 +23,7 @@ build/
 Thumbs.db
 *.log
 .sourcecraft/logs/
+.cache/
 
 .secrets/
 .goal-active

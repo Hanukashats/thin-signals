@@ -1,0 +1,272 @@
+name: thin-signals
+
+x-app-environment: &app-environment
+  TS_ROOT: /app
+  TS_DISABLE_DOTENV: "1"
+  TS_DATABASE_URL: postgresql+psycopg://ts@pg:5432/thin_signals
+  TS_PG_PASSWORD_FILE: /run/private/pg_password
+  TS_OPENROUTER_KEY_FILE: /run/private/openrouter_key
+  TS_SNAPSHOT_DIR: /var/lib/thin-signals/snapshots
+  TS_CACHE_ROOT: /var/cache/thin-signals
+  TS_SEARXNG_URL: http://searxng:8080
+  TS_GPT_RESEARCHER_URL: http://gpt-researcher:8000
+
+x-app-common: &app-common
+  image: thin-signals/app:${TS_IMAGE_TAG:-local}
+  build:
+    context: .
+    dockerfile: Dockerfile
+  env_file:
+    - ${TS_RUNTIME_ENV_FILE:-./deploy/docker/runtime.env.example}
+  environment: *app-environment
+  cap_drop: [ALL]
+  security_opt:
+    - no-new-privileges:true
+  read_only: true
+  init: true
+  tmpfs:
+    - /tmp:size=268435456,mode=1777
+
+services:
+  bootstrap:
+    image: thin-signals/app:${TS_IMAGE_TAG:-local}
+    pull_policy: never
+    user: "0:0"
+    network_mode: none
+    restart: "no"
+    read_only: true
+    cap_drop: [ALL]
+    cap_add: [CHOWN, DAC_OVERRIDE, FOWNER]
+    security_opt:
+      - no-new-privileges:true
+    secrets:
+      - pg_password
+      - openrouter_key
+      - accounts
+    volumes:
+      - runtime_secrets:/run/private
+      - researcher_data:/bootstrap/data
+      - researcher_docs:/bootstrap/docs
+      - researcher_outputs:/bootstrap/outputs
+      - researcher_logs:/bootstrap/logs
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        umask 077
+        install -m 0400 -o 10001 -g 10001 /run/secrets/pg_password /run/private/pg_password
+        install -m 0400 -o 10001 -g 10001 /run/secrets/openrouter_key /run/private/openrouter_key
+        install -m 0400 -o 10001 -g 10001 /run/secrets/accounts /run/private/accounts.yaml
+        install -m 0400 -o 1000 -g 1000 /run/secrets/openrouter_key /run/private/gptr_openrouter_key
+        chown 1000:1000 /bootstrap/data /bootstrap/docs /bootstrap/outputs /bootstrap/logs
+
+  pg:
+    image: pgvector/pgvector:pg16@sha256:7b822b0aac60967beb1ea5e576b8602c94c300a157d187f385ae3e0da199b90a
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: thin_signals
+      POSTGRES_USER: ts
+      POSTGRES_PASSWORD_FILE: /run/secrets/pg_password
+    secrets: [pg_password]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "${TS_BIND_HOST:-127.0.0.1}:${TS_PG_PORT:-55432}:5432"
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U ts -d thin_signals"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 10s
+    logging: &bounded-logging
+      driver: json-file
+      options:
+        max-size: 20m
+        max-file: "3"
+
+  migrate:
+    <<: *app-common
+    restart: "no"
+    command: [alembic, upgrade, head]
+    volumes:
+      - runtime_secrets:/run/private:ro
+    depends_on:
+      bootstrap:
+        condition: service_completed_successfully
+      pg:
+        condition: service_healthy
+
+  api:
+    <<: *app-common
+    restart: unless-stopped
+    command: [uvicorn, ts.api:app, --host, 0.0.0.0, --port, "8095"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      searxng:
+        condition: service_healthy
+      gpt-researcher:
+        condition: service_healthy
+    volumes:
+      - runtime_secrets:/run/private:ro
+      - snapshots:/var/lib/thin-signals/snapshots
+      - cache:/var/cache/thin-signals
+    ports:
+      - "${TS_BIND_HOST:-127.0.0.1}:${TS_API_PORT:-8095}:8095"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8095/ready', timeout=5).read(1)"
+      interval: 10s
+      timeout: 6s
+      retries: 18
+      start_period: 15s
+    logging: *bounded-logging
+
+  ui:
+    <<: *app-common
+    restart: unless-stopped
+    command:
+      - streamlit
+      - run
+      - ui/app.py
+      - --server.address=0.0.0.0
+      - --server.port=8501
+      - --server.headless=true
+    environment:
+      <<: *app-environment
+      TS_API_URL: http://api:8095
+      TS_ACCOUNTS: /run/private/accounts.yaml
+      TS_DRAFT: /var/lib/thin-signals-ui/draft.yaml
+      HOME: /var/lib/thin-signals-ui
+    depends_on:
+      api:
+        condition: service_healthy
+    volumes:
+      - runtime_secrets:/run/private:ro
+      - ui_state:/var/lib/thin-signals-ui
+    ports:
+      - "${TS_BIND_HOST:-127.0.0.1}:${TS_UI_PORT:-8501}:8501"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=5).read(1)"
+      interval: 10s
+      timeout: 6s
+      retries: 18
+      start_period: 20s
+    logging: *bounded-logging
+
+  searxng:
+    image: searxng/searxng:2026.10.11-ad46ebd7d@sha256:00ad29bb7d72d896ac3b3ff8b252d9ad9939da3e014828934363c61dba9b7e09
+    restart: unless-stopped
+    env_file:
+      - ${TS_SECRETS_DIR:-./.secrets}/searxng.env
+    environment:
+      SEARXNG_BASE_URL: http://searxng:8080/
+      FORCE_OWNERSHIP: "false"
+    volumes:
+      - ./deploy/research/searxng:/etc/searxng:ro
+      - searx_cache:/var/cache/searxng
+    ports:
+      - "${TS_BIND_HOST:-127.0.0.1}:${TS_SEARXNG_PORT:-28088}:8080"
+    cap_drop: [ALL]
+    cap_add: [CHOWN, SETGID, SETUID, DAC_OVERRIDE]
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, http://127.0.0.1:8080/]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    logging: *bounded-logging
+
+  gpt-researcher:
+    image: thin-signals/gpt-researcher:3.7.0-0957c301
+    pull_policy: never
+    restart: unless-stopped
+    depends_on:
+      bootstrap:
+        condition: service_completed_successfully
+      searxng:
+        condition: service_healthy
+    environment:
+      RETRIEVER: searx
+      SEARX_URL: http://searxng:8080
+      FAST_LLM: openrouter:qwen/qwen3.6-35b-a3b
+      SMART_LLM: openrouter:qwen/qwen3.6-35b-a3b
+      STRATEGIC_LLM: openrouter:qwen/qwen3.6-35b-a3b
+      OPENROUTER_LIMIT_RPS: "1"
+      LLM_KWARGS: '{"extra_body":{"provider":{"zdr":true,"data_collection":"deny"}}}'
+      CONTEXT_FILTER: keyword
+      MAX_SEARCH_RESULTS_PER_QUERY: "5"
+      MAX_ITERATIONS: "2"
+      MAX_SUBTOPICS: "2"
+      MAX_SCRAPER_WORKERS: "6"
+      FAST_TOKEN_LIMIT: "4000"
+      SMART_TOKEN_LIMIT: "6000"
+      STRATEGIC_TOKEN_LIMIT: "4000"
+      TOTAL_WORDS: "900"
+      LANGUAGE: russian
+      REPORT_SOURCE: web
+      SCRAPER: bs
+      CURATE_SOURCES: "false"
+      IMAGE_GENERATION_ENABLED: "false"
+      CORS_ALLOW_ORIGINS: http://127.0.0.1:28000,http://localhost:28000
+      REPORT_STORE_PATH: /usr/src/app/data/reports.json
+      LOGGING_LEVEL: INFO
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        export OPENROUTER_API_KEY="$$(cat /run/private/gptr_openrouter_key)"
+        exec uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1
+    ports:
+      - "${TS_BIND_HOST:-127.0.0.1}:${TS_GPTR_PORT:-28000}:8000"
+    volumes:
+      - runtime_secrets:/run/private:ro
+      - researcher_data:/usr/src/app/data
+      - researcher_docs:/usr/src/app/my-docs
+      - researcher_outputs:/usr/src/app/outputs
+      - researcher_logs:/usr/src/app/logs
+    tmpfs:
+      - /tmp:size=536870912,mode=1777
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/', timeout=5).read(1)"
+      interval: 20s
+      timeout: 8s
+      retries: 12
+      start_period: 45s
+    logging: *bounded-logging
+
+secrets:
+  pg_password:
+    file: ${TS_SECRETS_DIR:-./.secrets}/pg_password
+  openrouter_key:
+    file: ${TS_SECRETS_DIR:-./.secrets}/openrouter_key
+  accounts:
+    file: ${TS_SECRETS_DIR:-./.secrets}/accounts.yaml
+
+volumes:
+  runtime_secrets:
+  pgdata:
+  snapshots:
+  cache:
+  ui_state:
+  searx_cache:
+  researcher_data:
+  researcher_docs:
+  researcher_outputs:
+  researcher_logs:

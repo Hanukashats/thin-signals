@@ -46,3 +46,55 @@ def test_searxng_pins_are_one_audited_immutable_build():
     assert laptop["services"]["searxng"]["image"] == expected
     assert production["services"]["searxng"]["image"] == expected
     assert f'SEARX_IMAGE="{expected}"' in installer
+
+
+def test_quickstart_compose_is_complete_private_and_secret_file_only():
+    compose = yaml.safe_load((ROOT / "compose.quickstart.yaml").read_text(encoding="utf-8"))
+
+    assert set(compose["services"]) == {
+        "bootstrap", "pg", "migrate", "api", "ui", "searxng", "gpt-researcher",
+    }
+    assert compose["services"]["pg"]["image"].startswith(
+        "pgvector/pgvector:pg16@sha256:"
+    )
+    assert compose["services"]["searxng"]["image"].startswith(
+        "searxng/searxng:2026.10.11-ad46ebd7d@sha256:"
+    )
+    assert compose["services"]["gpt-researcher"]["image"] == (
+        "thin-signals/gpt-researcher:3.7.0-0957c301"
+    )
+    assert compose["services"]["migrate"]["command"] == ["alembic", "upgrade", "head"]
+    assert compose["services"]["api"]["depends_on"]["migrate"]["condition"] == (
+        "service_completed_successfully"
+    )
+    assert compose["services"]["migrate"]["depends_on"]["bootstrap"]["condition"] == (
+        "service_completed_successfully"
+    )
+    for service in ("pg", "api", "ui", "searxng", "gpt-researcher"):
+        for published in compose["services"][service].get("ports", []):
+            assert "127.0.0.1" in str(published) or "TS_BIND_HOST" in str(published)
+    rendered = (ROOT / "compose.quickstart.yaml").read_text(encoding="utf-8")
+    assert "POSTGRES_PASSWORD=" not in rendered
+    assert 'OPENROUTER_API_KEY="$$(cat /run/private/gptr_openrouter_key)"' in rendered
+    assert "sk-or-" not in rendered
+    assert "/run/secrets/pg_password" in rendered
+    assert "/run/secrets/openrouter_key" in rendered
+    assert "/run/private/openrouter_key" in rendered
+
+
+def test_quickstart_builder_pins_upstream_and_never_deletes_volumes():
+    script = (ROOT / "scripts/docker-quickstart.sh").read_text(encoding="utf-8")
+    dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
+
+    assert "0957c301ed06c2a5857b834358c7227c739041d4" in script
+    assert 'GPTR_TAG="v3.7.0"' in script
+    assert '"refs/tags/$GPTR_TAG:refs/tags/$GPTR_TAG"' in script
+    assert "down -v" not in script
+    assert "python:3.14.4-slim-bookworm@sha256:" in dockerfile
+    assert "libgnutls30=3.7.9-2+deb12u7" in dockerfile
+    assert "libssl3=3.0.22-1~deb12u1" in dockerfile
+    assert "perl-base=5.36.0-7+deb12u4" in dockerfile
+    assert "USER 10001:10001" in dockerfile
+    assert (ROOT / "deploy/docker/requirements.lock").is_file()
+    assert (ROOT / "deploy/docker/runtime.env.example").is_file()
+    assert (ROOT / "docs/ops/DOCKER_QUICKSTART.md").is_file()
