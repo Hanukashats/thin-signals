@@ -174,6 +174,66 @@ def test_replacement_coverage_excludes_superseded_claim_evidence(monkeypatch):
     assert proposed["evidence_covered"] is False
 
 
+@pytest.mark.parametrize("action", ["NARROW", "CORRECT"])
+@pytest.mark.parametrize("critic_reverse", [False, True])
+@pytest.mark.parametrize("defender_reverse", [False, True])
+def test_mixed_replacement_and_add_has_order_independent_fail_closed_metrics(
+    monkeypatch, action, critic_reverse, defender_reverse,
+):
+    from ts.review import evaluation
+
+    case = next(
+        row for row in load_review_dataset(DATASET)["cases"]
+        if row["scenario"] == "valid_narrowing"
+    )
+    candidate, evidence, outputs = evaluation._fixture(case)
+    evidence.append(evaluation._evidence("evidence-4", "ror:origin-d", "4"))
+    replacement = outputs["defender"]["rebuttals"][0]
+    replacement["action"] = action
+    replacement["evidence_ids"] = ["evidence-3"]
+    replacement["replacement_claim"]["evidence_ids"] = ["evidence-3"]
+    outputs["control_critic"]["findings"][0]["evidence_ids"] = ["evidence-3"]
+    second_objection = deepcopy(outputs["critic"]["objections"][0])
+    second_objection["objection_id"] = "objection-2"
+    outputs["critic"]["objections"].append(second_objection)
+    outputs["defender"]["rebuttals"].append({
+        "rebuttal_id": "rebuttal-2",
+        "objection_id": "objection-2",
+        "action": "ADD_EVIDENCE",
+        "evidence_ids": ["evidence-4"],
+        "replacement_claim": None,
+        "changed_fields": [],
+        "statement": "A new independent origin is added.",
+    })
+    second_finding = deepcopy(outputs["control_critic"]["findings"][0])
+    second_finding.update({
+        "finding_id": "finding-2",
+        "objection_id": "objection-2",
+        "rebuttal_id": "rebuttal-2",
+        "evidence_ids": ["evidence-4"],
+    })
+    outputs["control_critic"]["findings"].append(second_finding)
+    if critic_reverse:
+        outputs["critic"]["objections"].reverse()
+    if defender_reverse:
+        outputs["defender"]["rebuttals"].reverse()
+    monkeypatch.setattr(
+        evaluation,
+        "_fixture",
+        lambda _case: (deepcopy(candidate), deepcopy(evidence), deepcopy(outputs)),
+    )
+
+    proposed = evaluate_case(case)["proposed"]
+
+    assert proposed["verdict"] == "HOLD"
+    assert proposed["role_errors"] == [["defender", "invalid_role_output"], [
+        "control_critic", "invalid_citation",
+    ]]
+    assert proposed["primary_origin_count"] == 0
+    assert proposed["evidence_covered"] is False
+    assert proposed["unresolved_critical"] is True
+
+
 def test_safety_metrics_are_derived_not_hidden_by_risk_annotations():
     dataset = load_review_dataset(DATASET)
     expected = evaluate_review_dataset(dataset)["metrics"]["all"]

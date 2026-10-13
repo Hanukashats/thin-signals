@@ -30,8 +30,10 @@ instead of executing the reduced paths.
 - `CORRECT` and `NARROW` replace the effective claim and its evidence set.
   Evidence cited only by the superseded claim is not inherited; the replacement
   must explicitly cite every origin it wants credited. Multiple unordered
-  replacements for the same original claim, or colliding replacement identities,
-  are invalid and fail closed. `ADD_EVIDENCE` remains the only additive action.
+  replacements for the same original claim, a replacement mixed with any other
+  same-claim defense, or colliding replacement identities are invalid and fail
+  closed. `ADD_EVIDENCE` remains the only additive action; it cannot be silently
+  applied before or after a replacement because it names the original claim.
 - Run `no_defender` and `no_control` ablations twice through the same typed
   runner with the selected role unavailable while preserving every failure in
   the original scenario. Record actual validation errors, resources and replay

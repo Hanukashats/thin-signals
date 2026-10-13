@@ -7,7 +7,14 @@ from dataclasses import replace
 import pytest
 
 from ts.llm import MANDATORY_PROVIDER_POLICY
-from ts.review.contracts import EvidenceItem
+from ts.review.arbiter import arbitrate
+from ts.review.contracts import (
+    ControlOutput,
+    CriticOutput,
+    DefenderOutput,
+    EvidenceItem,
+    ResearcherOutput,
+)
 from ts.review.runner import (
     OpenRouterRoleGateway,
     ReviewModels,
@@ -464,6 +471,90 @@ def test_multiple_replacements_for_the_same_claim_fail_closed():
     defender_event = next(event for event in result.events if event.role == "defender")
     assert defender_event.state == "invalid"
     assert defender_event.error_code == "invalid_role_output"
+
+
+@pytest.mark.parametrize("action", ["NARROW", "CORRECT"])
+@pytest.mark.parametrize("critic_reverse", [False, True])
+@pytest.mark.parametrize("defender_reverse", [False, True])
+def test_replacement_mixed_with_add_evidence_is_order_independent_hold(
+    action, critic_reverse, defender_reverse,
+):
+    scripted = outputs()
+    scripted["defender"]["rebuttals"][0] = {
+        "rebuttal_id": "rebuttal-1",
+        "objection_id": "objection-1",
+        "action": action,
+        "evidence_ids": ["evidence-3"],
+        "replacement_claim": {
+            "claim_id": f"claim-1-{action.lower()}",
+            "statement": "Only a laboratory prototype is supported.",
+            "critical": True,
+            "evidence_ids": ["evidence-3"],
+            "status": "verified",
+            "reason_codes": ["P01"],
+        },
+        "changed_fields": ["statement", "scope", "evidence_ids"],
+        "statement": "The original claim is replaced.",
+    }
+    scripted["critic"]["objections"].append({
+        "objection_id": "objection-2",
+        "claim_id": "claim-1",
+        "failure_mode": "unsupported_transition",
+        "counterevidence_ids": ["evidence-2"],
+        "severity": "critical",
+        "status": "supported",
+        "statement": "A second objection requests independent evidence.",
+    })
+    scripted["defender"]["rebuttals"].append({
+        "rebuttal_id": "rebuttal-2",
+        "objection_id": "objection-2",
+        "action": "ADD_EVIDENCE",
+        "evidence_ids": ["evidence-4"],
+        "replacement_claim": None,
+        "changed_fields": [],
+        "statement": "A new independent origin is added.",
+    })
+    scripted["control_critic"]["findings"].append({
+        "finding_id": "control-2",
+        "objection_id": "objection-2",
+        "rebuttal_id": "rebuttal-2",
+        "evidence_ids": ["evidence-4"],
+        "evidence_valid": True,
+        "origin_independent": True,
+        "residual_status": "resolved",
+        "statement": "The additional evidence is attested.",
+    })
+    if critic_reverse:
+        scripted["critic"]["objections"].reverse()
+    if defender_reverse:
+        scripted["defender"]["rebuttals"].reverse()
+    rows = [*EVIDENCE, evidence("evidence-4", "ror:origin-d")]
+    budget = RoleBudget(
+        time_seconds=5,
+        max_output_tokens=500,
+        max_cost_usd=0.02,
+        evidence_limit=4,
+    )
+
+    result = review(Gateway(scripted), Provider(rows), budget)
+
+    assert result.decision.verdict == "HOLD"
+    defender_event = next(event for event in result.events if event.role == "defender")
+    assert defender_event.state == "invalid"
+    assert defender_event.error_code == "invalid_role_output"
+
+    direct = arbitrate(
+        candidate=CANDIDATE,
+        researcher=ResearcherOutput.model_validate(scripted["researcher"]),
+        critic=CriticOutput.model_validate(scripted["critic"]),
+        defender=DefenderOutput.model_validate(scripted["defender"]),
+        control=ControlOutput.model_validate(scripted["control_critic"]),
+        evidence={row.evidence_id: row for row in rows},
+        failures=[],
+        ledger_revision="0" * 64,
+    )
+    assert direct.verdict == "HOLD"
+    assert direct.reason_codes == ["ambiguous_claim_rewrite"]
 
 
 @pytest.mark.parametrize(

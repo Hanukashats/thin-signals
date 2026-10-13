@@ -499,23 +499,34 @@ def _promotion_evidence_ids(outputs: dict[str, dict]) -> set[str]:
         objection.get("objection_id"): objection.get("claim_id")
         for objection in outputs["critic"].get("objections", [])
     }
+    rebuttals_by_claim: dict[str, list[dict]] = {}
     for rebuttal in outputs["defender"].get("rebuttals", []):
-        if (
-            rebuttal.get("action") == "CONCEDE"
-            or objection_claims.get(rebuttal.get("objection_id")) not in selected_claim_ids
-        ):
-            continue
         claim_id = objection_claims.get(rebuttal.get("objection_id"))
-        if rebuttal.get("action") == "ADD_EVIDENCE":
-            evidence_by_claim[claim_id].update(rebuttal.get("evidence_ids", []))
-        replacement = rebuttal.get("replacement_claim")
-        if (
-            rebuttal.get("action") in {"CORRECT", "NARROW"}
-            and isinstance(replacement, dict)
-        ):
+        if claim_id not in selected_claim_ids:
+            continue
+        rebuttals_by_claim.setdefault(claim_id, []).append(rebuttal)
+    for claim_id, rebuttals in rebuttals_by_claim.items():
+        replacements = [
+            rebuttal for rebuttal in rebuttals
+            if rebuttal.get("action") in {"CORRECT", "NARROW"}
+        ]
+        if replacements:
+            if len(replacements) != 1 or len(rebuttals) != 1:
+                # Match the runner's fail-closed unordered-round contract.
+                evidence_by_claim[claim_id] = set()
+                continue
+            replacement = replacements[0].get("replacement_claim")
             # Match the arbiter's effective-claim semantics: a replacement must
             # explicitly retain every citation it wants credited.
-            evidence_by_claim[claim_id] = set(replacement.get("evidence_ids", []))
+            evidence_by_claim[claim_id] = set(
+                replacement.get("evidence_ids", [])
+                if isinstance(replacement, dict)
+                else []
+            )
+            continue
+        for rebuttal in rebuttals:
+            if rebuttal.get("action") == "ADD_EVIDENCE":
+                evidence_by_claim[claim_id].update(rebuttal.get("evidence_ids", []))
     return {
         evidence_id
         for evidence_ids in evidence_by_claim.values()

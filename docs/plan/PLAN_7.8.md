@@ -122,7 +122,10 @@ candidate added those three fail-closed checks. A third verifier rejected
 could satisfy the origin gate with only one replacement origin. The current
 candidate replaces the effective evidence set, mirrors that rule in evaluation
 coverage and rejects ambiguous multiple rewrites; it requires a fresh independent
-verdict before Wave 5.
+verdict before Wave 5. The fourth verifier then found one replacement mixed with
+one additive defense for the same claim remained order-dependent. The next
+candidate rejects that unordered mix and tests every critic/defender permutation
+for both `CORRECT` and `NARROW` before another independent verdict.
 
 - Correct primary-pattern non-monotonicity in a new rules version.
 - Run baseline, proposed, without-defender and without-control-critic paths on
@@ -144,6 +147,7 @@ fixture and stored-extraction evaluations; live search quality is not inferred.
 The rejection receipt is `reports/ASTRA_WAVE4_AUDIT_74445DE_2026-10-13.md`;
 the second receipt is `reports/ASTRA_WAVE4_REAUDIT_26B4E8D_2026-10-13.md`;
 the third receipt is `reports/ASTRA_WAVE4_FINAL_9E5CC76_2026-10-13.md`;
+the fourth receipt is `reports/ASTRA_WAVE4_FAIL_3AE2BDC_2026-10-13.md`;
 ADR-014 records the evolving remediation contract.
 
 ## Wave 5 — canary, deploy and publish

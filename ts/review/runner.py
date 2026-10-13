@@ -329,8 +329,13 @@ def _validate_references(
             return "invalid_role_output"
         replacement_targets = []
         replacement_ids = []
+        rebuttal_target_counts: dict[str, int] = {}
         for rebuttal in value.rebuttals:
             objection = objection_by_id.get(rebuttal.objection_id)
+            if objection is not None:
+                rebuttal_target_counts[objection.claim_id] = (
+                    rebuttal_target_counts.get(objection.claim_id, 0) + 1
+                )
             if rebuttal.action in {"CORRECT", "NARROW"} and objection is not None:
                 replacement_targets.append(objection.claim_id)
                 if rebuttal.replacement_claim is not None:
@@ -340,9 +345,14 @@ def _validate_references(
                         and rebuttal.replacement_claim.claim_id != objection.claim_id
                     ):
                         return "invalid_role_output"
-        if _duplicates(replacement_targets) or _duplicates(replacement_ids):
+        if (
+            _duplicates(replacement_targets)
+            or _duplicates(replacement_ids)
+            or any(rebuttal_target_counts[target] > 1 for target in replacement_targets)
+        ):
             # Objections are an unordered set. Multiple rewrites of one claim,
-            # or two rewrites claiming one effective identity, are ambiguous.
+            # a rewrite mixed with another action, or two rewrites claiming one
+            # effective identity are ambiguous within one review round.
             return "invalid_role_output"
         for rebuttal in value.rebuttals:
             objection = objection_by_id.get(rebuttal.objection_id)

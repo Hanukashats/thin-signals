@@ -48,7 +48,7 @@ non-monotonicity by separating semantic-primary explanation from strongest-first
 scoring slots, while retaining v0.1 weights and thresholds. All executable
 threshold consumers use the versioned scorer contract. Historical v0.1 rows are
 unchanged and production still requires replay, holdout and independent review.
-The remediated candidate repository gate is **439 passed** on a disposable
+The remediated candidate repository gate is **455 passed** on a disposable
 migrated PostgreSQL database; Ruff, LivingSet links, YAML and whitespace checks
 pass, with exhaustive
 primary-choice/status monotonicity, dynamic-threshold and attested-promotion
@@ -72,6 +72,10 @@ failures without erasing the scenario failure. A third audit of `9e5cc76` found
 that corrected/narrowed claims still inherited citations from the superseded
 claim. The current remediation replaces, rather than unions, effective evidence,
 aligns coverage with that rule and rejects ambiguous multiple replacements.
+The fourth audit of `3ae2bdc` then found mixed replacement plus additive defenses
+for one claim were order-dependent. The current candidate rejects every such
+unordered mixed round in validation and arbitration, and evaluation reports no
+coverage for the invalid target regardless of record ordering.
 Fresh independent re-verification is still required. These are deterministic
 fixture/stored-extraction results,
 not a claim about live model quality or the ten-signal target; bounded production
@@ -302,7 +306,7 @@ containers, so live search no longer depends on backend VM101. Receipt:
 
 1. Independently re-verify the remediated Wave 4 candidate, including the
    attested critical-claim gate, exact verdicts, executed role-unavailability
-   ablations, replacement-evidence semantics and invalid 170-row replay behavior.
+   ablations, replacement/mixed-action ordering and invalid 170-row replay behavior.
 2. Deploy it first with the review
    flag off, run the production canary, then publish the same SHA to SourceCraft
    and GitHub feature branches.

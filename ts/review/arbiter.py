@@ -90,6 +90,22 @@ def arbitrate(
                 [objection.objection_id],
             )
 
+    defenses_by_claim: dict[str, list[str]] = {}
+    for objection in critic.objections:
+        rebuttal = rebuttals.get(objection.objection_id)
+        if rebuttal is not None:
+            defenses_by_claim.setdefault(objection.claim_id, []).append(rebuttal.action)
+    ambiguous_rewrites = sorted(
+        claim_id for claim_id, actions in defenses_by_claim.items()
+        if len(actions) > 1 and any(action in {"CORRECT", "NARROW"} for action in actions)
+    )
+    if ambiguous_rewrites:
+        # Objections and rebuttals are unordered. Additions target the original
+        # claim, so mixing them with a replacement has no defined precedence.
+        return _decision(
+            "HOLD", ledger_revision, ["ambiguous_claim_rewrite"], ambiguous_rewrites,
+        )
+
     critical_claims = {
         claim.claim_id: claim for claim in researcher.claims if claim.critical
     }
