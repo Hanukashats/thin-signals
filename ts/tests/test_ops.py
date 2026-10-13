@@ -98,3 +98,17 @@ def test_quickstart_builder_pins_upstream_and_never_deletes_volumes():
     assert (ROOT / "deploy/docker/requirements.lock").is_file()
     assert (ROOT / "deploy/docker/runtime.env.example").is_file()
     assert (ROOT / "docs/ops/DOCKER_QUICKSTART.md").is_file()
+
+
+def test_home_vm_review_activation_is_explicit_bounded_and_keeps_stable_rules():
+    drop_in = (
+        ROOT / "deploy/systemd/thin-signals-api-review-enabled.conf"
+    ).read_text(encoding="utf-8")
+
+    assert "Environment=TS_RULES_VERSION=rules-0.1" in drop_in
+    assert "Environment=TS_GPT_RESEARCHER_ENABLED=true" in drop_in
+    assert "Environment=TS_GPT_RESEARCHER_URL=http://127.0.0.1:28000" in drop_in
+    assert "Environment=TS_GPT_RESEARCHER_MAX_COST_USD=0.08" in drop_in
+    assert "Environment=TS_ADVERSARIAL_REVIEW_ENABLED=true" in drop_in
+    assert "Environment=TS_REVIEW_TIME_SECONDS=45" in drop_in
+    assert "Environment=TS_REVIEW_MAX_COST_USD=0.03" in drop_in
