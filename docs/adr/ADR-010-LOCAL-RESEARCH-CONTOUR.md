@@ -33,7 +33,7 @@ published through Caddy.
 
 | Component | Pin | License | Native interface |
 |---|---|---|---|
-| SearXNG | image version `2026.10.11-ad46ebd7d`, amd64 digest `sha256:00ad29bb7d72d896ac3b3ff8b252d9ad9939da3e014828934363c61dba9b7e09` | AGPL-3.0-or-later | `GET /search?q=...&format=json` |
+| SearXNG | image version `2026.10.13-22c64b8d3`, amd64 digest `sha256:70f100d04af1ac841d59ffc1b6354e9e264c161ae47d5251be4e598013386065` | AGPL-3.0-or-later | `GET /search?q=...&format=json` |
 | GPT Researcher | tag `v3.7.0`, commit `0957c301ed06c2a5857b834358c7227c739041d4` | Apache-2.0 repository license | FastAPI HTTP + `/ws` |
 
 The mutable Docker Hub GPT Researcher image is rejected because inspection

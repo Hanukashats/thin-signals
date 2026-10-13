@@ -25,7 +25,7 @@ services:
 
   searxng:
     profiles: [laptop]
-    image: searxng/searxng:2026.10.11-ad46ebd7d@sha256:00ad29bb7d72d896ac3b3ff8b252d9ad9939da3e014828934363c61dba9b7e09
+    image: searxng/searxng:2026.10.13-22c64b8d3@sha256:70f100d04af1ac841d59ffc1b6354e9e264c161ae47d5251be4e598013386065
     restart: unless-stopped
     ports:
       - "127.0.0.1:28088:8080"

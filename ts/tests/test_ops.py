@@ -33,8 +33,8 @@ def test_home_vm_runtime_overrides_keep_services_private_and_recoverable():
 
 
 def test_searxng_pins_are_one_audited_immutable_build():
-    tag = "2026.10.11-ad46ebd7d"
-    digest = "sha256:00ad29bb7d72d896ac3b3ff8b252d9ad9939da3e014828934363c61dba9b7e09"
+    tag = "2026.10.13-22c64b8d3"
+    digest = "sha256:70f100d04af1ac841d59ffc1b6354e9e264c161ae47d5251be4e598013386065"
     expected = f"searxng/searxng:{tag}@{digest}"
 
     laptop = yaml.safe_load((ROOT / "compose.yaml").read_text(encoding="utf-8"))
@@ -58,7 +58,7 @@ def test_quickstart_compose_is_complete_private_and_secret_file_only():
         "pgvector/pgvector:pg16@sha256:"
     )
     assert compose["services"]["searxng"]["image"].startswith(
-        "searxng/searxng:2026.10.11-ad46ebd7d@sha256:"
+        "searxng/searxng:2026.10.13-22c64b8d3@sha256:"
     )
     assert compose["services"]["gpt-researcher"]["image"] == (
         "thin-signals/gpt-researcher:3.7.0-0957c301"
