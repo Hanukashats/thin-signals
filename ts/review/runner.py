@@ -277,6 +277,145 @@ def _input_payload(
     return body
 
 
+def _allowed_references(
+    evidence: Mapping[str, EvidenceItem],
+    outputs: Mapping[str, StrictContract | None],
+) -> dict[str, list[str]]:
+    researcher = outputs.get("researcher")
+    critic = outputs.get("critic")
+    defender = outputs.get("defender")
+    objection_by_id = {
+        row.objection_id: row for row in critic.objections
+    } if isinstance(critic, CriticOutput) else {}
+    traceable_control_ids: set[str] = set()
+    if isinstance(defender, DefenderOutput):
+        for rebuttal in defender.rebuttals:
+            objection = objection_by_id.get(rebuttal.objection_id)
+            if objection is not None:
+                traceable_control_ids.update(objection.counterevidence_ids)
+            traceable_control_ids.update(rebuttal.evidence_ids)
+            if rebuttal.replacement_claim is not None:
+                traceable_control_ids.update(rebuttal.replacement_claim.evidence_ids)
+    for objection in objection_by_id.values():
+        traceable_control_ids.update(objection.counterevidence_ids)
+    return {
+        "evidence_ids": list(evidence),
+        "claim_ids": (
+            [row.claim_id for row in researcher.claims]
+            if isinstance(researcher, ResearcherOutput) else []
+        ),
+        "objection_ids": (
+            [row.objection_id for row in critic.objections]
+            if isinstance(critic, CriticOutput) else []
+        ),
+        "rebuttal_ids": (
+            [row.rebuttal_id for row in defender.rebuttals]
+            if isinstance(defender, DefenderOutput) else []
+        ),
+        "control_evidence_ids": [
+            evidence_id for evidence_id in evidence if evidence_id in traceable_control_ids
+        ],
+    }
+
+
+def _reference_bindings(
+    role: RoleName,
+    evidence: Mapping[str, EvidenceItem],
+    outputs: Mapping[str, StrictContract | None],
+) -> list[dict]:
+    """Expose exact cross-record citation relationships without trusting prose."""
+    researcher = outputs.get("researcher")
+    critic = outputs.get("critic")
+    defender = outputs.get("defender")
+    claim_by_id = {
+        row.claim_id: row for row in researcher.claims
+    } if isinstance(researcher, ResearcherOutput) else {}
+    objection_by_id = {
+        row.objection_id: row for row in critic.objections
+    } if isinstance(critic, CriticOutput) else {}
+    rebuttal_by_objection = {
+        row.objection_id: row for row in defender.rebuttals
+    } if isinstance(defender, DefenderOutput) else {}
+
+    bindings = []
+    for objection in objection_by_id.values():
+        claim = claim_by_id.get(objection.claim_id)
+        existing = set(objection.counterevidence_ids)
+        if claim is not None:
+            existing.update(claim.evidence_ids)
+        if role == "defender":
+            bindings.append({
+                "objection_id": objection.objection_id,
+                "claim_id": objection.claim_id,
+                "existing_evidence_ids": [row for row in evidence if row in existing],
+                "new_evidence_ids": [row for row in evidence if row not in existing],
+            })
+            continue
+        if role != "control_critic":
+            continue
+        rebuttal = rebuttal_by_objection.get(objection.objection_id)
+        traceable = set(objection.counterevidence_ids)
+        required = set()
+        if rebuttal is not None:
+            traceable.update(rebuttal.evidence_ids)
+            required.update(rebuttal.evidence_ids)
+            if rebuttal.replacement_claim is not None:
+                replacement_ids = rebuttal.replacement_claim.evidence_ids
+                traceable.update(replacement_ids)
+                required.update(replacement_ids)
+        bindings.append({
+            "objection_id": objection.objection_id,
+            "rebuttal_id": rebuttal.rebuttal_id if rebuttal is not None else None,
+            "allowed_evidence_ids": [row for row in evidence if row in traceable],
+            "required_evidence_ids_if_resolved": [row for row in evidence if row in required],
+        })
+    return bindings
+
+
+def _set_array_item_enum(schema: dict, definition: str, field: str, values: list[str]) -> None:
+    schema["$defs"][definition]["properties"][field]["items"]["enum"] = values
+
+
+def _constrained_role_schema(role: RoleName, allowed: Mapping[str, list[str]]) -> dict:
+    """Bind structured decoding to IDs actually present in this review round."""
+    schema = role_schema(role)
+    evidence_ids = list(allowed["evidence_ids"])
+    claim_ids = list(allowed["claim_ids"])
+    objection_ids = list(allowed["objection_ids"])
+    rebuttal_ids = list(allowed["rebuttal_ids"])
+    if role == "researcher":
+        _set_array_item_enum(schema, "ReviewClaim", "evidence_ids", evidence_ids)
+    elif role == "critic":
+        objection = schema["$defs"]["Objection"]["properties"]
+        objection["claim_id"]["enum"] = claim_ids
+        _set_array_item_enum(schema, "Objection", "counterevidence_ids", evidence_ids)
+        if not claim_ids:
+            schema["properties"]["objections"]["maxItems"] = 0
+    elif role == "defender":
+        rebuttal = schema["$defs"]["Rebuttal"]["properties"]
+        rebuttal["objection_id"]["enum"] = objection_ids
+        _set_array_item_enum(schema, "Rebuttal", "evidence_ids", evidence_ids)
+        _set_array_item_enum(schema, "ReviewClaim", "evidence_ids", evidence_ids)
+        if not objection_ids:
+            schema["properties"]["rebuttals"]["maxItems"] = 0
+    else:
+        finding = schema["$defs"]["ControlFinding"]["properties"]
+        finding["objection_id"]["enum"] = objection_ids
+        _set_array_item_enum(
+            schema,
+            "ControlFinding",
+            "evidence_ids",
+            list(allowed.get("control_evidence_ids", evidence_ids)),
+        )
+        finding["rebuttal_id"]["anyOf"] = (
+            [{"type": "string", "enum": rebuttal_ids}, {"type": "null"}]
+            if rebuttal_ids else [{"type": "null"}]
+        )
+        if not objection_ids:
+            schema["properties"]["findings"]["maxItems"] = 0
+    return schema
+
+
 def _duplicates(values: Sequence[str]) -> bool:
     return len(values) != len(set(values))
 
@@ -521,6 +660,19 @@ def run_review(
             unique_rows.append(row)
         rows = unique_rows
         input_payload = _input_payload(role, candidate, rows, outputs, budget, run_id)
+        allowed_references = _allowed_references(evidence_by_id, outputs)
+        input_payload["allowed_references"] = allowed_references
+        input_payload["reference_bindings"] = _reference_bindings(
+            role,
+            evidence_by_id,
+            outputs,
+        )
+        input_payload["citation_rules"] = {
+            "copy_ids_exactly": True,
+            "never_invent_references": True,
+            "verified_requires_preserved_primary_snapshot": True,
+            "otherwise_use_supported_or_unknown": True,
+        }
         input_hash = review_hash(input_payload)
         raw_output: object = None
         parsed: StrictContract | None = None
@@ -533,7 +685,7 @@ def run_review(
                 candidate_result = gateway.call(
                     role,
                     build_messages(role, input_payload),
-                    role_schema(role),
+                    _constrained_role_schema(role, allowed_references),
                     budget,
                     requested_model,
                 )

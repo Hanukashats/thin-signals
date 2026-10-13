@@ -107,6 +107,12 @@ control critic → deterministic arbiter`. Защитник не получае�
 
 Схемы, prompt-контракты, один ограниченный раунд, детерминированный арбитр,
 append-only PostgreSQL ledger и интеграция в narrow/wide product path реализованы.
+Prompt-контракт `adversarial-review-0.2` привязывает structured output к ID
+текущего раунда. Defender получает точный список уже использованных и новых
+evidence ID для каждого objection; control critic — точную пару objection/
+rebuttal, допустимые evidence ID и обязательные evidence ID для статуса
+`resolved`. Модель не может исправить или придумать ссылку свободным текстом;
+сервер повторно проверяет те же связи перед арбитражем.
 Флаг `TS_ADVERSARIAL_REVIEW_ENABLED` по умолчанию `false`; при выключенном флаге
 идентификаторы прежних запусков сохраняются и модельные роли не вызываются.
 При включении перед расходом модельного бюджета создаётся durable reservation в

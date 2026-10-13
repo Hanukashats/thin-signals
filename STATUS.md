@@ -38,6 +38,13 @@ completion. The original hostname remains intact for native multi-address DNS,
 proxy bypass and TLS/SNI, and missing returned-model metadata is rejected.
 Evaluation and production activation remain separate gates.
 
+The first bounded production canary correctly failed closed when live models
+rewrote or cross-linked citation IDs. `adversarial-review-0.2` now constrains
+structured decoding to current-round identifiers and supplies exact defender and
+control-critic reference bindings. Its focused suite passes, and the complete
+suite is **444 passed** on a new migrated disposable PostgreSQL database. A fresh
+live canary and independent release verification are still pending.
+
 Independent Astra verification accepted the frozen code commit `9f3a139` with
 no scoped P0/P1/P2 finding: 407 tests and Ruff passed, including native route,
 PostgreSQL, pool saturation, process-death, DNS/proxy/TLS and deadline probes.

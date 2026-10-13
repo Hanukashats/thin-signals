@@ -180,6 +180,68 @@ def test_one_equal_budget_call_per_role_and_valid_evidence_can_promote():
     assert all(event.state == "succeeded" for event in result.events)
 
 
+def test_each_role_schema_and_payload_allow_only_references_from_its_input():
+    gateway = Gateway()
+
+    review(gateway)
+
+    calls = {call[0]: call for call in gateway.calls}
+    researcher_schema = calls["researcher"][2]
+    critic_schema = calls["critic"][2]
+    defender_schema = calls["defender"][2]
+    control_schema = calls["control_critic"][2]
+    evidence_ids = [row.evidence_id for row in EVIDENCE]
+
+    assert researcher_schema["$defs"]["ReviewClaim"]["properties"][
+        "evidence_ids"
+    ]["items"]["enum"] == evidence_ids
+    assert critic_schema["$defs"]["Objection"]["properties"]["claim_id"][
+        "enum"
+    ] == ["claim-1"]
+    assert critic_schema["$defs"]["Objection"]["properties"][
+        "counterevidence_ids"
+    ]["items"]["enum"] == evidence_ids
+    assert defender_schema["$defs"]["Rebuttal"]["properties"]["objection_id"][
+        "enum"
+    ] == ["objection-1"]
+    assert defender_schema["$defs"]["Rebuttal"]["properties"]["evidence_ids"][
+        "items"
+    ]["enum"] == evidence_ids
+    assert control_schema["$defs"]["ControlFinding"]["properties"][
+        "objection_id"
+    ]["enum"] == ["objection-1"]
+    assert control_schema["$defs"]["ControlFinding"]["properties"][
+        "evidence_ids"
+    ]["items"]["enum"] == ["evidence-2", "evidence-3"]
+
+    payloads = {}
+    for role, (name, messages, *_rest) in calls.items():
+        assert role == name
+        body = messages[1]["content"]
+        payload = json.loads(
+            body.removeprefix("<untrusted_input_json>\n").removesuffix(
+                "\n</untrusted_input_json>"
+            )
+        )
+        payloads[role] = payload
+        assert payload["allowed_references"]["evidence_ids"] == evidence_ids
+        assert payload["citation_rules"]["copy_ids_exactly"] is True
+        assert "verified_requires_preserved_primary_snapshot" in payload["citation_rules"]
+
+    assert payloads["defender"]["reference_bindings"] == [{
+        "objection_id": "objection-1",
+        "claim_id": "claim-1",
+        "existing_evidence_ids": ["evidence-1", "evidence-2"],
+        "new_evidence_ids": ["evidence-3"],
+    }]
+    assert payloads["control_critic"]["reference_bindings"] == [{
+        "objection_id": "objection-1",
+        "rebuttal_id": "rebuttal-1",
+        "allowed_evidence_ids": ["evidence-2", "evidence-3"],
+        "required_evidence_ids_if_resolved": ["evidence-3"],
+    }]
+
+
 def test_gateway_attestation_cannot_override_requested_model_equality():
     class WrongApprovedModelGateway(Gateway):
         def call(self, role, messages, schema, budget, model):

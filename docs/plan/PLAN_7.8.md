@@ -85,8 +85,10 @@ Reference benchmark and donor decision:
 
 ## Wave 3 — bounded adversarial review
 
-Status 2026-10-13: implemented and tested on the reliability branch; the
-production flag remains off until Wave 4 acceptance.
+Status 2026-10-13: implemented and tested on the reliability branch. A bounded
+production canary exposed model-written citation IDs; prompt/schema revision
+`adversarial-review-0.2` now constrains IDs and exact defender/control bindings.
+Release verification remains required for the remediated candidate.
 
 - Typed claim, objection, rebuttal, control finding and arbiter schemas.
 - One equal-budget researcher/critic/defender/control-critic round.

@@ -127,6 +127,7 @@ def test_prompt_treats_injected_evidence_as_delimited_data_and_hashes_templates(
     messages = build_messages("critic", {"evidence": [{"quote": injection}]})
     assert REVIEW_PROMPT_VERSION in messages[0]["content"]
     assert "untrusted" in messages[0]["content"].lower()
+    assert "copy identifiers exactly" in messages[0]["content"].lower()
     assert injection not in messages[0]["content"]
     assert f"<untrusted_evidence>{injection}" not in messages[1]["content"]
     assert injection in messages[1]["content"]
