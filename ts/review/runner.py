@@ -327,6 +327,23 @@ def _validate_references(
             or _duplicates([row.objection_id for row in value.rebuttals])
         ):
             return "invalid_role_output"
+        replacement_targets = []
+        replacement_ids = []
+        for rebuttal in value.rebuttals:
+            objection = objection_by_id.get(rebuttal.objection_id)
+            if rebuttal.action in {"CORRECT", "NARROW"} and objection is not None:
+                replacement_targets.append(objection.claim_id)
+                if rebuttal.replacement_claim is not None:
+                    replacement_ids.append(rebuttal.replacement_claim.claim_id)
+                    if (
+                        rebuttal.replacement_claim.claim_id in claim_by_id
+                        and rebuttal.replacement_claim.claim_id != objection.claim_id
+                    ):
+                        return "invalid_role_output"
+        if _duplicates(replacement_targets) or _duplicates(replacement_ids):
+            # Objections are an unordered set. Multiple rewrites of one claim,
+            # or two rewrites claiming one effective identity, are ambiguous.
+            return "invalid_role_output"
         for rebuttal in value.rebuttals:
             objection = objection_by_id.get(rebuttal.objection_id)
             if objection is None or not set(rebuttal.evidence_ids) <= known:

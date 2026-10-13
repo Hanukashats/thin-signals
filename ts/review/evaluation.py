@@ -189,16 +189,16 @@ def _fixture(case: dict) -> tuple[dict, list[EvidenceItem], dict[str, dict]]:
                 "rebuttal_id": "rebuttal-1",
                 "objection_id": "objection-1",
                 "action": "NARROW",
-                "evidence_ids": ["evidence-3"],
+                "evidence_ids": ["evidence-1", "evidence-3"],
                 "replacement_claim": {
                     "claim_id": "claim-1-narrow",
                     "statement": "The preserved evidence supports a laboratory prototype only.",
                     "critical": True,
-                    "evidence_ids": ["evidence-3"],
+                    "evidence_ids": ["evidence-1", "evidence-3"],
                     "status": "verified",
                     "reason_codes": ["P01"],
                 },
-                "changed_fields": ["statement", "scope"],
+                "changed_fields": ["statement", "scope", "evidence_ids"],
                 "statement": "The overbroad deployment scope is removed.",
             }]}
         else:
@@ -215,7 +215,11 @@ def _fixture(case: dict) -> tuple[dict, list[EvidenceItem], dict[str, dict]]:
             "finding_id": "finding-1",
             "objection_id": "objection-1",
             "rebuttal_id": "rebuttal-1",
-            "evidence_ids": ["evidence-3"],
+            "evidence_ids": (
+                ["evidence-1", "evidence-3"]
+                if scenario == "valid_narrowing"
+                else ["evidence-3"]
+            ),
             "evidence_valid": True,
             "origin_independent": True,
             "residual_status": "unresolved" if scenario == "unresolved_critical" else "resolved",
@@ -396,12 +400,12 @@ def _fixture(case: dict) -> tuple[dict, list[EvidenceItem], dict[str, dict]]:
             "rebuttal_id": "rebuttal-1",
             "objection_id": "objection-1",
             "action": "CORRECT",
-            "evidence_ids": ["evidence-3"],
+            "evidence_ids": ["evidence-1", "evidence-3"],
             "replacement_claim": {
                 "claim_id": "claim-1-corrected",
                 "statement": "The preserved evidence supports the corrected mechanism wording.",
                 "critical": True,
-                "evidence_ids": ["evidence-3"],
+                "evidence_ids": ["evidence-1", "evidence-3"],
                 "status": "verified",
                 "reason_codes": ["P01"],
             },
@@ -412,7 +416,7 @@ def _fixture(case: dict) -> tuple[dict, list[EvidenceItem], dict[str, dict]]:
             "finding_id": "finding-1",
             "objection_id": "objection-1",
             "rebuttal_id": "rebuttal-1",
-            "evidence_ids": ["evidence-3"],
+            "evidence_ids": ["evidence-1", "evidence-3"],
             "evidence_valid": True,
             "origin_independent": True,
             "residual_status": "resolved",
@@ -486,11 +490,10 @@ def _promotion_evidence_ids(outputs: dict[str, dict]) -> set[str]:
     selected_claim_ids = critical_claim_ids or {
         claim.get("claim_id") for claim in claims
     }
-    ids = {
-        evidence_id
+    evidence_by_claim = {
+        claim.get("claim_id"): set(claim.get("evidence_ids", []))
         for claim in claims
         if claim.get("claim_id") in selected_claim_ids
-        for evidence_id in claim.get("evidence_ids", [])
     }
     objection_claims = {
         objection.get("objection_id"): objection.get("claim_id")
@@ -502,11 +505,22 @@ def _promotion_evidence_ids(outputs: dict[str, dict]) -> set[str]:
             or objection_claims.get(rebuttal.get("objection_id")) not in selected_claim_ids
         ):
             continue
-        ids.update(rebuttal.get("evidence_ids", []))
+        claim_id = objection_claims.get(rebuttal.get("objection_id"))
+        if rebuttal.get("action") == "ADD_EVIDENCE":
+            evidence_by_claim[claim_id].update(rebuttal.get("evidence_ids", []))
         replacement = rebuttal.get("replacement_claim")
-        if isinstance(replacement, dict):
-            ids.update(replacement.get("evidence_ids", []))
-    return ids
+        if (
+            rebuttal.get("action") in {"CORRECT", "NARROW"}
+            and isinstance(replacement, dict)
+        ):
+            # Match the arbiter's effective-claim semantics: a replacement must
+            # explicitly retain every citation it wants credited.
+            evidence_by_claim[claim_id] = set(replacement.get("evidence_ids", []))
+    return {
+        evidence_id
+        for evidence_ids in evidence_by_claim.values()
+        for evidence_id in evidence_ids
+    }
 
 
 def _has_unresolved_critical(outputs: dict[str, dict]) -> bool:

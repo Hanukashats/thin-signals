@@ -147,7 +147,9 @@ def arbitrate(
                 unresolved.append(objection.objection_id)
                 continue
             if claim is not None and claim.claim_id in accepted_by_claim:
-                accepted_by_claim[claim.claim_id].update(replacement.evidence_ids)
+                # CORRECT/NARROW replaces the effective claim. Evidence cited only
+                # by the superseded claim cannot satisfy the replacement's gate.
+                accepted_by_claim[claim.claim_id] = set(replacement.evidence_ids)
             reframed.append(objection.objection_id)
         else:
             unresolved.append(objection.objection_id)

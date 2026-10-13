@@ -48,8 +48,9 @@ non-monotonicity by separating semantic-primary explanation from strongest-first
 scoring slots, while retaining v0.1 weights and thresholds. All executable
 threshold consumers use the versioned scorer contract. Historical v0.1 rows are
 unchanged and production still requires replay, holdout and independent review.
-The remediated candidate repository gate is **435 passed** on a disposable migrated
-PostgreSQL database, Ruff clean, with exhaustive
+The remediated candidate repository gate is **439 passed** on a disposable
+migrated PostgreSQL database; Ruff, LivingSet links, YAML and whitespace checks
+pass, with exhaustive
 primary-choice/status monotonicity, dynamic-threshold and attested-promotion
 regressions.
 
@@ -67,8 +68,12 @@ gaps. A second audit of `26b4e8d` confirmed those fixes but found an unbound
 control finding, an unknown critical replacement and a provider-failure ablation
 that silently restored the critic. The current remediation binds control to the
 exact rebuttal/evidence, validates the effective replacement and layers ablation
-failures without erasing the scenario failure. Fresh independent re-verification
-is still required. These are deterministic fixture/stored-extraction results,
+failures without erasing the scenario failure. A third audit of `9e5cc76` found
+that corrected/narrowed claims still inherited citations from the superseded
+claim. The current remediation replaces, rather than unions, effective evidence,
+aligns coverage with that rule and rejects ambiguous multiple replacements.
+Fresh independent re-verification is still required. These are deterministic
+fixture/stored-extraction results,
 not a claim about live model quality or the ten-signal target; bounded production
 canary remains a release gate.
 
@@ -297,7 +302,7 @@ containers, so live search no longer depends on backend VM101. Receipt:
 
 1. Independently re-verify the remediated Wave 4 candidate, including the
    attested critical-claim gate, exact verdicts, executed role-unavailability
-   ablations and invalid 170-row replay behavior.
+   ablations, replacement-evidence semantics and invalid 170-row replay behavior.
 2. Deploy it first with the review
    flag off, run the production canary, then publish the same SHA to SourceCraft
    and GitHub feature branches.

@@ -449,7 +449,7 @@
         },
         "proposed": {
           "verdict": "REFRAME",
-          "ledger_revision": "374ff85e68e28ec077d83334f08a3bcd08e6d8c049f96173e0c79e72cd386915",
+          "ledger_revision": "a4bf618ba4acf79c98e65aaffd75c7fadc97c904ae648d64c2f7df02b00bc73d",
           "stable": true,
           "role_errors": [],
           "latency_ms": 40,
@@ -482,7 +482,7 @@
         },
         "no_control": {
           "verdict": "HOLD",
-          "ledger_revision": "68f92ff5c0e3041075fda02cacb2743e914b5cbc8df27155ad9befb9acf283bc",
+          "ledger_revision": "fb37198bd5635d4258ced5f3b90a3cc1bacc6ff83b553b636365b2d356948723",
           "stable": true,
           "role_errors": [
             [
@@ -1024,7 +1024,7 @@
         },
         "proposed": {
           "verdict": "REFRAME",
-          "ledger_revision": "f3773183e5dc9cffa2558c64231aae95ac58dbfba1fe3f9c35a1ac91ad262e2a",
+          "ledger_revision": "466537d7aabd5653296273e042ff0b9315a96674313213d91e494add09a77590",
           "stable": true,
           "role_errors": [],
           "latency_ms": 40,
@@ -1057,7 +1057,7 @@
         },
         "no_control": {
           "verdict": "HOLD",
-          "ledger_revision": "2fdd743b5e1a9a48d04fd43729aac51d4ded1b8129cf68f96336c12667472fc3",
+          "ledger_revision": "9658dad2366a5b8c013ca550b569a6ee080258b8d114143ee57b83e8b49ef9f4",
           "stable": true,
           "role_errors": [
             [
@@ -1433,5 +1433,5 @@
     "They do not measure live model retrieval or reasoning quality.",
     "Live quality and candidate count require a separately bounded production canary."
   ],
-  "result_digest": "33e63cf110d20b175755764ec55f2054820456ec42fdfe0c925b8a041c486c5c"
+  "result_digest": "a629f9089fb785441e334425eee74bfcf72b73d26e8fe9ce69cd3626d231d37a"
 }

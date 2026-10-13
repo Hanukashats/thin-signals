@@ -26,4 +26,4 @@ Dataset `review-eval-0.2` · fixture `review-fixtures-0.2` · frozen code `9f3a1
 Это fixture-оценка контрактов и арбитра; она **не измеряет качество живых ответов модели**. Реальный поиск, число квалифицированных сигналов и сетевые расходы проверяются отдельным bounded canary.
 
 Dataset SHA-256: `acf1bd3b7c19f7602a5eb4bf07e2e2d77aef30a5e1513378e7102f570ca37347`
-Result SHA-256: `33e63cf110d20b175755764ec55f2054820456ec42fdfe0c925b8a041c486c5c`
+Result SHA-256: `a629f9089fb785441e334425eee74bfcf72b73d26e8fe9ce69cd3626d231d37a`

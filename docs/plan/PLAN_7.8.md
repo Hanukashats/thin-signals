@@ -117,7 +117,11 @@ independent re-verification and the optional live-yield target remain open.
 The second verifier rejected `26b4e8d`: a resolved control finding was not bound
 to the defender evidence, a critical replacement could remain unknown, and the
 provider-failure ablations erased the original critic failure. The next frozen
-candidate adds those three fail-closed checks and must receive a third independent
+candidate added those three fail-closed checks. A third verifier rejected
+`9e5cc76` because corrected/narrowed claims retained superseded citations and
+could satisfy the origin gate with only one replacement origin. The current
+candidate replaces the effective evidence set, mirrors that rule in evaluation
+coverage and rejects ambiguous multiple rewrites; it requires a fresh independent
 verdict before Wave 5.
 
 - Correct primary-pattern non-monotonicity in a new rules version.
@@ -139,6 +143,7 @@ all required quality/resource metrics and passes both safety gates. These are
 fixture and stored-extraction evaluations; live search quality is not inferred.
 The rejection receipt is `reports/ASTRA_WAVE4_AUDIT_74445DE_2026-10-13.md`;
 the second receipt is `reports/ASTRA_WAVE4_REAUDIT_26B4E8D_2026-10-13.md`;
+the third receipt is `reports/ASTRA_WAVE4_FINAL_9E5CC76_2026-10-13.md`;
 ADR-014 records the evolving remediation contract.
 
 ## Wave 5 — canary, deploy and publish

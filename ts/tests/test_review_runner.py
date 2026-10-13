@@ -366,20 +366,104 @@ def test_valid_narrowing_creates_reframe_instead_of_direct_promotion():
         "rebuttal_id": "rebuttal-1",
         "objection_id": "objection-1",
         "action": "NARROW",
-        "evidence_ids": ["evidence-3"],
+        "evidence_ids": ["evidence-1", "evidence-3"],
         "replacement_claim": {
             "claim_id": "claim-1-narrow",
+            "statement": "A laboratory prototype reports the mechanism.",
+            "critical": True,
+            "evidence_ids": ["evidence-1", "evidence-3"],
+            "status": "verified",
+            "reason_codes": ["P01"],
+        },
+        "changed_fields": ["statement", "scope", "evidence_ids"],
+        "statement": "Deployment language is removed.",
+    }
+    scripted["control_critic"]["findings"][0]["evidence_ids"] = [
+        "evidence-1", "evidence-3",
+    ]
+
+    assert review(Gateway(scripted)).decision.verdict == "REFRAME"
+
+
+@pytest.mark.parametrize("action", ["NARROW", "CORRECT"])
+def test_reframe_does_not_inherit_superseded_claim_evidence(action):
+    scripted = outputs()
+    scripted["defender"]["rebuttals"][0] = {
+        "rebuttal_id": "rebuttal-1",
+        "objection_id": "objection-1",
+        "action": action,
+        "evidence_ids": ["evidence-3"],
+        "replacement_claim": {
+            "claim_id": f"claim-1-{action.lower()}",
             "statement": "A laboratory prototype reports the mechanism.",
             "critical": True,
             "evidence_ids": ["evidence-3"],
             "status": "verified",
             "reason_codes": ["P01"],
         },
-        "changed_fields": ["statement", "scope"],
-        "statement": "Deployment language is removed.",
+        "changed_fields": ["statement", "scope", "evidence_ids"],
+        "statement": "Deployment language and the old citation are removed.",
     }
 
-    assert review(Gateway(scripted)).decision.verdict == "REFRAME"
+    result = review(Gateway(scripted))
+
+    assert result.decision.verdict == "HOLD"
+    assert result.decision.reason_codes == ["insufficient_origin_diversity"]
+
+
+def test_multiple_replacements_for_the_same_claim_fail_closed():
+    scripted = outputs()
+    scripted["critic"]["objections"].append({
+        "objection_id": "objection-2",
+        "claim_id": "claim-1",
+        "failure_mode": "unsupported_transition",
+        "counterevidence_ids": ["evidence-2"],
+        "severity": "critical",
+        "status": "supported",
+        "statement": "The deployment scope also needs correction.",
+    })
+    scripted["defender"]["rebuttals"] = [
+        {
+            "rebuttal_id": f"rebuttal-{index}",
+            "objection_id": f"objection-{index}",
+            "action": "NARROW",
+            "evidence_ids": ["evidence-1", "evidence-3"],
+            "replacement_claim": {
+                "claim_id": f"claim-1-narrow-{index}",
+                "statement": statement,
+                "critical": True,
+                "evidence_ids": ["evidence-1", "evidence-3"],
+                "status": "verified",
+                "reason_codes": ["P01"],
+            },
+            "changed_fields": ["statement", "scope", "evidence_ids"],
+            "statement": "The original claim is replaced.",
+        }
+        for index, statement in enumerate((
+            "Only a laboratory prototype is supported.",
+            "Only a field prototype is supported.",
+        ), start=1)
+    ]
+    scripted["control_critic"]["findings"] = [
+        {
+            "finding_id": f"control-{index}",
+            "objection_id": f"objection-{index}",
+            "rebuttal_id": f"rebuttal-{index}",
+            "evidence_ids": ["evidence-1", "evidence-3"],
+            "evidence_valid": True,
+            "origin_independent": True,
+            "residual_status": "resolved",
+            "statement": "The replacement is attested.",
+        }
+        for index in (1, 2)
+    ]
+
+    result = review(Gateway(scripted))
+
+    assert result.decision.verdict == "HOLD"
+    defender_event = next(event for event in result.events if event.role == "defender")
+    assert defender_event.state == "invalid"
+    assert defender_event.error_code == "invalid_role_output"
 
 
 @pytest.mark.parametrize(

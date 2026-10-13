@@ -27,6 +27,11 @@ instead of executing the reduced paths.
   evidence used by that rebuttal or its replacement claim. Objection-only
   findings remain valid for unresolved/fatal outcomes but cannot validate a
   defense. A critical replacement must remain critical and cannot be `unknown`.
+- `CORRECT` and `NARROW` replace the effective claim and its evidence set.
+  Evidence cited only by the superseded claim is not inherited; the replacement
+  must explicitly cite every origin it wants credited. Multiple unordered
+  replacements for the same original claim, or colliding replacement identities,
+  are invalid and fail closed. `ADD_EVIDENCE` remains the only additive action.
 - Run `no_defender` and `no_control` ablations twice through the same typed
   runner with the selected role unavailable while preserving every failure in
   the original scenario. Record actual validation errors, resources and replay
@@ -40,7 +45,9 @@ instead of executing the reduced paths.
 ## Consequences
 
 The stricter gate can only convert an unsafe acceptance to `HOLD`; it cannot
-promote a new candidate. The role-removal ablations intentionally become fully
+promote a new candidate. Evaluation coverage derives the same effective
+replacement evidence rather than unioning old and new citations. The
+role-removal ablations intentionally become fully
 fail-closed and therefore measure necessity/safety rather than useful recall.
 Fixture results still do not establish live-model quality, retrieval yield or
 the optional ten-signal target. Those remain bounded canary evidence.

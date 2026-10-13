@@ -149,6 +149,31 @@ def test_unknown_critical_replacement_is_derived_as_unresolved(monkeypatch):
     assert proposed["unresolved_critical"] is True
 
 
+def test_replacement_coverage_excludes_superseded_claim_evidence(monkeypatch):
+    from ts.review import evaluation
+
+    case = next(
+        row for row in load_review_dataset(DATASET)["cases"]
+        if row["scenario"] == "valid_narrowing"
+    )
+    candidate, evidence, outputs = evaluation._fixture(case)
+    rebuttal = outputs["defender"]["rebuttals"][0]
+    rebuttal["evidence_ids"] = ["evidence-3"]
+    rebuttal["replacement_claim"]["evidence_ids"] = ["evidence-3"]
+    outputs["control_critic"]["findings"][0]["evidence_ids"] = ["evidence-3"]
+    monkeypatch.setattr(
+        evaluation,
+        "_fixture",
+        lambda _case: (deepcopy(candidate), deepcopy(evidence), deepcopy(outputs)),
+    )
+
+    proposed = evaluate_case(case)["proposed"]
+
+    assert proposed["verdict"] == "HOLD"
+    assert proposed["primary_origin_count"] == 1
+    assert proposed["evidence_covered"] is False
+
+
 def test_safety_metrics_are_derived_not_hidden_by_risk_annotations():
     dataset = load_review_dataset(DATASET)
     expected = evaluate_review_dataset(dataset)["metrics"]["all"]
