@@ -38,6 +38,11 @@ completion. The original hostname remains intact for native multi-address DNS,
 proxy bypass and TLS/SNI, and missing returned-model metadata is rejected.
 Evaluation and production activation remain separate gates.
 
+Independent Astra verification accepted the frozen code commit `9f3a139` with
+no scoped P0/P1/P2 finding: 407 tests and Ruff passed, including native route,
+PostgreSQL, pool saturation, process-death, DNS/proxy/TLS and deadline probes.
+Receipt: `reports/ASTRA_C05_PASS_9F3A139_2026-10-13.md`.
+
 The public route is `https://tsignal.aispaces.ru` through Caddy on VM105 to
 VM232's private `:18443` listener. Account hashes and provider/database
 credentials remain only in host `.secrets/`. GOAL queue ownership remains
