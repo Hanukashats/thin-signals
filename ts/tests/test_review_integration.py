@@ -279,6 +279,28 @@ def test_candidate_provider_uses_only_attested_fragments_and_explicit_origins():
     assert all("fragment" not in row.model_dump(mode="json") for row in rows)
 
 
+def test_doi_only_documents_do_not_become_independent_review_origins(tmp_path):
+    card = _card()
+    for source in card["sources"]:
+        source.pop("origin_ids")
+    provider = CandidateEvidenceProvider(card)
+
+    evidence = list(provider.retrieve(
+        "researcher", card, RoleBudget(5, 500, 0.02, 3),
+    ))
+    reviewed = attach_candidate_review(
+        _report(card),
+        _enabled(make_settings(tmp_path)),
+        gateway=AdaptiveGateway(),
+        evidence_provider=provider,
+    )
+
+    assert [row.origin_group_id for row in evidence] == [None, None, None]
+    assert [event.state for event in reviewed.review.events] == ["succeeded"] * 5
+    assert reviewed.review.decision.verdict == "HOLD"
+    assert reviewed.review.decision.reason_codes == ["unresolved_critical"]
+
+
 def test_candidate_provider_falls_back_to_revalidated_source_snapshot(tmp_path):
     fetched_url = "https://arxiv.org/abs/2601.00009"
     body = b"Independent primary experiment reports the mechanism."

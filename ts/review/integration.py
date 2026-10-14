@@ -69,7 +69,7 @@ def _source_urls(source: Mapping) -> set[str]:
 
 
 def _explicit_origin(candidate: Mapping, url: str) -> str | None:
-    """Use only explicit DOI/ROR/work identity; never infer independence by hostname."""
+    """Use only explicit laboratory/institution identity for independence."""
     for bucket in ("sources", "counter_sources"):
         for source in candidate.get(bucket) or []:
             if not isinstance(source, Mapping) or url not in _source_urls(source):
@@ -80,14 +80,6 @@ def _explicit_origin(candidate: Mapping, url: str) -> str | None:
                     safe = _safe_origin(origin_id)
                     if safe:
                         return safe
-            doi = str(source.get("doi") or "").strip().lower()
-            for prefix in ("https://doi.org/", "http://doi.org/", "doi:"):
-                if doi.startswith(prefix):
-                    doi = doi[len(prefix):]
-                    break
-            safe_doi = _safe_origin(f"doi:{doi}") if doi else None
-            if safe_doi:
-                return safe_doi
     return None
 
 

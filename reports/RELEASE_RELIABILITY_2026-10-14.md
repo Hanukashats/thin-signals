@@ -1,6 +1,6 @@
 # Thin Signals 7.8 reliability release — 2026-10-14
 
-Status: **production canary PASS; mirror and independent final verification pending**
+Status: **production canary and mirrors PASS; independent re-verification pending**
 
 This receipt covers the reliability branch
 `feat/thin-signals-reliability-20261012`. Git author and committer timestamps
@@ -49,8 +49,13 @@ historical delivery metadata; no commit history was rewritten.
 
 ## Verification
 
-- Disposable PostgreSQL suite: **464 passed**, one upstream Starlette
-  deprecation warning, zero test failures.
+- Frozen `4074e51` disposable PostgreSQL suite: **464 passed**, one upstream
+  Starlette deprecation warning, zero test failures.
+- The first independent frozen-SHA audit rejected `4074e51` because missing
+  organization IDs incorrectly fell back to DOI document identities. The
+  fallback is removed and a regression now proves DOI-only evidence remains
+  unknown and `HOLD`; the remediated suite is **465 passed**. A fresh frozen-SHA
+  verdict is still required before this receipt can become final.
 - Ruff: PASS for maintained runtime/test/operations/presentation paths (`ts`,
   `ui`, `scripts`, `docs/presentation`). Frozen lineage and donor copies are
   preserved byte-for-byte and are not reformatted as current code.
@@ -105,7 +110,10 @@ near-miss queues, the narrow canary exposes 15 reviewable candidates.
   active and enabled. SearXNG and GPT Researcher containers are healthy.
 - Host and research egress observed `144.124.252.222` through the VM-local
   sing-box path.
-- `https://tsignal.aispaces.ru` and its API health route return HTTP 200.
+- `https://tsignal.aispaces.ru` returns the Streamlit UI over HTTPS with HTTP
+  200. The API is intentionally private; its loopback `/health` and `/ready`
+  routes return healthy JSON. Public `/health`-shaped paths are UI fallbacks
+  and are not counted as API-health evidence.
 - The only application ingress on VM232 is the private listener
   `192.168.5.232:18443`; TLS remains on Caddy/OpenWrt VM105.
 
