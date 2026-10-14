@@ -262,13 +262,14 @@ phases:
         forks: [adversarial.review]
         note: "Astra's staged findings were remediated. Frozen replay/holdout and role-failure ablations pass; a production wide canary completed every role and safely held on insufficient origin diversity. rules-0.2 remains evaluation-only."
       - id: W12-release
-        status: in_progress
+        status: completed
         owner: release/infra
         autonomy: A3
         deliverables: ["backup/snapshot", "canary", "rollback proof", "SourceCraft and GitHub feature branches", "production decision"]
         requirements: [TZ-15]
         forks: [hosting.sourcecraft]
         operator_gate: true
+        note: "Production, rollback, public UI and both named feature branches passed at 96550ff; independent Astra verification found no P0/P1/P2 and GOAL g-277a6c4d68e2 is VERIFIED 5/5."
 
 wave_routing:
   CONTINUE: proceed within phase

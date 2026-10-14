@@ -260,7 +260,7 @@ requirements:
     title: Public repo (GitHub mirror) with README Docker + dependencies
     priority: P1
     owner: release
-    state: tested
+    state: accepted
     wave: W5-release
     forks: [hosting.sourcecraft]
     acceptance: GitHub mirror without secrets; README deploy commands verified
@@ -268,6 +268,8 @@ requirements:
       - https://github.com/Hanukashats/thin-signals
       - "Public default branch main verified at 0c1fdd37cd95da5013ef27237b3657637601cf32; original 45-commit history preserved without force-push or date rewrite"
       - reports/GITHUB_MIRROR_2026-10-12.md
+      - "SourceCraft and GitHub feat/thin-signals-reliability-20261012 plus VM232 matched independently reviewed code SHA 96550ff131ad9852d85ae2470e79799d86d6e0b5"
+      - reports/ASTRA_RELEASE_VERIFICATION_96550FF_2026-10-14.md
 
   - id: TZ-16
     title: Intermediate vs final submission distinction
@@ -574,7 +576,7 @@ requirements:
     title: Bounded GPT Researcher and OpenAlex evidence adapter
     priority: P1
     owner: research/backend
-    state: tested
+    state: accepted
     wave: W10-research-adapter
     acceptance: >
       product invokes local GPT Researcher through its verified synchronous API
@@ -632,7 +634,7 @@ requirements:
     title: Evidence-gated researcher critic defender methodology
     priority: P1
     owner: AI/domain
-    state: tested
+    state: accepted
     wave: W11-adversarial-eval
     forks: [adversarial.review]
     acceptance: >
@@ -659,6 +661,7 @@ requirements:
       - ts/tests/test_review_runner.py
       - ts/tests/test_review_integration.py::test_candidate_provider_falls_back_to_revalidated_source_snapshot
       - ts/tests/test_review_integration.py::test_candidate_provider_can_challenge_snippets_but_never_attests_them
+      - ts/tests/test_review_integration.py::test_doi_only_documents_do_not_become_independent_review_origins
       - ts/tests/test_review_persistence.py
       - ts/tests/test_review_integration.py
       - data/review_eval_v1.json
@@ -667,6 +670,7 @@ requirements:
       - reports/eval/review-2026-10-13/report.md
       - reports/ASTRA_WAVE4_AUDIT_74445DE_2026-10-13.md
       - reports/ASTRA_WAVE4_REAUDIT_26B4E8D_2026-10-13.md
+      - reports/ASTRA_RELEASE_VERIFICATION_96550FF_2026-10-14.md
       - ts/tests/test_scorer.py
       - ts/tests/test_llm.py::test_registry_slow_stream_is_abandoned_at_absolute_deadline
       - ts/tests/test_llm.py::test_completion_slow_stream_is_abandoned_at_absolute_deadline

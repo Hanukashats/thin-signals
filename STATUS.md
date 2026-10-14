@@ -255,7 +255,7 @@ containers, so live search no longer depends on backend VM101. Receipt:
 - Logout now clears the complete Streamlit session instead of retaining another
   user's filters, selections and draft query fields. The regression was RED
   before the fix and passes after it.
-- UI saved-result recovery hotfix is tested, pending release verification: a failed initial load remains retryable in the same session; «Загрузить последний результат» reloads saved cards without starting a search; Potential displays loading issues; unloaded Signals no longer claim a completed empty search. Existing cards survive reload failure, and successful load/logout clears stale warnings. Eight deterministic AppTest cases cover these transitions (seven RED before the fix); scoped 15/15 and safe non-database suite 227/227 pass, with four database integration tests deliberately not run for this UI-only patch. No API, schema, scoring or stored-run changes.
+- UI saved-result recovery hotfix is included in the independently verified reliability release: a failed initial load remains retryable in the same session; «Загрузить последний результат» reloads saved cards without starting a search; Potential displays loading issues; unloaded Signals no longer claim a completed empty search. Existing cards survive reload failure, and successful load/logout clears stale warnings. Eight deterministic AppTest cases cover these transitions (seven RED before the fix); no API, schema, scoring or stored-run changes.
 - Evidence-link and LLM-policy RED/GREEN tests reproduce the defects then pass after the fix.
 - UI view-model tests prove a `watchlist` card is never grouped as a weak signal.
 - Run integrity warns about checklist drift, missing provider and missing independent evidence.
@@ -269,7 +269,8 @@ containers, so live search no longer depends on backend VM101. Receipt:
 - Public GitHub `Hanukashats/thin-signals` is verified with default branch
   `main` at exact historical commit `0c1fdd37cd95`; no force-push or timestamp
   rewrite was used. The 45-commit reachable history passed a bounded secret
-  pattern scan before publication, and the pre-push gate passed all 234 tests.
+  pattern scan before publication. The reliability feature branch is mirrored
+  from SourceCraft and independently verified at code SHA `96550ff`.
 
 ## Open audit findings
 
@@ -294,10 +295,10 @@ containers, so live search no longer depends on backend VM101. Receipt:
    search titles cannot enter a verified quotation. Frozen replay and production
    canaries pass; saved historical runs remain immutable.
 7. **Release state:** bounded search, timings, safe funnel and configuration
-   fingerprint are deployed on the reliability branch. The complete suite and
-   production canaries pass; final mirror equality and independent frozen-SHA
-   verification are tracked by the active release GOAL. Full historical finding:
-   `reports/LOGIC_AUDIT_2026-10-12.md`.
+   fingerprint are deployed on the reliability branch. The 465-test suite,
+   production canaries, rollback, mirror equality and independent frozen-SHA
+   verification pass. Release GOAL `g-277a6c4d68e2` is `VERIFIED` 5/5. Full
+   receipt: `reports/RELEASE_RELIABILITY_2026-10-14.md`.
 8. **Bounded-worker residue:** Python cannot forcibly stop an already running
    thread. Late results are rejected and HTTP calls inherit a remaining-time
    timeout, but a misbehaving connector may finish in the background. Keep the
@@ -312,9 +313,9 @@ containers, so live search no longer depends on backend VM101. Receipt:
 - tested: `TZ-04`, `TZ-06`, `LLM-01`, `SC-12`, `TS-INV-02`, `TS-INV-03`
 - implemented: `LP-01…07`, `DN-01`, `RM-01`, `TZ-03`, `TZ-07`, `SC-06`, `SC-07`, `RS-01`
 - tested: `RS-02`, `RS-03`, `RS-04`, `RS-06`
-- tested and production-canary verified: `RS-05`, `AR-01`
+- accepted after production canary and independent verification: `RS-05`, `AR-01`
 - implemented: `TZ-14` (15-slide editable PPTX/PDF and complete render/visual checks; personal team fields still require factual input)
-- tested: `TZ-15` (public GitHub default branch resolves to exact delivery SHA)
+- accepted: `TZ-15` (secret-free GitHub mirror and Docker quick-deploy verified)
 - removed to lineage: `SC-01`, `SC-04`, `SC-05`, `SC-08`, `SC-10`, `TS-AG-01…16`, `TS-AG-18`
 
 ## Hosts
@@ -332,14 +333,11 @@ containers, so live search no longer depends on backend VM101. Receipt:
 
 ## Next trigger
 
-1. Independently re-verify the remediated Wave 4 candidate, including the
-   attested critical-claim gate, exact verdicts, executed role-unavailability
-   ablations, replacement/mixed-action ordering and invalid 170-row replay behavior.
-2. Deploy it first with the review
-   flag off, run the production canary, then publish the same SHA to SourceCraft
-   and GitHub feature branches.
-3. Fill the factual personal team fields in slides 2–4 before external submission;
+1. Fill the factual personal team fields in slides 2–4 before external submission;
    observe a real-account authenticated production smoke when an authorized
    existing session is available. No accounts were read or changed for this release.
-4. Continue separate versioned work for durable ledger population, bounded
-   retrieval and score monotonicity; none may be hidden inside a recovery-only change.
+2. Continue separate versioned work for durable ledger population,
+   `rules-0.2` promotion and model-provider reliability. These are post-release
+   changes and may not be hidden inside the verified recovery release.
+3. Complete the separate NetBird peer enrollment and access-policy project;
+   it is not a Thin Signals release dependency.

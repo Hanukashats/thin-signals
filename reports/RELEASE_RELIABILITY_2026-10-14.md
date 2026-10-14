@@ -1,6 +1,6 @@
 # Thin Signals 7.8 reliability release — 2026-10-14
 
-Status: **production canary and mirrors PASS; independent re-verification pending**
+Status: **FINAL PASS — production, mirrors and independent verification complete**
 
 This receipt covers the reliability branch
 `feat/thin-signals-reliability-20261012`. Git author and committer timestamps
@@ -54,8 +54,8 @@ historical delivery metadata; no commit history was rewritten.
 - The first independent frozen-SHA audit rejected `4074e51` because missing
   organization IDs incorrectly fell back to DOI document identities. The
   fallback is removed and a regression now proves DOI-only evidence remains
-  unknown and `HOLD`; the remediated suite is **465 passed**. A fresh frozen-SHA
-  verdict is still required before this receipt can become final.
+  unknown and `HOLD`; the remediated suite is **465 passed**. Independent
+  re-verification of `96550ff` found no scoped P0/P1/P2 issue and accepted C05.
 - Ruff: PASS for maintained runtime/test/operations/presentation paths (`ts`,
   `ui`, `scripts`, `docs/presentation`). Frozen lineage and donor copies are
   preserved byte-for-byte and are not reformatted as current code.
@@ -69,6 +69,14 @@ historical delivery metadata; no commit history was rewritten.
 - The application image pre-promotion scan reported zero fixable HIGH or
   CRITICAL runtime findings. Research containers keep capability, PID, CPU,
   memory and bounded-log restrictions.
+- SourceCraft, GitHub and VM232 resolved to the same reviewed code SHA
+  `96550ff131ad9852d85ae2470e79799d86d6e0b5`, with real Git timestamps and
+  preserved ancestry. GOAL `g-277a6c4d68e2` is independently `VERIFIED`, 5/5
+  PASS. Full evidence is in
+  `reports/ASTRA_RELEASE_VERIFICATION_96550FF_2026-10-14.md`.
+- The Thin Signals GOAL inventory has no open card: seven current cards are
+  `VERIFIED`; four historical/superseded cards are terminal `STOPPED` rather
+  than being falsely certified against the replacement architecture.
 
 ## Production canaries
 
@@ -86,6 +94,10 @@ researcher, critic, defender and control critic successfully. This distinguishes
 provider variability from a broken role contract while preserving fail-closed
 behavior.
 
+The preceding repeat `3a44750c6fc6d25e` independently retrieved the same 49
+sources and the same 2 admitted + 5 potential + 8 near-miss split. Its provider
+failures also produced `HOLD`; the repeated search did not pad the result.
+
 ### Wide mission query
 
 Run `c1ffe5d3282324d4`, Russian 13-theme mission:
@@ -101,6 +113,19 @@ Run `c1ffe5d3282324d4`, Russian 13-theme mission:
 This is an honest nine rather than a padded ten: the release does not lower
 scientific gates to fill a quota. Together with the separate potential and
 near-miss queues, the narrow canary exposes 15 reviewable candidates.
+
+### Additional wide retrieval query
+
+Run `1ac434110b0270a7`, English cross-industry discovery query:
+
+- 694 source records and all 13 planned themes executed;
+- **8 evidence-gated candidates** admitted, with no deadline-skipped theme;
+- the model review failed closed as `HOLD` on invalid role output.
+
+This second broad run is retrieval/yield evidence, not promotion evidence. It
+was saved before the final origin correction; the correction does not change
+retrieval or scoring and was separately verified by the deterministic origin
+differential and the 465-test suite.
 
 ## Runtime state
 
