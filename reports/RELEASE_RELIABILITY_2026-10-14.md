@@ -74,9 +74,14 @@ historical delivery metadata; no commit history was rewritten.
   preserved ancestry. GOAL `g-277a6c4d68e2` is independently `VERIFIED`, 5/5
   PASS. Full evidence is in
   `reports/ASTRA_RELEASE_VERIFICATION_96550FF_2026-10-14.md`.
-- The Thin Signals GOAL inventory has no open card: seven current cards are
-  `VERIFIED`; four historical/superseded cards are terminal `STOPPED` rather
-  than being falsely certified against the replacement architecture.
+- Within the product's GOAL cards (`project=thin-signals` plus four legacy
+  untagged goals whose objective begins with `Thin Signals`), there is no open
+  card. Seven project-tagged cards are `VERIFIED` and four historical or
+  superseded cards are `STOPPED`; among the four untagged cards, three are
+  `VERIFIED` and legacy HANDOFF `g-2a54ff75ca41` is `STOPPED` as superseded
+  rather than being falsely certified against the replacement architecture.
+  Total: ten `VERIFIED`, five `STOPPED`, zero open. The separately scoped
+  `netbird-mesh-v2` GOAL remains in progress and is not a release dependency.
 
 ## Production canaries
 
