@@ -243,26 +243,26 @@ phases:
     goal: Make retrieval truthful, bounded and evidence-gated before activating role review
     waves:
       - id: W9-run-contract
-        status: in_progress
+        status: completed
         owner: backend
         deliverables: ["versioned run status", "truthful latest-run API", "countersearch failure gate", "trust regression"]
         requirements: [RS-02, RS-03, RS-04]
         forks: []
       - id: W10-research-adapter
-        status: in_progress
+        status: completed
         owner: research/backend
         deliverables: ["bounded GPT Researcher adapter", "OpenAlex evidence enrichment", "blob-attested provenance snapshots", "hard global deadline", "retrieval-0.4 plan-aware fingerprint and DNS-pinned refetch", "conflict-aware DOI/Work/URL-alias safe funnel with retained child exclusions"]
         requirements: [RS-05, RS-06]
         forks: [runtime.adapter]
       - id: W11-adversarial-eval
-        status: in_progress
+        status: completed
         owner: AI/evaluation
         deliverables: ["rules-0.2 monotonic scorer candidate", "typed role contracts", "frozen replay", "holdout", "ablation", "latency/token/cost report", "qualified-signal count"]
         requirements: [AR-01, TZ-01, TZ-02]
         forks: [adversarial.review]
-        note: "Two Astra passes rejected provenance/control binding, replacement-claim safety and faithful ablations. The current arbiter 0.2 remediation binds exact rebuttal evidence, rejects unknown/noncritical replacements and preserves scenario failures; fresh independent verification and optional qualified-signal canary remain open."
+        note: "Astra's staged findings were remediated. Frozen replay/holdout and role-failure ablations pass; a production wide canary completed every role and safely held on insufficient origin diversity. rules-0.2 remains evaluation-only."
       - id: W12-release
-        status: planned
+        status: in_progress
         owner: release/infra
         autonomy: A3
         deliverables: ["backup/snapshot", "canary", "rollback proof", "SourceCraft and GitHub feature branches", "production decision"]

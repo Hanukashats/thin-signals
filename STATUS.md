@@ -1,6 +1,6 @@
 # STATUS.md — Thin Signals LivingSet
 
-Delivery package deadline: **2026-09-29 23:59 MSK** · Plan revision: **7.8** (parent 7.7) · Reliability work performed: **2026-10-12…13**
+Delivery package deadline: **2026-09-29 23:59 MSK** · Plan revision: **7.8** (parent 7.7) · Reliability work performed: **2026-10-12…14**
 
 Delivery verified: production runs the released three-module UI, including the
 `86b6840` caption and finalized typography/presentation. The replacement package
@@ -19,13 +19,25 @@ the immediately preceding equivalent staging's **8m51s**. Old pre-checklist
 production duration is unknown; search breadth/depth/thresholds were not weakened.
 See `reports/SEARCH_TIMING_2026-09-29.md`.
 
+Current 7.8 release state (2026-10-14): the reliability branch is deployed on
+VM232, the bounded adversarial review is enabled through its versioned systemd
+drop-in, and its exact drop-in rollback has been rehearsed. A wide production
+canary read 733 sources and returned nine evidence-gated technology candidates;
+researcher, critic, defender, control critic and deterministic arbiter all
+completed. The safe `HOLD` verdict was due to insufficient independent origins,
+not a role or infrastructure failure. Narrow production canaries expose 15
+reviewable rows (2 admitted, 5 potential and 8 near misses) without weakening
+`rules-0.1`. The complete disposable-database suite is **464 passed**; scoped
+Ruff and LivingSet checks pass. Release evidence is in
+`reports/RELEASE_RELIABILITY_2026-10-14.md`.
+
 7.8 continuation: evidence and provider boundaries are hardened without changing `rules-0.1`, weights, thresholds or P01–P18. `checklist-v19` validates reader structure and positive/counter evidence roles; only a blob-backed, SHA-256-attested primary fragment can remain `verified`, while snippets, missing/corrupt snapshots and non-primary text are capped to `supported`. Off-topic rejection precedes below-watchlist return. Mandatory OpenRouter ZDR fields cannot be weakened; returned model and cached response provenance are checked. Three modules share the evidence-first shell: live signals, a separate potential queue over current scored observations, and search over the sealed 29.09 old-technology archive. Facts/hypotheses/checks/sources and run provenance stay separate. Figma v4 is node `41:178`; transparent logo/favicon are versioned. API/UI run as persistent DynamicUser units, active and enabled.
 
-The bounded researcher/critic/defender/control-critic round is implemented behind
-`TS_ADVERSARIAL_REVIEW_ENABLED=false`. It uses equal role budgets, a deterministic
+The bounded researcher/critic/defender/control-critic round is implemented with
+a versioned, independently reversible production activation. It uses equal role budgets, a deterministic
 fail-closed arbiter and an append-only PostgreSQL review ledger. Narrow and wide
 product integration, disabled/no-call behavior, replay, failure HOLD, persistence
-and safe public traces pass the complete 407-test suite on a disposable database.
+and safe public traces pass the complete 464-test suite on a disposable database.
 Enabled runs reserve their identity durably before role spend under a PostgreSQL
 session lock pinned to the same connection as its writes: concurrent processes
 wait for one canonical result without exhausting the pool, while process death or
@@ -41,9 +53,9 @@ Evaluation and production activation remain separate gates.
 The first bounded production canary correctly failed closed when live models
 rewrote or cross-linked citation IDs. `adversarial-review-0.2` now constrains
 structured decoding to current-round identifiers and supplies exact defender and
-control-critic reference bindings. Its focused suite passes, and the complete
-suite is **449 passed** on a new migrated disposable PostgreSQL database. A fresh
-live canary and independent release verification are still pending.
+control-critic reference bindings. Its focused suite passes. Later live diagnostics
+and the wide production canary completed every role successfully; malformed
+provider output still fails closed rather than changing a decision.
 An additional live run exposed an empty checklist-cited bundle on an otherwise
 admitted card. `review-integration-0.3` now revalidates preserved source
 snapshots and supplies remaining discovery snippets only as `snippet_only`;
@@ -117,13 +129,13 @@ containers, so live search no longer depends on backend VM101. Receipt:
 |---|---|
 | Host of record | Home-PVE VM232 `/opt/thin-signals` (`agent`) |
 | Phase | **P3 LivePath / P4 AnalystUI / P6 recovery** |
-| W3-live | **in_progress** — live search exists; honest scored TOP-15 and durable per-step ledger remain incomplete |
-| W4-ui | **in_progress, deployed shell and verified typography** — three modules live; real-account authenticated production smoke remains unobserved |
+| W3-live | **deployed** — bounded live search, potential/near-miss queues and append-only review ledger are active; historical step-ledger backfill remains separate backlog |
+| W4-ui | **deployed and verified** — three modules, production login, desktop/mobile overflow and browser smoke passed |
 | Rules | `rules-0.1`, unchanged |
-| Checklist | branch `checklist-v24` + `technology-candidate-0.1`; production remains unchanged; old persisted rows remain historical and are excluded from the active potential queue |
+| Checklist | deployed `checklist-v24` + `technology-candidate-0.1`; old persisted rows remain historical and are excluded from the active potential queue |
 | Production delivery | VM232 public; PostgreSQL/API/UI/sing-box/research services active+enabled; SearXNG patch upgrade and controlled container restart recovered automatically |
-| Canonical Git | private SourceCraft `shats123/thin-signals`; public GitHub delivery snapshot `Hanukashats/thin-signals`, `main=0c1fdd3` verified |
-| Reliability branch | `feat/thin-signals-reliability-20261012`; not deployed; real Git timestamps retained |
+| Canonical Git | private SourceCraft `shats123/thin-signals`; public GitHub mirror `Hanukashats/thin-signals`; historical `main=0c1fdd3` retained |
+| Reliability branch | `feat/thin-signals-reliability-20261012`; deployed on VM232; real Git timestamps retained |
 
 ## Verified in this increment
 
@@ -221,10 +233,12 @@ containers, so live search no longer depends on backend VM101. Receipt:
 - The historical VM231 recovery checkpoint preserved four PVE snapshots, a
   checksum-recorded PostgreSQL 16 backup and 148/148 restored runs; VM231 is no
   longer present in the live inventory and that receipt is retained as lineage.
-- VM232 owns pinned SearXNG `2026.10.11-ad46ebd7d` at exact amd64 digest
-  `sha256:00ad29bb7d72d896ac3b3ff8b252d9ad9939da3e014828934363c61dba9b7e09`
-  and GPT Researcher v3.7.0 built from commit `0957c301`. The SearXNG upgrade
-  passed an isolated canary, Trivy HIGH/CRITICAL gate, direct JSON/connector
+- VM232 owns pinned SearXNG `2026.10.13-22c64b8d3` at exact amd64 digest
+  `sha256:70f100d04af1ac841d59ffc1b6354e9e264c161ae47d5251be4e598013386065`
+  and GPT Researcher v3.7.0 built from commit `0957c301`. On 2026-10-13 the
+  official SearXNG `latest` amd64 manifest resolved to that same digest and the
+  latest stable GPT Researcher release still resolved to v3.7.0. The SearXNG
+  updates passed an isolated canary, Trivy HIGH/CRITICAL gate, direct JSON/connector
   tests and controlled restart; GPT Researcher was not recreated. Both remain
   loopback-only, and API/UI/public health stayed HTTP 200.
 - GPT Researcher live canary completed in 80.76 s, discovered 14 unique source
@@ -266,28 +280,24 @@ containers, so live search no longer depends on backend VM101. Receipt:
    and canary are still required before production activation.
 2. **Persistence:** canonical step/evidence ledgers are not fully populated for existing live runs; JSON payloads are not a substitute for the intended durable ledger.
 3. **Research integration:** GPT Researcher and SearXNG work together inside the
-   research service. The Thin Signals adapter and preserved-source boundary are
-   implemented and tested behind `TS_GPT_RESEARCHER_ENABLED=false`; it remains
-   inactive until frozen replay/canary and the complete release candidate are
-   independently accepted. OpenAlex enrichment is implemented on the branch but
-   not deployed.
+   research service. The bounded Thin Signals adapter, preserved-source boundary
+   and typed OpenAlex enrichment are deployed. Generated prose remains advisory;
+   only refetched and validated evidence can affect a card.
 4. **Research scope:** New Life is a reproducible archive search, not new live web research. Its 15 hypotheses have no completed commercial/legal diligence.
 5. **Build-only dependencies:** the 2026-10-12 Trivy scan reports 13 HIGH and
    6 MEDIUM findings in presentation-only pins `Pillow==11.3.0` and
    `fonttools==4.60.0`. They are not imported by the API/UI runtime; update them
    in a separately reviewed presentation rebuild rather than silently changing
    the sealed delivery package.
-6. **Evidence provenance release gate:** bounded source snapshots and
-   `checklist-v24` are implemented and tested on the branch. Attested evidence
-   contains only canonical snapshot text; mutable search titles cannot enter a
-   verified quotation. A frozen replay and
-   canary must measure coverage/latency before production activation; saved
-   historical runs remain immutable.
+6. **Evidence provenance:** bounded source snapshots and `checklist-v24` are
+   deployed. Attested evidence contains only canonical snapshot text; mutable
+   search titles cannot enter a verified quotation. Frozen replay and production
+   canaries pass; saved historical runs remain immutable.
 7. **Release state:** bounded search, timings, safe funnel and configuration
-   fingerprint are implemented and tested on the reliability branch. Astra
-   independently verified baseline SHA `5798a4f` after 285 tests on a fresh
-   migrated database. W10 continues in later commits and is not deployed.
-   Full original finding: `reports/LOGIC_AUDIT_2026-10-12.md`.
+   fingerprint are deployed on the reliability branch. The complete suite and
+   production canaries pass; final mirror equality and independent frozen-SHA
+   verification are tracked by the active release GOAL. Full historical finding:
+   `reports/LOGIC_AUDIT_2026-10-12.md`.
 8. **Bounded-worker residue:** Python cannot forcibly stop an already running
    thread. Late results are rejected and HTTP calls inherit a remaining-time
    timeout, but a misbehaving connector may finish in the background. Keep the
@@ -302,7 +312,7 @@ containers, so live search no longer depends on backend VM101. Receipt:
 - tested: `TZ-04`, `TZ-06`, `LLM-01`, `SC-12`, `TS-INV-02`, `TS-INV-03`
 - implemented: `LP-01…07`, `DN-01`, `RM-01`, `TZ-03`, `TZ-07`, `SC-06`, `SC-07`, `RS-01`
 - tested: `RS-02`, `RS-03`, `RS-04`, `RS-06`
-- in progress and feature-off: `RS-05`; tested and feature-off: `AR-01` (independent review and canary pending)
+- tested and production-canary verified: `RS-05`, `AR-01`
 - implemented: `TZ-14` (15-slide editable PPTX/PDF and complete render/visual checks; personal team fields still require factual input)
 - tested: `TZ-15` (public GitHub default branch resolves to exact delivery SHA)
 - removed to lineage: `SC-01`, `SC-04`, `SC-05`, `SC-08`, `SC-10`, `TS-AG-01…16`, `TS-AG-18`

@@ -20,10 +20,16 @@ does not publish a database, dashboard, or model credential to the internet.
 ## First start
 
 ```bash
-git clone https://git.sourcecraft.dev/shats123/thin-signals.git
+git clone --branch feat/thin-signals-reliability-20261012 --single-branch \
+  https://git.sourcecraft.dev/shats123/thin-signals.git
 cd thin-signals
 scripts/docker-quickstart.sh up
 ```
+
+The same named branch is mirrored publicly at
+`https://github.com/Hanukashats/thin-signals`. The historical `main` branch is
+retained without rewritten commits, so a default-branch clone is not the 7.8
+reliability release.
 
 The script asks once for the OpenRouter key and an initial UI administrator
 password. It creates only mode-`0600` files under `.secrets/`, builds GPT

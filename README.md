@@ -9,7 +9,9 @@
 ## Быстрый запуск полного сервиса в Docker
 
 ```bash
-git clone https://git.sourcecraft.dev/shats123/thin-signals.git && cd thin-signals
+git clone --branch feat/thin-signals-reliability-20261012 --single-branch \
+  https://git.sourcecraft.dev/shats123/thin-signals.git
+cd thin-signals
 scripts/docker-quickstart.sh up
 ```
 
@@ -22,7 +24,9 @@ SearXNG и GPT Researcher. Секреты не попадают ни в Git, н�
 ## Быстрый старт (разработка)
 
 ```bash
-git clone https://git.sourcecraft.dev/shats123/thin-signals.git && cd thin-signals
+git clone --branch feat/thin-signals-reliability-20261012 --single-branch \
+  https://git.sourcecraft.dev/shats123/thin-signals.git
+cd thin-signals
 python3 -m venv .venv && .venv/bin/pip install -e '.[dev]'
 .venv/bin/python -m pytest -q
 mkdir -p .secrets && tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32 > .secrets/pg_password
