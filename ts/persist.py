@@ -6,7 +6,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from sqlalchemy import select
+from sqlalchemy import select, text
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
 from ts.db.models import Candidate, Decision, Run
@@ -14,25 +15,24 @@ from ts.harness import RunReport
 from ts.nearest import build_nearest
 
 
-def save_report(session: Session, report: RunReport) -> str:
+def save_report(session: Session, report: RunReport, *, publish: bool = False) -> str:
+    # Serialize same-intent saves, including a concurrent explicit cached replay.
+    session.execute(text("SELECT pg_advisory_xact_lock(hashtextextended(:key, 0))"),
+                    {"key": report.idempotency_key})
     existing = session.scalar(select(Run).where(Run.idempotency_key == report.idempotency_key))
     if existing is not None:
+        if publish:
+            from ts.workspace import publish_run
+            publish_run(session, existing.id)
+        session.commit()
         return existing.id
-    candidate = session.scalar(
-        select(Candidate).where(Candidate.origin == "live", Candidate.technology == report.query)
-    )
-    if candidate is None:
-        candidate_id = f"live-{report.id}"
-        session.add(Candidate(
-            id=candidate_id,
-            technology=report.query,
-            origin="live",
-            status="live",
-            source_urls=[s["url"] for s in report.sources],
-        ))
-        session.flush()
-    else:
-        candidate_id = candidate.id
+    session.execute(insert(Candidate).values(
+        id=f"live-{report.id}", technology=report.query, origin="live", status="live",
+        source_urls=[s["url"] for s in report.sources],
+    ).on_conflict_do_nothing(index_elements=[Candidate.origin, Candidate.technology]))
+    candidate_id = session.scalar(select(Candidate.id).where(
+        Candidate.origin == "live", Candidate.technology == report.query,
+    ))
     session.add(Run(
         id=report.id,
         query=report.query,
@@ -58,22 +58,17 @@ def save_report(session: Session, report: RunReport) -> str:
         reason_codes=report.card["reason_codes"],
         predictors=report.card["predictors"],
     ))
+    if publish:
+        from ts.workspace import publish_run
+        publish_run(session, report.id)
     session.commit()
     return report.id
 
 
 def latest_succeeded(session: Session) -> dict | None:
-    """Newest finished run, for the viewer. Does not score."""
-    row = session.scalar(
-        select(Run).where(Run.status == "succeeded").order_by(Run.finished_at.desc(), Run.created_at.desc())
-    )
-    if row is None:
-        return None
-    stats = dict(row.stats or {})
-    stats.setdefault("run_id", row.id)
-    stats.setdefault("run_status", row.status)
-    stats.setdefault("query", row.query)
-    return stats
+    """Compatibility endpoint for the shared, explicitly published result."""
+    from ts.workspace import load_workspace
+    return load_workspace(session)["run"]
 
 
 def load_report(session: Session, idempotency_key: str) -> dict | None:
@@ -107,6 +102,12 @@ def public_report(report: RunReport) -> dict:
         "model_id": report.model_id,
         "provider": report.provider,
         "rules_version": report.card["rules_version"],
+        "corpus_version": report.corpus_version,
+        "search_health": {
+            f"{name}_ok": sum(step.get("name") == name and step.get("status") == "ok"
+                              for step in report.steps)
+            for name in ("search", "countersearch")
+        },
         "chain_link": report.card.get("chain_link"),
         "fanout": report.fanout,
         "decision_scope": "first_admitted_card" if report.top else "run_empty",

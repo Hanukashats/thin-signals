@@ -1,5 +1,23 @@
 # CONTINUATION POINT — verified delivery package 2026-09-29
 
+## Latest workspace continuation
+
+Pending branch now advances to LivingSet 7.8 and is rebased onto released
+`e53cf95`. The 7.7 shared-workspace candidate is retained; 7.8 adds a browser-local
+demo ledger, network-free reset/example selection and explicit replay disclosure.
+Full isolated product suite: 259 passed. No new live search, commit or production
+deployment in this increment. Demo independent desktop/mobile acceptance remains
+pending. See `docs/plan/PLAN_7.8.md`; prior checkpoints below remain historical.
+
+Base 01668c1 is healthy on SourceCraft and production; four pre-existing
+untracked evidence paths remain untouched. The isolated implementation branch
+adds ADR-010: one PostgreSQL pointer restores all three modules. Current run
+8a6c40db48148710 has 2 watchlist / 2 potential; New Life has 15 archive cards.
+The existing latest-run query incorrectly includes internal fanout children.
+Archive filters currently disappear with the browser session. TDD precedes
+implementation; an isolated database is used. Independent acceptance, backup,
+deployment and live restart verification are still pending for this increment.
+
 ## Verified delivery continuation
 
 - SourceCraft/writer/production shared the verified product delivery, including

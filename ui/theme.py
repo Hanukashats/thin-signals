@@ -224,6 +224,21 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 a { color: var(--ts-action) !important; }
 hr { border-color: var(--ts-border); }
 #MainMenu, footer { visibility: hidden; }
+.ts-demo-ledger {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 1.5rem;
+  padding: 1.1rem 1.4rem;
+  margin-top: 1rem;
+  border-left: 3px solid var(--ts-action);
+  border-top: 1px solid var(--ts-border);
+  border-bottom: 1px solid var(--ts-border);
+  background: var(--ts-rail);
+  overflow-wrap: anywhere;
+}
+.ts-demo-ledger h2 { font-size: 1.45rem; margin: 0 0 .5rem; }
+.ts-demo-ledger p { margin: 0; line-height: 1.5; font-variant-numeric: tabular-nums; }
+.ts-demo-ledger__status { align-self: center; color: var(--ts-secondary); max-width: 70ch; }
 
 @media (max-width: 1180px) {
   .block-container { max-width: 100%; padding-left: 1.5rem; padding-right: 1.5rem; }
@@ -236,6 +251,7 @@ hr { border-color: var(--ts-border); }
 }
 
 @media (max-width: 700px) {
+  .ts-demo-ledger { grid-template-columns: minmax(0, 1fr); gap: .7rem; padding: .9rem; overflow-wrap: anywhere; }
   .block-container { padding: 1rem 1rem 3rem; }
   .ts-brand { gap: 10px; grid-template-columns: 74px 1fr; padding: 8px 10px; }
   .ts-brand img { border-radius: 7px; height: 58px; width: 74px; }

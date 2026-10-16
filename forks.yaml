@@ -3,8 +3,8 @@
 # Choice classes: BEST_FIT | MINIMAL | ALTERNATIVE
 # operator_gate: true → Architect must not auto-decide; stop for human.
 
-plan_revision: "7.6"
-date: "2026-10-01"
+plan_revision: "7.8"
+date: "2026-09-29"  # delivery package date
 architect_policy:
   default_choice: BEST_FIT
   may_auto_decide: [open]

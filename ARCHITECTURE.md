@@ -1,6 +1,6 @@
 # ARCHITECTURE.md — Thin Signals
 
-Revision: **7.6** · Date: **2026-10-01** · Living contract
+Revision: **7.8** · Delivery package date: **2026-09-29** · Living contract
 Основа: ADR-009 (harness-first, сжатый стек, reuse VM101); контракт объектов: `docs/PROCESSING_CONTRACT.md`; методика: `docs/METHODOLOGY.md`.
 
 ## 1. Обзор
@@ -18,6 +18,20 @@ Revision: **7.6** · Date: **2026-10-01** · Living contract
 ```
 
 Один PostgreSQL 16 (+pgvector) — единственный источник истины фактов, runs и решений. Граф связей — таблицы `nodes`/`edges` в PG.
+
+ADR-010 добавляет singleton `workspace`: FK на завершённый Run и descriptor
+последнего архивного поиска. Run/Decision и публикация рабочего стола атомарны.
+Сохранение архива проверяет revision; чтение не пишет. Внутренние fanout-темы не
+публикуются. Возврат из кэша выбирает сохранённый Run без изменения его stats.
+`GET /v1/workspace/latest` возвращает три модуля одним snapshot;
+`POST /v1/workspace/archive` принимает query/families/expected_revision (409 при
+конфликте). Версии и hash архива проверяются без пересчёта научных решений.
+
+Демонстрационный сеанс живёт только в session_state: копия snapshot, различные
+открытые Run ID, число архивных отправок и notice происхождения. Reset и открытие
+примера не вызывают HTTP. Флаг repeated берётся из POST до GET проекции workspace.
+Обычный вход сохраняет автозагрузку; демо подавляет её до явного выбора. Черновики
+виджетов хранятся отдельно от временных ключей Streamlit и явно передаются клиенту.
 
 ## 2. Компоненты
 

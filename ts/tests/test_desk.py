@@ -435,7 +435,8 @@ def test_old_tech_board_is_archive_only():
     assert "Новая жизнь" in screen
     call = next(line for line in screen.splitlines() if "old_tech_board()" in line)
     assert call.strip() == "whole = old_tech_board()"
-    assert "old_tech_board(query=query)" in screen
+    assert "/v1/workspace/archive" in screen
+    assert "old_tech_board(query=query)" in (root / "ts/workspace.py").read_text(encoding="utf-8")
     assert screen.index("old_tech_board()") < screen.index("with st.sidebar:")
     assert "partner_review_ready" not in screen
     assert "Почему не квалифицирована" not in screen

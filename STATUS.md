@@ -1,6 +1,24 @@
 # STATUS.md — Thin Signals LivingSet
 
-Delivery package date: **2026-09-29** (operator reports organizer authorization) · Plan revision: **7.6** (parent 7.5)
+Delivery package date: **2026-09-29** (operator reports organizer authorization) · Plan revision: **7.8** (parent 7.7)
+
+7.8 candidate adds a browser-local demonstration ledger. Reset and opening the
+pinned saved example send no HTTP and change no scientific history. Distinct
+viewed Run IDs and explicit archive submissions have separate local counters;
+exact replay and possible lower-level cache reuse are disclosed. Before an
+archive search, total 15 remains visible while old matches are locally hidden.
+Ten regression cases were added (nine RED before implementation); the isolated
+PostgreSQL product suite passes 259 tests. Independent demo desktop/mobile review
+and production integration remain pending. No live demo search is claimed.
+
+7.7 candidate: ADR-010 adds a shared PostgreSQL workspace pointer. Parent run
+publication is atomic, internal themes and total retrieval failure cannot
+replace the last good result. Archive search is persisted with optimistic
+revision checks and pinned archive identity; card selection remains local.
+Backend independent review accepted the migration, concurrency and compatibility
+contract. Client hydration and draft-navigation regressions pass; production
+deployment and restart acceptance remain pending.
+The canonical rules/checklist and original Run.stats remain unchanged.
 
 Delivery verified: production runs the released three-module UI, including the
 `86b6840` caption and finalized typography/presentation. The replacement package

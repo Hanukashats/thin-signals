@@ -27,7 +27,9 @@ def saved_run(name="saved-card"):
 
 def response(payload):
     return httpx.Response(
-        200, json={"run": payload}, request=httpx.Request("GET", "http://saved.test/v1/runs/latest")
+        200,
+        json={"run": payload, "run_compatible": bool(payload), "issues": [], "revision": 1},
+        request=httpx.Request("GET", "http://saved.test/v1/workspace/latest"),
     )
 
 

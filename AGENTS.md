@@ -1,11 +1,11 @@
-# AGENTS.md — Thin Signals LivingSet v7.6
+# AGENTS.md — Thin Signals LivingSet v7.8
 
 Обязательно для любого агента (Cursor / Codex / Hermes), работающего в этом workspace.
 Вход при передаче: `00_START_HERE_HANDOFF_RU.md`.
 
 ## Канон
 
-- Норма: базовая архитектура 7.2 (ADR-009) с живыми продолжениями до revision **7.6**. Текущий план: `docs/plan/PLAN_7.6.md`.
+- Норма: базовая архитектура 7.2 (ADR-009) с живыми продолжениями до revision **7.8**. Текущий план: `docs/plan/PLAN_7.8.md`.
 - Архивы и `lineage_copies/` — доноры и история, не silent override.
 - Прочитать `STATUS.md` и открытые пункты `forks.yaml` перед изменениями.
 

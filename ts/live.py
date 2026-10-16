@@ -12,7 +12,7 @@ from ts.checklist import CHECKLIST_VERSION, annotate_checklist
 from ts.desk import near_miss_cards
 from ts.fanout import is_wide, load_theme_plan, merge_theme_reports
 from ts.harness import TOP_N, Harness, RunReport
-from ts.persist import load_report, public_report, save_report
+from ts.persist import load_report, save_report
 from ts.plain import REASONS, say
 from ts.potential import rank_potential_cards
 from ts.reach import annotate_reach
@@ -37,6 +37,7 @@ from ts.sources.connectors import (
     SearxConnector,
     SecConnector,
 )
+from ts.workspace import publish_run
 
 CORPUS = "live-w18"
 THEME_LOOKBACK_DAYS = 365
@@ -136,6 +137,10 @@ def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Se
     with factory() as session:
         stored = load_report(session, key)
     if stored is not None:
+        if not _theme:
+            with factory() as session:
+                publish_run(session, stored["run_id"])
+                session.commit()
         stored["repeated"] = True
         return stored
     report = Harness(
@@ -171,8 +176,8 @@ def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Se
                 report.unread,
             )
     with factory() as session:
-        save_report(session, report)
-    return public_report(report)
+        save_report(session, report, publish=not _theme)
+        return load_report(session, report.idempotency_key)
 
 
 def _run_wide(query, plan, *, limit, extract, settings, connectors, session_factory, day) -> dict:
@@ -184,15 +189,23 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
     with factory() as session:
         stored = load_report(session, key)
     if stored is not None:
+        with factory() as session:
+            publish_run(session, stored["run_id"])
+            session.commit()
         stored["repeated"] = True
         return stored
     parts = []
+    search_steps = []
     for theme in plan["themes"]:
         report = run_query(
             theme["query"], limit=limit, extract=extract, settings=settings,
             connectors=connectors, session_factory=session_factory, _theme=True, _day=day,
         )
         parts.append((theme, list(report.get("top") or [])))
+        health = report.get("search_health")
+        for name in ("search", "countersearch"):
+            ok = health.get(f"{name}_ok", 0) > 0 if isinstance(health, dict) else bool(report.get("sources"))
+            search_steps.append({"name": name, "status": "ok" if ok else "failed", "theme": theme["id"]})
     merged = merge_theme_reports(parts, limit=TOP_N)
     # A theme query is not the operator's question. As one, it marks cross-theme papers ДРУГОЙ_МЕХАНИЗМ.
     checked = annotate_checklist(merged["top"], merged["overflow"], settings, query=None)
@@ -220,6 +233,7 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
         idempotency_key=key,
         repeated=False,
         steps=[
+            *search_steps,
             {"name": "fanout", "status": "ok", "themes": len(plan["themes"])},
             {"name": "checklist", "status": "ok", **checked["stats"]},
         ],
@@ -243,8 +257,8 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
         },
     )
     with factory() as session:
-        save_report(session, report)
-    return public_report(report)
+        save_report(session, report, publish=True)
+        return load_report(session, report.idempotency_key)
 
 
 def default_connectors(s: Settings):

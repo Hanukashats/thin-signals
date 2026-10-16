@@ -28,7 +28,10 @@ def test_second_query_does_not_search_again(tmp_path, monkeypatch):
 
     monkeypatch.setattr(
         "ts.live.annotate_checklist",
-        lambda top, overflow, settings, query=None: {"top": top, "excluded": [], "overflow": overflow, "unread": [], "stats": {}},
+        lambda top, overflow, settings, query=None: {
+            "top": [{**card, "checklist": {"version": "checklist-v15"}} for card in top],
+            "excluded": [], "overflow": overflow, "unread": [], "stats": {},
+        },
     )
     hit = Hit("arxiv", "https://arxiv.org/abs/77", "Quiet cell repeat", "grant", "paper", published="2026-02-02", doi="10.9/quiet")
     src = Scripted("arxiv", [hit])

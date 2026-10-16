@@ -3,10 +3,21 @@ from __future__ import annotations
 
 import os
 import time
+from html import escape
 from pathlib import Path
 
 import httpx
 import streamlit as st
+from state import (
+    open_saved_example,
+    record_demo_archive,
+    record_demo_run,
+    remember_draft,
+    restore_workspace,
+    start_demo,
+    stop_demo,
+    sync_draft_widget,
+)
 from theme import FAVICON_PATH, apply_theme, brand_header
 from views import (
     old_tech_detail,
@@ -92,10 +103,7 @@ def require_login() -> None:
 def session_bar() -> None:
     st.write(f"Сейчас вошли как **{st.session_state['username']}**.")
     if st.button("Выйти"):
-        for key in (
-            "role", "username", "payload", "meta", "latest_checked", "latest_issue", "latest_loaded",
-        ):
-            st.session_state.pop(key, None)
+        st.session_state.clear()
         st.rerun()
 
 
@@ -104,36 +112,73 @@ def request_saved_reload() -> None:
 
 
 def load_latest_once() -> None:
-    """Load only a self-consistent saved run; never promote incompatible history."""
+    """Restore shared results without mutating them; failed reads remain retryable."""
+    pending = st.session_state.pop("pending_workspace", None)
+    if pending is not None:
+        kind = st.session_state.pop("pending_workspace_kind", "run")
+        if "demo_session" in st.session_state and kind == "archive":
+            record_demo_archive(st.session_state, pending)
+        else:
+            restore_workspace(st.session_state, pending)
+            response = st.session_state.pop("pending_run_response", None)
+            if response is not None:
+                record_demo_run(st.session_state, response)
+        return
+    if "demo_session" in st.session_state:
+        return
     if st.session_state.get("latest_checked"):
         return
     try:
-        response = httpx.get(f"{API}/v1/runs/latest", timeout=5)
+        response = httpx.get(f"{API}/v1/workspace/latest", timeout=5)
         response.raise_for_status()
-        latest = response.json().get("run")
+        latest = response.json()
     except (httpx.HTTPError, ValueError):
         st.session_state["latest_issue"] = (
             "Последний прогон сейчас недоступен. Нажмите «Загрузить последний результат», "
             "чтобы повторить загрузку сохранённых карточек."
         )
         return
-    st.session_state["latest_checked"] = True
-    st.session_state.pop("latest_issue", None)
-    if not latest:
+    restore_workspace(st.session_state, latest)
+
+
+def show_demo_ledger() -> None:
+    demo = st.session_state.get("demo_session")
+    counts = (
+        f'<p>Открыто результатов в этом показе: {len(demo["viewed_run_ids"])}<br>'
+        f'Поисков по архиву в этом показе: {demo["archive_submissions"]}</p>'
+        if demo is not None else '<p>Начните показ с чистого экрана, сохранив всю историю исследований.</p>'
+    )
+    status = ""
+    if demo is not None:
+        status = demo.get("notice") or "Результат ещё не выбран."
+    st.markdown(
+        '<section class="ts-demo-ledger" aria-label="Демонстрационный сеанс">'
+        '<div><h2>Демонстрационный сеанс</h2>' + counts + '</div>'
+        f'<p class="ts-demo-ledger__status">{escape(status)}</p></section>',
+        unsafe_allow_html=True,
+    )
+    if demo is None:
+        st.button("Начать новый показ", key="start_demo", on_click=start_demo, args=(st.session_state,))
         return
-    state = saved_run_state(latest)
-    if not state["safe_to_autoload"]:
-        st.session_state["latest_issue"] = state["message"]
-        return
-    st.session_state["payload"] = latest
-    st.session_state["meta"] = {
-        "direction": latest.get("query") or "",
-        "correction": "",
-        "start": "",
-        "end": "",
-    }
-    st.session_state.setdefault("direction_input", latest.get("query") or "")
-    st.session_state["latest_loaded"] = True
+    left, middle, right = st.columns([1.5, 1, 1])
+    with left:
+        st.button("Открыть сохранённый пример", key="open_saved_example", type="primary",
+                  on_click=open_saved_example, args=(st.session_state,), use_container_width=True)
+    with middle:
+        st.button("К новому поиску", key="demo_search", on_click=select_search, use_container_width=True)
+    with right:
+        st.button("Начать новый показ", key="start_demo", on_click=start_demo,
+                  args=(st.session_state,), use_container_width=True)
+    st.caption(
+        "Счётчики относятся к этому показу в браузере, а не к истории исследований. "
+        "История не исключает карточки из следующих поисков. Тот же точный текст запроса, "
+        "версии корпуса/чек-листа и правил в тот же UTC-день могут повторно открыть завершённый прогон."
+    )
+    st.button("Вернуться к рабочему столу", key="stop_demo", on_click=stop_demo, args=(st.session_state,))
+
+
+def select_search() -> None:
+    st.session_state["active_module"] = "Тонкие сигналы"
 
 
 def admin_panel() -> None:
@@ -166,31 +211,29 @@ def admin_panel() -> None:
 
 def submit_search() -> None:
     """Render module-one controls and replace state only after a valid response."""
+    sync_draft_widget(st.session_state, "direction_input", (st.session_state.get("payload") or {}).get("query", ""))
+    for key in ("correction_input", "period_start", "period_end"):
+        sync_draft_widget(st.session_state, key, "")
     st.markdown("### Новый прогон")
-    with st.form("thin-signals-search"):
-        direction = st.text_input(
-            "Направление",
-            help=field_help("direction"),
-            key="direction_input",
-        )
-        correction = st.text_input(
-            "Небольшая правка",
-            help=field_help("correction"),
-            key="correction_input",
-        )
-        start = st.text_input(
-            "Период с · контекст запроса",
-            placeholder="2026-01-01",
-            help=field_help("period"),
-            key="period_start",
-        )
-        end = st.text_input(
-            "Период по · контекст запроса",
-            placeholder="2026-09-29",
-            help=field_help("period"),
-            key="period_end",
-        )
-        launched = st.form_submit_button("Запустить поиск", type="primary", use_container_width=True)
+    direction = st.text_input(
+        "Направление", help=field_help("direction"), key="direction_input",
+        on_change=remember_draft, args=(st.session_state, "direction_input"),
+    )
+    correction = st.text_input(
+        "Небольшая правка", help=field_help("correction"), key="correction_input",
+        on_change=remember_draft, args=(st.session_state, "correction_input"),
+    )
+    start = st.text_input(
+        "Период с · контекст запроса", placeholder="2026-01-01",
+        help=field_help("period"), key="period_start",
+        on_change=remember_draft, args=(st.session_state, "period_start"),
+    )
+    end = st.text_input(
+        "Период по · контекст запроса", placeholder="2026-09-29",
+        help=field_help("period"), key="period_end",
+        on_change=remember_draft, args=(st.session_state, "period_end"),
+    )
+    launched = st.button("Запустить поиск", key="start_search", type="primary", use_container_width=True)
     if not launched:
         return
     try:
@@ -208,24 +251,34 @@ def submit_search() -> None:
             response.raise_for_status()
             payload = response.json()
     except (httpx.HTTPError, ValueError):
-        st.error("Прогон не завершён. Сохранённый результат не заменён.")
+        st.error(
+            "Ответ прогона не получен. Сервер мог продолжить работу. "
+            "Нажмите «Загрузить последний результат» перед повторным запуском."
+        )
         return
     state = saved_run_state(payload)
     if not state["safe_to_autoload"]:
         st.session_state["latest_issue"] = state["message"]
         st.warning(state["message"], icon="⚠️")
         return
-    st.session_state["payload"] = payload
-    st.session_state["meta"] = {
-        "direction": direction,
-        "correction": correction,
-        "start": start,
-        "end": end,
-    }
-    st.session_state["signal_selected"] = 0
-    st.session_state["potential_selected"] = 0
-    st.session_state.pop("latest_issue", None)
-    st.session_state.pop("latest_loaded", None)
+    # The workspace projection does not carry the POST replay flag.
+    record_demo_run(st.session_state, payload, viewed=False)
+    try:
+        response = httpx.get(f"{API}/v1/workspace/latest", timeout=5)
+        response.raise_for_status()
+        snapshot = response.json()
+    except (httpx.HTTPError, ValueError):
+        st.error("Результат получен, но сохранённый экран пока не загружен. Нажмите «Загрузить последний результат».")
+        return
+    if (snapshot.get("run") or {}).get("run_id") != payload.get("run_id"):
+        st.session_state["workspace_notice"] = (
+            "Новый ответ не заменил общий результат: проверьте доступность источников или более поздний прогон."
+        )
+        if "demo_session" in st.session_state:
+            st.session_state["workspace"] = snapshot
+            st.rerun()
+    st.session_state["pending_run_response"] = payload
+    st.session_state["pending_workspace"] = snapshot
     st.rerun()
 
 
@@ -277,8 +330,8 @@ def thin_signals_module() -> None:
     issue = st.session_state.get("latest_issue")
     if issue:
         st.warning(issue, icon="⚠️")
-    elif st.session_state.get("latest_loaded"):
-        st.info("Показан последний совместимый сохранённый прогон.")
+    elif st.session_state.get("latest_loaded") and "demo_session" not in st.session_state:
+        st.info("Показан последний завершённый сохранённый результат общего рабочего стола.")
     if payload:
         state = saved_run_state(payload)
         if not state["safe_to_autoload"]:
@@ -318,7 +371,10 @@ def thin_signals_module() -> None:
             selected = signal_list(story.get("cards") or [])
         else:
             st.markdown("### Рейтинг находок")
-            st.info("Сохранённый результат не загружен. Нажмите «Загрузить последний результат».")
+            if "demo_session" in st.session_state:
+                st.info("Результат ещё не выбран. Откройте сохранённый пример или запустите поиск слева.")
+            else:
+                st.info("Сохранённый результат не загружен. Нажмите «Загрузить последний результат».")
     with detail:
         if payload:
             signal_detail(selected, empty_chain=reasoning(payload))
@@ -379,47 +435,83 @@ def old_tech_module() -> None:
         "Старые технологии, чьи прежние ограничения могли быть сняты новыми материалами, "
         "вычислениями или производственными процессами."
     )
-    query = str(st.session_state.get("old_tech_query") or "")
-    chosen = list(st.session_state.get("old_tech_families") or [])
+    workspace = st.session_state.get("workspace") or {}
     whole = old_tech_board()
-    archive = old_tech_board(query=query)
-    cards = archive["cards"]
-    if chosen:
-        cards = [card for card in cards if card.get("family") in chosen]
-    selection_key = (query, tuple(chosen))
-    if st.session_state.get("old_selection_key") != selection_key:
-        st.session_state["old_selection_key"] = selection_key
-        st.session_state["old_selected"] = 0
+    archive = workspace.get("archive") or whole
+    demo = st.session_state.get("demo_session")
+    awaiting_demo_search = demo is not None and demo["archive_submissions"] == 0
+    if st.session_state.get("latest_issue"):
+        st.warning(st.session_state["latest_issue"])
+    cards = [] if awaiting_demo_search else archive["cards"]
+    sync_draft_widget(st.session_state, "old_tech_query", archive.get("query", ""))
+    sync_draft_widget(st.session_state, "old_tech_families", [
+        family for family in archive.get("families") or []
+        if family in {card["family"] for card in whole["cards"]}
+    ])
+    if awaiting_demo_search:
+        st.info("Поиск в этом показе ещё не выполнялся. В архиве доступны 15 исследовательских карточек.")
+    else:
+        st.caption(f"Сохранённый запрос: {archive.get('query') or 'весь архив'}.")
+    st.caption("Явный поиск сохраняется для всех пользователей; выбор карточки остаётся только у вас.")
     a, b, c, d = st.columns(4)
     a.metric("В архиве", whole["total"])
-    b.metric("Найдено", len(cards))
+    b.metric("Найдено", "—" if awaiting_demo_search else len(cards))
     c.metric("Полностью проверено", whole["fully_qualified_count"])
     d.metric("Срез", whole["as_of"])
     left, middle, detail = st.columns([1.05, 2.35, 2.8], gap="small")
     with left:
         st.markdown("### Поиск по архиву")
-        st.text_input(
-            "Технология, барьер, продукт или покупатель",
-            key="old_tech_query",
-        )
         families = sorted({card["family"] for card in whole["cards"] if card.get("family")})
-        st.multiselect("Области", families, key="old_tech_families")
+        query = st.text_input(
+            "Технология, барьер, продукт или покупатель", key="old_tech_query",
+            on_change=remember_draft, args=(st.session_state, "old_tech_query"),
+        )
+        chosen = st.multiselect(
+            "Области", families, key="old_tech_families",
+            on_change=remember_draft, args=(st.session_state, "old_tech_families"),
+        )
+        submitted = st.button("Найти и сохранить", key="save_archive", type="primary", use_container_width=True)
+        if submitted:
+            try:
+                response = httpx.post(f"{API}/v1/workspace/archive", json={
+                    "query": query, "families": chosen,
+                    "expected_revision": workspace.get("revision", 0),
+                }, timeout=10)
+                if response.status_code == 409:
+                    st.warning("Общий результат уже изменился. Обновите сохранённое и повторите поиск.")
+                else:
+                    response.raise_for_status()
+                    st.session_state["pending_workspace"] = response.json()
+                    st.session_state["pending_workspace_kind"] = "archive"
+                    st.rerun()
+            except (httpx.HTTPError, ValueError):
+                st.error("Подтверждение сохранения не получено. Обновите сохранённое перед повтором.")
         st.caption(whole["note"])
         st.info("Свежий веб-поиск здесь пока не заявлен готовым: сейчас ищем по проверяемому срезу.")
     with middle:
-        selected = old_tech_list(cards)
+        if awaiting_demo_search:
+            st.markdown("### Архивный рейтинг")
+            st.info("Результаты появятся после нажатия «Найти и сохранить».")
+        else:
+            selected = old_tech_list(cards)
     with detail:
-        old_tech_detail(selected)
+        if not awaiting_demo_search:
+            old_tech_detail(selected)
 
 
 require_login()
 load_latest_once()
-st.button(
-    "Загрузить последний результат",
-    key="reload_saved_run",
-    help="Повторно открыть сохранённый прогон без нового поиска.",
-    on_click=request_saved_reload,
-)
+show_demo_ledger()
+if "demo_session" not in st.session_state:
+    st.button(
+        "Загрузить последний результат",
+        key="reload_saved_run",
+        help="Повторно открыть сохранённый прогон без нового поиска.",
+        on_click=request_saved_reload,
+    )
+
+if st.session_state.get("workspace_notice"):
+    st.warning(st.session_state.pop("workspace_notice"))
 
 module = st.radio(
     "Модуль",

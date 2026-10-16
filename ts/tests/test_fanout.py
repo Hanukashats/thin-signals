@@ -150,7 +150,8 @@ def test_wide_query_searches_themes_and_a_repeat_does_not(monkeypatch):
     monkeypatch.setattr(
         "ts.live.annotate_checklist",
         lambda top, overflow, settings, query=None: order.append("checklist") or asked.append(query) or {
-            "top": top, "excluded": [], "overflow": overflow, "unread": [], "stats": {"read": 0},
+            "top": [{**card, "checklist": {"version": "checklist-v15"}} for card in top],
+            "excluded": [], "overflow": overflow, "unread": [], "stats": {"read": 0},
         },
     )
     monkeypatch.setattr(
@@ -238,7 +239,8 @@ def test_wide_run_is_fresh_each_utc_day_and_themes_ask_for_the_last_year(monkeyp
     monkeypatch.setattr(
         "ts.live.annotate_checklist",
         lambda top, overflow, settings, query=None: {
-            "top": top, "excluded": [], "overflow": overflow, "unread": [], "stats": {"read": 0},
+            "top": [{**card, "checklist": {"version": "checklist-v15"}} for card in top],
+            "excluded": [], "overflow": overflow, "unread": [], "stats": {"read": 0},
         },
     )
     monkeypatch.setattr("ts.live.annotate_scopes", lambda cards, settings: cards)
