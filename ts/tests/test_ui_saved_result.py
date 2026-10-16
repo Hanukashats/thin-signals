@@ -5,6 +5,8 @@ import httpx
 import pytest
 from streamlit.testing.v1 import AppTest
 
+from ts.checklist import CHECKLIST_VERSION
+
 ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -17,7 +19,7 @@ def saved_run(name="saved-card"):
             "technology": name,
             "label": "watchlist",
             "confidence": 0.4,
-            "checklist": {"status": "scored", "version": "checklist-v15"},
+            "checklist": {"status": "scored", "version": CHECKLIST_VERSION},
             "sources": [],
         }],
         "counters": {"admitted": 1, "sources": 0},
@@ -27,7 +29,9 @@ def saved_run(name="saved-card"):
 
 def response(payload):
     return httpx.Response(
-        200, json={"run": payload}, request=httpx.Request("GET", "http://saved.test/v1/runs/latest")
+        200,
+        json={"run": payload, "run_compatible": bool(payload), "issues": [], "revision": 1},
+        request=httpx.Request("GET", "http://saved.test/v1/workspace/latest"),
     )
 
 

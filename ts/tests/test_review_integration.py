@@ -8,9 +8,11 @@ import uuid
 from contextlib import nullcontext
 from dataclasses import replace
 from time import monotonic
+from unittest.mock import Mock
 
 import pytest
 
+from ts.checklist import CHECKLIST_VERSION
 from ts.harness import RunReport
 from ts.live import _review_bound_fingerprint, _run_wide, run_query
 from ts.llm import MANDATORY_PROVIDER_POLICY
@@ -123,6 +125,7 @@ def _card() -> dict:
     return {
         **CANDIDATE,
         "rules_version": "rules-0.1",
+        "checklist": {"version": CHECKLIST_VERSION, "status": "scored"},
         "sources": sources,
         "counter_sources": [],
         "evidence_fragments": rows,
@@ -595,6 +598,7 @@ def test_narrow_product_path_reviews_once_and_replay_does_not_call_roles(tmp_pat
     settings = _enabled(make_settings(tmp_path))
     gateway = AdaptiveGateway()
     stored = {}
+    session = Mock()
 
     monkeypatch.setattr(live, "annotate_checklist", lambda *_args, **_kwargs: {
         "top": [card], "excluded": [], "overflow": [], "unread": [], "stats": {},
@@ -609,8 +613,11 @@ def test_narrow_product_path_reviews_once_and_replay_does_not_call_roles(tmp_pat
     monkeypatch.setattr(
         live,
         "save_report",
-        lambda _session, report: stored.__setitem__(report.idempotency_key, public_report(report)),
+        lambda _session, report, **_kwargs: stored.__setitem__(
+            report.idempotency_key, public_report(report)
+        ),
     )
+    monkeypatch.setattr(live, "publish_run", lambda *_args: True)
     connector = Scripted("arxiv", [Hit(
         "arxiv", "https://arxiv.org/abs/2601.99999", "Review candidate",
         "prototype", "paper", doi="10.1234/review",
@@ -620,7 +627,7 @@ def test_narrow_product_path_reviews_once_and_replay_does_not_call_roles(tmp_pat
         "review integration query",
         settings=settings,
         connectors=[connector],
-        session_factory=lambda: nullcontext(None),
+        session_factory=lambda: nullcontext(session),
         _day="2026-10-13",
         _review_gateway=gateway,
     )
@@ -629,7 +636,7 @@ def test_narrow_product_path_reviews_once_and_replay_does_not_call_roles(tmp_pat
         "review integration query",
         settings=settings,
         connectors=[connector],
-        session_factory=lambda: nullcontext(None),
+        session_factory=lambda: nullcontext(session),
         _day="2026-10-13",
         _review_gateway=gateway,
     )
@@ -652,7 +659,7 @@ def test_wide_parent_is_reviewed_but_theme_children_are_not(tmp_path, monkeypatc
         "themes": [{"id": "a", "title": "Alpha", "query": "alpha cell"}],
     }
     monkeypatch.setattr(live, "load_report", lambda *_args: None)
-    monkeypatch.setattr(live, "save_report", lambda *_args: None)
+    monkeypatch.setattr(live, "save_report", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(live, "annotate_checklist", lambda *_args, **_kwargs: {
         "top": [card], "excluded": [], "overflow": [], "unread": [], "stats": {},
     })

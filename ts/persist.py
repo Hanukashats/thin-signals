@@ -500,7 +500,13 @@ def coordinated_report_session(factory, idempotency_key: str) -> Iterator[tuple[
                 release_report_lock(session, idempotency_key)
 
 
-def save_report(session: Session, report: RunReport, *, reserved: bool = False) -> str:
+def save_report(
+    session: Session,
+    report: RunReport,
+    *,
+    reserved: bool = False,
+    publish: bool = False,
+) -> str:
     # Serialize all persistence for one live candidate. This covers both the
     # idempotency key and the candidate's (origin, technology) uniqueness.
     session.execute(
@@ -517,6 +523,11 @@ def save_report(session: Session, report: RunReport, *, reserved: bool = False) 
     )
     if existing is not None and not finalizing_reservation:
         report.repeated = True
+        if publish:
+            from ts.workspace import publish_run
+
+            publish_run(session, existing.id)
+            session.commit()
         return existing.id
     candidate = session.scalar(
         select(Candidate).where(Candidate.origin == "live", Candidate.technology == report.query)
@@ -570,6 +581,9 @@ def save_report(session: Session, report: RunReport, *, reserved: bool = False) 
         predictors=report.card["predictors"],
         review_event_id=review_event_id,
     ))
+    if publish:
+        from ts.workspace import publish_run
+        publish_run(session, report.id)
     session.commit()
     return report.id
 
@@ -710,6 +724,12 @@ def public_report(report: RunReport) -> dict:
         "provider": report.provider,
         "review": public_review_trace(report),
         "rules_version": report.card["rules_version"],
+        "corpus_version": report.corpus_version,
+        "search_health": {
+            f"{name}_ok": sum(step.get("name") == name and step.get("status") == "ok"
+                              for step in report.steps)
+            for name in ("search", "countersearch")
+        },
         "chain_link": report.card.get("chain_link"),
         "fanout": report.fanout,
         "retrieval": {

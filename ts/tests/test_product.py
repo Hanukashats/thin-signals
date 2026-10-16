@@ -4,6 +4,7 @@ from __future__ import annotations
 from fastapi.testclient import TestClient
 
 from ts.api import create_app
+from ts.checklist import CHECKLIST_VERSION
 from ts.harness import Harness
 from ts.llm import ModelNotAllowed, OpenRouterClient
 from ts.persist import latest_finished, load_report, save_report
@@ -28,7 +29,10 @@ def test_second_query_does_not_search_again(tmp_path, monkeypatch):
 
     monkeypatch.setattr(
         "ts.live.annotate_checklist",
-        lambda top, overflow, settings, query=None: {"top": top, "excluded": [], "overflow": overflow, "unread": [], "stats": {}},
+        lambda top, overflow, settings, query=None: {
+            "top": [{**card, "checklist": {"version": CHECKLIST_VERSION}} for card in top],
+            "excluded": [], "overflow": overflow, "unread": [], "stats": {},
+        },
     )
     hit = Hit("arxiv", "https://arxiv.org/abs/77", "Quiet cell repeat", "grant", "paper", published="2026-02-02", doi="10.9/quiet")
     src = Scripted("arxiv", [hit])

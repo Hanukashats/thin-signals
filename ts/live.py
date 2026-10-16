@@ -67,6 +67,7 @@ from ts.sources.connectors import (
 )
 from ts.sources.refetch import fetch_public_target, refetch_public_url
 from ts.sources.researcher import GptResearcherConnector
+from ts.workspace import publish_run
 
 CORPUS = "live-w21"
 THEME_LOOKBACK_DAYS = 365
@@ -347,7 +348,7 @@ def _review_and_store_locked(
             evidence_provider=evidence_provider,
         )
         with factory() as session:
-            save_report(session, report)
+            save_report(session, report, publish=True)
             if report.repeated:
                 stored = load_report(session, report.idempotency_key)
                 if stored is not None:
@@ -381,9 +382,9 @@ def _review_and_store_locked(
                     evidence_provider=evidence_provider,
                 )
                 if reserved:
-                    save_report(session, report, reserved=True)
+                    save_report(session, report, reserved=True, publish=True)
                 else:
-                    save_report(session, report)
+                    save_report(session, report, publish=True)
             except Exception:
                 if not reserved:
                     raise
@@ -496,6 +497,10 @@ def run_query(query: str, *, limit: int = 3, extract: bool = False, settings: Se
         with _review_lock(key):
             stored = _settle_reserved_report(factory, key)
     if stored is not None:
+        if not _theme and stored.get("run_status") == "succeeded":
+            with factory() as session:
+                publish_run(session, stored["run_id"])
+                session.commit()
         stored["repeated"] = True
         return stored
     report = Harness(
@@ -589,6 +594,10 @@ def _run_wide(query, plan, *, limit, extract, settings, connectors, session_fact
         with _review_lock(key):
             stored = _settle_reserved_report(factory, key)
     if stored is not None:
+        if stored.get("run_status") == "succeeded":
+            with factory() as session:
+                publish_run(session, stored["run_id"])
+                session.commit()
         stored["repeated"] = True
         return stored
     raw_parts = []

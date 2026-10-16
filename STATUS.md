@@ -1,6 +1,26 @@
 # STATUS.md — Thin Signals LivingSet
 
-Delivery package deadline: **2026-09-29 23:59 MSK** · Plan revision: **7.8** (parent 7.7) · Reliability work performed: **2026-10-12…14**
+Delivery package deadline: **2026-09-29 23:59 MSK** · Plan revision: **7.9** (parent 7.8) · Reliability work performed: **2026-10-12…16**
+
+7.9 candidate adds a browser-local demonstration ledger. Reset and opening the
+pinned saved example send no HTTP and change no scientific history. Distinct
+viewed Run IDs and explicit archive submissions have separate local counters;
+exact replay and possible lower-level cache reuse are disclosed. Before an
+archive search, total 15 remains visible while old matches are locally hidden.
+Ten regression cases were preserved from the recovered implementation. The
+combined reliability integration passes **493/493** tests on a fresh migrated
+disposable database; its independent UI review is still pending. No live demo
+search or production integration is claimed.
+
+ADR-015 adds a shared PostgreSQL workspace pointer. Parent run
+publication is atomic, internal themes and total retrieval failure cannot
+replace the last good result. Archive search is persisted with optimistic
+revision checks and pinned archive identity; card selection remains local.
+Its original isolated-branch tests passed, and the reliability-line port passes
+the complete local suite, scoped Ruff, LivingSet links and the single-head
+migration check. It still requires fresh independent acceptance, backup,
+migration, deployment and restart evidence on VM232.
+The canonical rules/checklist and original Run.stats remain unchanged.
 
 Delivery verified: production runs the released three-module UI, including the
 `86b6840` caption and finalized typography/presentation. The replacement package

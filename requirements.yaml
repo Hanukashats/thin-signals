@@ -1,10 +1,10 @@
-# requirements.yaml — Thin Signals LivingSet v7.8
+# requirements.yaml — Thin Signals LivingSet v7.9
 # Each requirement: state, owner, acceptance, wave, evidence[].
 # States: proposed | planned | implemented | tested | accepted | blocked | removed
 # TS-AG-01..18 (7.1 goal_control) moved to docs/lineage/baseline_v6_1/integration/acceptance.json; only TS-AG-17 kept.
 
-plan_revision: "7.8"
-date: "2026-10-12"
+plan_revision: "7.9"
+date: "2026-10-16"
 
 requirements:
   # --- Living plan meta ---
@@ -687,3 +687,21 @@ requirements:
       - reports/ASTRA_C05_AUDIT_7E33E1A_2026-10-13.md
       - reports/ASTRA_C05_PASS_9F3A139_2026-10-13.md
       - reports/RELEASE_RELIABILITY_2026-10-14.md
+  # --- Shared three-module workspace candidate ---
+  - id: UI-STATE-01
+    title: Last completed shared result restores all three modules after refresh and restart
+    priority: P1
+    owner: frontend/backend
+    state: tested
+    wave: W4f-workspace
+    acceptance: Atomic parent-run publication; Potential uses the same immutable Run; explicit archive search is durable and revision-protected; failed transport and internal themes do not replace the shared result; fresh session restores all modules
+    evidence: [ts/workspace.py, ts/tests/test_workspace.py, ts/tests/test_workspace_ui.py, docs/adr/ADR-015-LATEST-WORKSPACE.md]
+
+  - id: UI-DEMO-01
+    title: Honest browser-local demonstration without rewriting scientific history
+    priority: P1
+    owner: frontend
+    state: tested
+    wave: W4g-demo-session
+    acceptance: Reset and saved-example opening make no HTTP calls; viewed Run IDs are distinct; archive submissions counted per successful explicit response; replay notice survives workspace GET; unsearched archive shows total 15 without old matches; immutable snapshots and normal autoload preserved
+    evidence: [ui/state.py, ui/app.py, ui/theme.py, ts/tests/test_demo_session.py, docs/plan/PLAN_7.9.md]

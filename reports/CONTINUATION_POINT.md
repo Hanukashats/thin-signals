@@ -1,5 +1,16 @@
 # CONTINUATION POINT — reliability verifier remediation, 2026-10-13
 
+## Shared workspace continuation
+
+LivingSet 7.9 selectively ports the recovered shared-workspace and browser-local
+demo candidate onto the verified reliability line at `18a67da`. ADR-015 and
+PLAN_7.9 replace the conflicting historical ADR-010/plan numbers. The original
+candidate passed 259 isolated-database tests and is preserved at `9f9e7ab` on
+both remotes. The combined port passes 493/493 tests on a fresh migrated
+disposable database plus scoped Ruff, LivingSet links and the single-head check.
+It still requires independent UI review, backup, migration and controlled VM232
+rollout before acceptance.
+
 ## Verified current state
 
 - Work is isolated on `feat/thin-signals-reliability-20261012`; production and

@@ -1,7 +1,7 @@
 # ARCHITECTURE.md — Thin Signals
 
-Revision: **7.8** · Date: **2026-10-12** · Living contract
-Основа: ADR-009 (harness-first) + ADR-010 (локальный research contour) + ADR-012 (reliability-first research loop); контракт объектов: `docs/PROCESSING_CONTRACT.md`; методика: `docs/METHODOLOGY.md`.
+Revision: **7.9** · Date: **2026-10-16** · Living contract
+Основа: ADR-009 (harness-first) + ADR-010 (локальный research contour) + ADR-012 (reliability-first research loop) + ADR-015 (shared latest workspace); контракт объектов: `docs/PROCESSING_CONTRACT.md`; методика: `docs/METHODOLOGY.md`.
 
 ## 1. Обзор
 
@@ -24,6 +24,20 @@ snapshot вместо DOI, когда upstream явно ставит `is_oa=true
 минимум исходного и фактически полученного источника.
 
 Один PostgreSQL 16 (+pgvector) — единственный источник истины фактов, runs и решений. Граф связей — таблицы `nodes`/`edges` в PG.
+
+ADR-015 добавляет singleton `workspace`: FK на завершённый Run и descriptor
+последнего архивного поиска. Run/Decision и публикация рабочего стола атомарны.
+Сохранение архива проверяет revision; чтение не пишет. Внутренние fanout-темы не
+публикуются. Возврат из кэша выбирает сохранённый Run без изменения его stats.
+`GET /v1/workspace/latest` возвращает три модуля одним snapshot;
+`POST /v1/workspace/archive` принимает query/families/expected_revision (409 при
+конфликте). Версии и hash архива проверяются без пересчёта научных решений.
+
+Демонстрационный сеанс живёт только в session_state: копия snapshot, различные
+открытые Run ID, число архивных отправок и notice происхождения. Reset и открытие
+примера не вызывают HTTP. Флаг repeated берётся из POST до GET проекции workspace.
+Обычный вход сохраняет автозагрузку; демо подавляет её до явного выбора. Черновики
+виджетов хранятся отдельно от временных ключей Streamlit и явно передаются клиенту.
 
 ## 2. Компоненты
 

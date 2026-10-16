@@ -236,7 +236,7 @@ def test_wide_run_calls_researcher_once_and_preserves_only_refetched_evidence(
             )]
 
     monkeypatch.setattr(live, "load_report", lambda *_args: None)
-    monkeypatch.setattr(live, "save_report", lambda *_args: None)
+    monkeypatch.setattr(live, "save_report", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(live, "_near_miss", lambda *_args, **_kwargs: [])
     monkeypatch.setattr(live, "_potential", lambda *_args, **_kwargs: [])
     monkeypatch.setattr(

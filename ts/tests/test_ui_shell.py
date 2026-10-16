@@ -85,7 +85,7 @@ def test_brand_uses_transparent_logo_and_compact_transparent_favicon():
 def test_large_diagnostic_sections_are_progressively_disclosed():
     text = (ROOT / "ui/app.py").read_text(encoding="utf-8")
 
-    assert "from theme import FAVICON_PATH, apply_theme, brand_header" in text
+    assert "from ui.theme import FAVICON_PATH, apply_theme, brand_header" in text
     assert "saved_run_state" in text
     assert "with st.expander(title)" in text
     assert 'with st.expander("Диагностика прогона")' in text

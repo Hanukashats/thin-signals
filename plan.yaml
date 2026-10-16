@@ -1,10 +1,12 @@
-# plan.yaml — Thin Signals LivingSet v7.8
-# Machine-readable waves. Human narrative: docs/plan/PLAN_7.8.md and its parent plans.
-# 7.8 repairs run truthfulness and authorizes a bounded research experiment; rules-0.1 stays immutable.
+# plan.yaml — Thin Signals LivingSet v7.9
+# Machine-readable waves. Human narrative: docs/plan/PLAN_7.9.md and its parent plans.
+# 7.9 selectively ports the shared workspace onto the verified reliability line.
 
-plan_revision: "7.8"
-parent_revision: "7.7"
-date: "2026-10-12"
+plan_revision: "7.9"
+parent_revision: "7.8"
+date: "2026-10-16"
+revision_reason: Recover shared three-module workspace and honest demo without regressing reliability
+revision_impact: Additive PostgreSQL workspace pointer and browser-local demo; scientific rules unchanged
 deadline: "2026-09-29T23:59:00+03:00"
 operator_stop: "2026-09-28T11:00:00+03:00"
 status: active
@@ -192,6 +194,20 @@ phases:
         requirements: [LLM-01, TS-INV-02, TS-INV-03, TZ-04, TZ-06, SC-12, UI-POT-01, UI-OLD-01]
         forks: [llm.provider, ui.stack]
         note: "No scoring weight, threshold, registry, schema or historic eval snapshot changes. Completion requires independent review and production smoke."
+      - id: W4f-workspace
+        status: in_progress
+        owner: codex
+        deliverables: ["ADR-015", "atomic shared workspace", "durable archive search", "fresh-session and restart verification"]
+        requirements: [UI-STATE-01, TZ-04, UI-POT-01, UI-OLD-01]
+        forks: [sot.store, ui.stack]
+        note: "Additive schema only. No GOAL activation, scoring change or new archive web research."
+      - id: W4g-demo-session
+        status: in_progress
+        owner: codex
+        deliverables: ["local demo ledger", "network-free reset and saved-example selection", "honest replay notice", "desktop/mobile verification"]
+        requirements: [UI-DEMO-01, UI-STATE-01, SC-12]
+        forks: [ui.stack]
+        note: "Browser presentation only. No reset endpoint, schema change, history deletion, cache invalidation or scientific relabeling."
 
   - id: P5
     name: Release

@@ -4,6 +4,7 @@ from __future__ import annotations
 import pytest
 from sqlalchemy import delete, select
 
+from ts.checklist import CHECKLIST_VERSION
 from ts.db.models import Candidate, Decision, Run
 from ts.fanout import (
     aggregate_theme_candidate,
@@ -436,7 +437,8 @@ def test_wide_query_searches_themes_and_a_repeat_does_not(monkeypatch):
     monkeypatch.setattr(
         "ts.live.annotate_checklist",
         lambda top, overflow, settings, query=None: order.append("checklist") or asked.append(query) or {
-            "top": top, "excluded": [], "overflow": overflow, "unread": [], "stats": {"read": 0},
+            "top": [{**card, "checklist": {"version": CHECKLIST_VERSION}} for card in top],
+            "excluded": [], "overflow": overflow, "unread": [], "stats": {"read": 0},
         },
     )
     monkeypatch.setattr(
@@ -488,7 +490,6 @@ def test_wide_query_searches_themes_and_a_repeat_does_not(monkeypatch):
         with factory() as session:
             mission_row = session.scalar(select(Run).where(Run.query == mission))
             theme_row = session.scalar(select(Run).where(Run.query == "zzfanout alpha battery cell"))
-            from ts.checklist import CHECKLIST_VERSION
             from ts.live import CORPUS
             assert mission_row.corpus_version == f"{CORPUS}+themes-test+{CHECKLIST_VERSION}"
             assert theme_row.corpus_version == CORPUS
@@ -589,7 +590,9 @@ def test_changed_wide_budget_does_not_reuse_a_deadline_failed_theme(monkeypatch)
     )
     monkeypatch.setattr(
         "ts.live.save_report",
-        lambda _session, report: stored.__setitem__(report.idempotency_key, public_report(report)),
+        lambda _session, report, **_kwargs: stored.__setitem__(
+            report.idempotency_key, public_report(report)
+        ),
     )
 
     class SlowFirst(_Echo):
@@ -651,7 +654,9 @@ def test_plan_revision_does_not_reuse_a_failed_theme_run(monkeypatch):
     )
     monkeypatch.setattr(
         "ts.live.save_report",
-        lambda _session, report: stored.__setitem__(report.idempotency_key, public_report(report)),
+        lambda _session, report, **_kwargs: stored.__setitem__(
+            report.idempotency_key, public_report(report)
+        ),
     )
 
     class Fails:
@@ -743,7 +748,7 @@ def test_wide_funnel_deduplicates_theme_events_and_keeps_child_exclusion(
     monkeypatch.setattr(
         live,
         "save_report",
-        lambda _session, report: saved.append(public_report(report)),
+        lambda _session, report, **_kwargs: saved.append(public_report(report)),
     )
     monkeypatch.setattr(live, "_near_miss", lambda *_args, **_kwargs: [])
     monkeypatch.setattr(live, "_potential", lambda *_args, **_kwargs: [])
@@ -873,7 +878,7 @@ def test_global_alias_bridge_deduplicates_admission_in_every_theme_order(
         monkeypatch.setattr(
             live,
             "save_report",
-            lambda _session, report, saved=saved: saved.append((
+            lambda _session, report, saved=saved, **_kwargs: saved.append((
                 public_report(report), report.events,
             )),
         )
@@ -929,7 +934,8 @@ def test_wide_run_is_fresh_each_utc_day_and_themes_ask_for_the_last_year(monkeyp
     monkeypatch.setattr(
         "ts.live.annotate_checklist",
         lambda top, overflow, settings, query=None: {
-            "top": top, "excluded": [], "overflow": overflow, "unread": [], "stats": {"read": 0},
+            "top": [{**card, "checklist": {"version": CHECKLIST_VERSION}} for card in top],
+            "excluded": [], "overflow": overflow, "unread": [], "stats": {"read": 0},
         },
     )
     monkeypatch.setattr("ts.live.annotate_scopes", lambda cards, settings: cards)

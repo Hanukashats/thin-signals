@@ -10,6 +10,7 @@ from datetime import date, datetime
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
     Boolean,
+    CheckConstraint,
     Date,
     DateTime,
     Float,
@@ -216,3 +217,15 @@ class ReviewEvent(Base):
     __table_args__ = (
         UniqueConstraint("run_id", "round", "sequence", name="uq_review_event_run_round_sequence"),
     )
+
+
+class Workspace(Base):
+    """One shared view of immutable runs and a sealed archive; not another run ledger."""
+
+    __tablename__ = "workspace"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    revision: Mapped[int] = mapped_column(Integer, default=0)
+    run_id: Mapped[str | None] = mapped_column(ForeignKey("runs.id", ondelete="SET NULL"))
+    archive: Mapped[dict] = mapped_column(JSONB, default=dict)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    __table_args__ = (CheckConstraint("id = 1", name="workspace_singleton"),)
